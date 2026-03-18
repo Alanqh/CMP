@@ -1,0 +1,29 @@
+<div class="page-header-wrapper">
+  <div class="page-header">
+    <h3 class="page-title">
+      <a id="orphan-back-btn" title="返回资源列表" style="cursor:pointer;color:var(--text-secondary);margin-right:8px;font-weight:400;text-decoration:none;transition:color .2s;" onmouseover="this.style.color='#1890ff'" onmouseout="this.style.color='var(--text-secondary)'">&larr;</a>未归组资源
+    </h3>
+  </div>
+</div>
+<div class="page-content">
+  <div class="page-content-inner">
+    <div class="ant-alert ant-alert-info" style="margin-bottom:16px;">
+      未归组资源包括：通过子账号在云上直接创建但未被平台管理的资源、组解散后上浮的资源，以及因其他原因脱离组归属的资源。由部门负责人统一分配到指定组。
+    </div>
+    <div class="filter-bar">
+      <div class="ant-input-search"><input id="orphan-search" placeholder="搜索资源名称/ID..." /><button class="ant-input-search-button">&#128269;</button></div>
+      <select class="ant-select" id="orphan-type-filter" style="min-width:140px;">
+        <option value="">全部类型</option>
+        <option value="ECS">ECS 云服务器</option>
+        <option value="RDS">RDS 云数据库</option>
+        <option value="Redis">Redis 缓存</option>
+        <option value="SLB">SLB 负载均衡</option>
+        <option value="Kafka">Kafka 消息队列</option>
+        <option value="ES">Elasticsearch</option>
+        <option value="OSS">OSS 对象存储</option>
+      </select>
+      <button class="ant-btn ant-btn-primary ant-btn-sm">批量分配</button>
+    </div>
+    <div id="orphan-table-container"></div>
+  </div>
+</div>

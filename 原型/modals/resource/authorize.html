@@ -1,0 +1,38 @@
+<div class="ant-modal-overlay" style="display:none;">
+  <div class="ant-modal" style="width:640px;">
+    <div class="ant-modal-header"><span id="authorize-title">资源授权</span> <button class="ant-modal-close">&times;</button></div>
+    <div class="ant-modal-body">
+      <div style="margin-bottom:16px;">
+        <div style="font-size:14px;font-weight:500;margin-bottom:12px;">当前授权列表</div>
+        <div id="authorize-list-container">
+          <table class="ant-table" id="authorize-table">
+            <thead><tr><th>被授权人</th><th>权限级别</th><th>授权时间</th><th>操作</th></tr></thead>
+            <tbody id="authorize-table-body"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="ant-divider"></div>
+      <div style="font-size:14px;font-weight:500;margin-bottom:12px;">添加授权</div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <select class="ant-select" id="authorize-user-select" style="min-width:160px;">
+          <option value="">选择用户</option>
+          <option value="张明远">张明远</option>
+          <option value="李思涵">李思涵</option>
+          <option value="赵天宇">赵天宇</option>
+          <option value="王浩然">王浩然</option>
+          <option value="刘佳琪">刘佳琪</option>
+          <option value="陈晓峰">陈晓峰</option>
+          <option value="周文博">周文博</option>
+        </select>
+        <select class="ant-select" id="authorize-perm-select" style="min-width:140px;">
+          <option value="developer">developer</option>
+          <option value="reporter">reporter</option>
+        </select>
+        <button class="ant-btn ant-btn-primary ant-btn-sm" id="authorize-add-btn">添加</button>
+      </div>
+    </div>
+    <div class="ant-modal-footer">
+      <button class="ant-btn" data-close-modal>关闭</button>
+    </div>
+  </div>
+</div>

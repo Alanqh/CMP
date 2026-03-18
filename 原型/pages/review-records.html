@@ -1,0 +1,20 @@
+<div class="page-header-wrapper">
+  <div class="page-header">
+    <h3 class="page-title">审核记录</h3>
+  </div>
+</div>
+<div class="page-content">
+  <div class="ant-card">
+    <div class="ant-card-body">
+      <div class="filter-bar">
+        <div class="ant-input-search"><input id="review-record-search" placeholder="搜索申请单号/标题..." /><button class="ant-input-search-button">&#128269;</button></div>
+        <select class="ant-select" id="review-record-status-filter" style="min-width:140px;">
+          <option value="">全部</option>
+          <option value="pending">待我审核</option>
+          <option value="done">已审核</option>
+        </select>
+      </div>
+      <div id="review-record-table-container"></div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,53 @@
+<div class="ant-modal-overlay" style="display:none;">
+  <div class="ant-modal" style="width:620px;">
+    <div class="ant-modal-header"><span id="catalog-type-title">新增资源类型</span> <button class="ant-modal-close">&times;</button></div>
+    <div class="ant-modal-body">
+      <div class="ant-form-item">
+        <div class="ant-form-label"><span class="required">*</span>所属大类</div>
+        <div class="ant-form-control"><input class="ant-input" id="catalog-type-category" disabled style="background:#f5f5f5;" /></div>
+      </div>
+      <div class="ant-form-item">
+        <div class="ant-form-label"><span class="required">*</span>资源类型名称</div>
+        <div class="ant-form-control"><input class="ant-input" id="catalog-type-name" placeholder="例如：ECS 云服务器" /></div>
+      </div>
+      <div class="ant-form-item">
+        <div class="ant-form-label"><span class="required">*</span>云厂商</div>
+        <div class="ant-form-control">
+          <select class="ant-select" id="catalog-type-vendor" style="width:100%;max-width:200px;">
+            <option value="阿里云">阿里云</option>
+          </select>
+        </div>
+      </div>
+      <div class="ant-form-item">
+        <div class="ant-form-label">云上查询接口</div>
+        <div class="ant-form-control"><input class="ant-input" id="catalog-type-query-api" placeholder="例如：DescribeInstances" style="max-width:360px;" /></div>
+      </div>
+      <div class="ant-form-item">
+        <div class="ant-form-label">支持操作</div>
+        <div class="ant-form-control">
+          <div class="ant-checkbox-group" id="catalog-type-ops-group">
+            <label class="ant-checkbox-wrapper"><input type="checkbox" value="申请" /> 申请</label>
+            <label class="ant-checkbox-wrapper"><input type="checkbox" value="变配" /> 变配</label>
+            <label class="ant-checkbox-wrapper"><input type="checkbox" value="扩容" /> 扩容</label>
+            <label class="ant-checkbox-wrapper"><input type="checkbox" value="缩容" /> 缩容</label>
+            <label class="ant-checkbox-wrapper"><input type="checkbox" value="重启" /> 重启</label>
+            <label class="ant-checkbox-wrapper"><input type="checkbox" value="销毁" /> 销毁</label>
+            <label class="ant-checkbox-wrapper"><input type="checkbox" value="续费" /> 续费</label>
+            <label class="ant-checkbox-wrapper"><input type="checkbox" value="同步" /> 同步</label>
+          </div>
+        </div>
+      </div>
+      <div class="ant-form-item">
+        <div class="ant-form-label">需要审批的操作</div>
+        <div class="ant-form-control">
+          <div class="ant-checkbox-group" id="catalog-type-approval-ops-group"></div>
+          <div class="ant-form-extra">从上方已选操作中选择需要走审批流程的（同步操作除外）</div>
+        </div>
+      </div>
+    </div>
+    <div class="ant-modal-footer">
+      <button class="ant-btn" data-close-modal>取消</button>
+      <button class="ant-btn ant-btn-primary">确定</button>
+    </div>
+  </div>
+</div>

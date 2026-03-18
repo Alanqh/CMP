@@ -1,0 +1,57 @@
+[
+  {
+    "id": "k8s-manage",
+    "name": "K8s集群管理权限",
+    "color": "blue",
+    "description": "Kubernetes 集群全生命周期管理，含节点伸缩、工作负载部署、Service/Ingress 配置",
+    "policies": [
+      "AliyunCSFullAccess",
+      "AliyunECSFullAccess",
+      "AliyunVPCFullAccess",
+      "AliyunSLBFullAccess",
+      "AliyunCRFullAccess",
+      "AliyunLogFullAccess",
+      "AliyunARMSFullAccess",
+      "AliyunCloudMonitorFullAccess"
+    ]
+  },
+  {
+    "id": "ecs-ops",
+    "name": "ECS操作权限",
+    "color": "cyan",
+    "description": "ECS 实例日常运维操作，含启停、变配、磁盘管理、安全组配置，不含 RAM 和计费",
+    "policies": [
+      "AliyunECSFullAccess",
+      "AliyunVPCReadOnlyAccess",
+      "AliyunESSFullAccess",
+      "AliyunCloudMonitorFullAccess",
+      "AliyunBSSReadOnlyAccess"
+    ]
+  },
+  {
+    "id": "admin",
+    "name": "管理员权限",
+    "color": "red",
+    "description": "完整管理员权限，含所有云产品操作、RAM 策略管理、计费与审计，仅限部门负责人申请",
+    "policies": [
+      "AdministratorAccess",
+      "AliyunRAMFullAccess",
+      "AliyunBSSFullAccess",
+      "AliyunActionTrailFullAccess"
+    ]
+  },
+  {
+    "id": "mysql-manage",
+    "name": "MySQL管理权限",
+    "color": "orange",
+    "description": "RDS MySQL 实例管理，含创建/变配/备份/恢复/账号管理，适用于 DBA 或后端开发",
+    "policies": [
+      "AliyunRDSFullAccess",
+      "AliyunDMSFullAccess",
+      "AliyunDTSFullAccess",
+      "AliyunDBSFullAccess",
+      "AliyunCloudMonitorReadOnlyAccess",
+      "AliyunVPCReadOnlyAccess"
+    ]
+  }
+]

@@ -1,0 +1,27 @@
+<div class="page-header-wrapper">
+  <div class="page-header">
+    <h3 class="page-title">申请记录</h3>
+  </div>
+</div>
+<div class="page-content">
+  <div class="ant-card">
+    <div class="ant-card-body">
+      <div class="filter-bar">
+        <div class="ant-input-search"><input id="apply-record-search" placeholder="搜索申请单号/标题..." /><button class="ant-input-search-button">&#128269;</button></div>
+        <select class="ant-select" id="apply-record-status-filter" style="min-width:120px;">
+          <option value="">全部状态</option>
+          <option value="审批中">审批中</option>
+          <option value="已通过">已通过</option>
+          <option value="已驳回">已驳回</option>
+          <option value="已撤回">已撤回</option>
+        </select>
+        <select class="ant-select" id="apply-record-type-filter" style="min-width:140px;">
+          <option value="">全部类型</option>
+          <option value="resource">资源操作</option>
+          <option value="subaccount">子账号申请</option>
+        </select>
+      </div>
+      <div id="apply-record-table-container"></div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep:*)",
+      "Bash(find:*)",
+      "Bash(cd:*)",
+      "Bash(curl:*)",
+      "Bash(node:*)",
+      "Bash(find '/c/Users/qinghualv/Documents/Obsidian Vault/需求设计SOHU/CMP/原型/modals' -name *.html -exec sh -c 'awk \"\"\"\"length > 200 {print FILENAME \\\\\"\"\"\":\\\\\"\"\"\" NR \\\\\"\"\"\":\\\\\"\"\"\" \\\\$0}\"\"\"\" \"\"\"\"$1\"\"\"\"' _ {})",
+      "Bash(2)",
+      "Bash(gh auth:*)"
+    ]
+  }
+}

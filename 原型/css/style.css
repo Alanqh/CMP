@@ -1,0 +1,587 @@
+/*
+ * 设计规范来源: template/src/constants.ts + global.module.css
+ * --primary-color: #1890ff (ANTD_V4_THEME.token.colorPrimary)
+ * --border-radius: 0 (ANTD_V4_THEME.token.borderRadius)
+ * --main-content-background: #f2f6f9
+ * --top-nav-height: 48px
+ * --base-padding: 8px
+ * --main-content-margin: 16px
+ * font: PingFangSC, helvetica neue, hiragino sans gb, arial, microsoft yahei ui, microsoft yahei, simsun, sans-serif
+ * componentSize: middle
+ * Sider: theme="dark" (Ant Design dark = #001529)
+ * Table fontWeightStrong: 500
+ * DEFAULT_DATE_FORMAT: YYYY/MM/DD HH:mm:ss
+ * EMPTY_PLACE_HOLDER: "--"
+ * DEFAULT_GUTTER: 16
+ */
+
+:root {
+  --primary-color: #1890ff;
+  --primary-hover: #40a9ff;
+  --primary-active: #096dd9;
+  --top-nav-height: 48px;
+  --base-padding: 8px;
+  --main-content-margin: 16px;
+  --main-content-background: #f2f6f9;
+  --border-radius: 0px;
+  --sider-width: 200px;
+  --sider-collapsed-width: 80px;
+  --sider-bg: #001529;
+  --sider-menu-item-active-bg: #1890ff;
+  --text-color: rgba(0,0,0,0.85);
+  --text-secondary: rgba(0,0,0,0.45);
+  --border-color: #f0f0f0;
+  --table-header-bg: #fafafa;
+  --gutter: 16px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { width: 100%; height: 100%; overflow: hidden; }
+body {
+  font-family: "PingFangSC","helvetica neue","hiragino sans gb","arial","microsoft yahei ui","microsoft yahei","simsun","sans-serif";
+  background: var(--main-content-background);
+  color: var(--text-color);
+  font-size: 14px;
+  line-height: 1.5715;
+}
+
+/* ===== 整体布局 (Ant Design Layout) ===== */
+.ant-layout { display: flex; width: 100%; height: 100%; flex-direction: column; }
+.ant-layout-has-sider { flex-direction: row; }
+
+/* ===== Panther 平台顶栏 (由 vite-plugin-panther 注入) ===== */
+.panther-topbar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+  height: var(--top-nav-height); background: #001529;
+  display: flex; align-items: center;
+  padding: 0 16px; color: rgba(255,255,255,0.65); font-size: 14px;
+  user-select: none;
+}
+.panther-topbar-left { display: flex; align-items: center; gap: 0; }
+.panther-logo {
+  display: flex; align-items: center; gap: 8px;
+  padding: 0 16px 0 4px; height: 48px; cursor: pointer;
+}
+.panther-logo svg { width: 24px; height: 24px; }
+.panther-logo-text { color: #fff; font-weight: 600; font-size: 16px; letter-spacing: 0.5px; }
+.panther-topbar-divider {
+  width: 1px; height: 20px; background: rgba(255,255,255,0.15);
+  margin: 0 12px;
+}
+.panther-nav-item {
+  height: 48px; line-height: 48px; padding: 0 12px;
+  color: rgba(255,255,255,0.65); cursor: pointer; font-size: 14px;
+  transition: color .2s; position: relative; white-space: nowrap;
+}
+.panther-nav-item:hover { color: rgba(255,255,255,0.9); }
+.panther-nav-item.active { color: #fff; }
+.panther-nav-item.active::after {
+  content: ''; position: absolute; bottom: 0; left: 12px; right: 12px;
+  height: 2px; background: var(--primary-color);
+}
+.panther-search {
+  display: flex; align-items: center; margin-left: 16px;
+  background: rgba(255,255,255,0.08); border-radius: 4px;
+  padding: 0 10px; height: 28px; gap: 6px; cursor: pointer;
+  transition: background .2s;
+}
+.panther-search:hover { background: rgba(255,255,255,0.15); }
+.panther-search-icon { color: rgba(255,255,255,0.45); font-size: 12px; }
+.panther-search-text { color: rgba(255,255,255,0.35); font-size: 12px; }
+.panther-topbar-right { display: flex; align-items: center; gap: 0; margin-left: auto; }
+.panther-icon-btn {
+  width: 48px; height: 48px; display: flex; align-items: center; justify-content: center;
+  color: rgba(255,255,255,0.55); cursor: pointer; font-size: 16px;
+  transition: color .2s; position: relative;
+}
+.panther-icon-btn:hover { color: rgba(255,255,255,0.9); }
+.panther-icon-btn .icon-badge {
+  position: absolute; top: 10px; right: 10px;
+  width: 6px; height: 6px; background: #ff4d4f; border-radius: 50%;
+}
+.panther-user-info {
+  display: flex; align-items: center; gap: 8px; padding: 0 8px;
+  height: 48px; cursor: pointer; color: rgba(255,255,255,0.65);
+  transition: color .2s;
+}
+.panther-user-info:hover { color: #fff; }
+.panther-avatar {
+  width: 28px; height: 28px; border-radius: 50%; background: #1890ff;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: 12px; font-weight: 500;
+}
+.panther-username { font-size: 14px; }
+
+/* ===== 侧边栏 (Ant Design Sider theme=dark) ===== */
+.ant-layout-sider {
+  width: var(--sider-width); min-width: var(--sider-width); max-width: var(--sider-width);
+  background: var(--sider-bg);
+  position: fixed; left: 0; top: var(--top-nav-height); bottom: 0;
+  overflow-y: auto; z-index: 100;
+  display: flex; flex-direction: column;
+}
+.sider-title {
+  display: block; line-height: 48px; padding-left: 24px;
+  font-size: 16px; color: #fff; font-weight: 500;
+  border-bottom: 1px solid hsla(0,0%,100%,0.45);
+  white-space: nowrap;
+}
+
+/* Ant Design Menu dark */
+.ant-menu-dark { background: var(--sider-bg); padding: 4px 0; }
+.ant-menu-dark .menu-group-title {
+  padding: 12px 16px 8px 24px; font-size: 14px;
+  color: rgba(255,255,255,0.85); line-height: 1.5;
+  font-weight: 500; gap: 8px;
+}
+.ant-menu-dark .menu-group-icon {
+  font-size: 15px; width: 16px; text-align: center; flex-shrink: 0;
+}
+.ant-menu-dark .menu-item {
+  height: 40px; line-height: 40px; padding: 0 16px 0 36px;
+  color: rgba(255,255,255,0.65); cursor: pointer; font-size: 14px;
+  display: flex; align-items: center; gap: 10px;
+  transition: all .3s; margin: 0;
+  border-radius: var(--border-radius);
+}
+.ant-menu-dark .menu-item:hover { color: #fff; }
+.ant-menu-dark .menu-item.active {
+  background: var(--sider-menu-item-active-bg); color: #fff;
+}
+.ant-menu-dark .menu-item .menu-icon { width: 14px; font-size: 14px; opacity: .85; }
+
+/* Collapsible menu groups */
+.ant-menu-dark .menu-group-toggle {
+  cursor: pointer; user-select: none; display: flex; align-items: center;
+  justify-content: space-between;
+}
+.ant-menu-dark .menu-group-toggle:hover { color: #fff; }
+.ant-menu-dark .menu-group-arrow {
+  display: inline-block; font-size: 12px; transition: transform .25s;
+  color: rgba(255,255,255,0.45); margin-left: auto; flex-shrink: 0;
+}
+.ant-menu-dark .menu-group-toggle.expanded .menu-group-arrow { transform: rotate(90deg); }
+.ant-menu-dark .menu-submenu {
+  overflow: hidden; max-height: 200px; transition: max-height .25s ease-out;
+}
+.ant-menu-dark .menu-submenu.collapsed { max-height: 0; }
+
+/* ===== 右侧内容 ===== */
+.ant-layout-content-wrapper {
+  position: fixed; left: var(--sider-width); top: var(--top-nav-height);
+  right: 0; bottom: 0;
+  display: flex; flex-direction: column;
+  background: var(--main-content-background);
+  overflow-y: auto;
+}
+
+/* 页面头部 (Wrapper headerWrapper) */
+.page-header-wrapper {
+  background: #fff;
+  padding: 16px 16px 0 16px;
+}
+.page-header {
+  display: flex; justify-content: space-between; align-items: center;
+  gap: 24px;
+}
+.page-header .page-title {
+  font-size: 16px; font-weight: 500; margin: 0; line-height: 2;
+  color: var(--text-color);
+}
+.page-header-wrapper .page-header:last-child { padding-bottom: 16px; }
+
+/* Tabs (Ant Design Tabs) */
+.ant-tabs {
+  border-bottom: 1px solid var(--border-color);
+  margin: 0;
+}
+.ant-tabs-nav { display: flex; gap: 0; }
+.ant-tabs-tab {
+  padding: 12px 0; margin: 0 32px 0 0;
+  cursor: pointer; font-size: 14px; color: var(--text-color);
+  border-bottom: 2px solid transparent; transition: all .3s;
+  display: inline-block;
+}
+.ant-tabs-tab:hover { color: var(--primary-color); }
+.ant-tabs-tab.active {
+  color: var(--primary-color); border-bottom-color: var(--primary-color);
+  font-weight: 500;
+}
+
+/* 内容区 (Wrapper content) */
+.page-content {
+  margin: var(--main-content-margin);
+  background: #fff;
+  min-height: 300px;
+}
+.page-content-transparent {
+  margin: var(--main-content-margin);
+  background: transparent;
+}
+/* 组织架构页：让左侧树卡片铺满底部 */
+.page-content-transparent .split-layout {
+  min-height: calc(100vh - var(--top-nav-height) - 90px);
+}
+.page-content-transparent .split-left {
+  display: flex; flex-direction: column;
+}
+.page-content-transparent .split-left > .ant-card {
+  flex: 1; display: flex; flex-direction: column;
+}
+.page-content-transparent .split-left > .ant-card > .ant-card-body {
+  flex: 1; overflow-y: auto;
+}
+.page-content-inner { padding: var(--gutter); }
+
+/* ===== Ant Design Table ===== */
+.ant-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.ant-table th {
+  background: var(--table-header-bg);
+  text-align: left; padding: 12px 16px;
+  font-weight: 500; color: var(--text-color);
+  border-bottom: 1px solid var(--border-color);
+  font-size: 14px; white-space: nowrap;
+}
+.ant-table td {
+  padding: 12px 16px; border-bottom: 1px solid var(--border-color);
+  color: var(--text-color);
+}
+.ant-table tr:hover td { background: #fafafa; }
+.ant-table .check-col { width: 48px; text-align: center; }
+.ant-table input[type="checkbox"] { accent-color: var(--primary-color); }
+
+/* ===== Ant Design Button ===== */
+.ant-btn {
+  height: 32px; padding: 4px 15px; font-size: 14px;
+  border-radius: var(--border-radius); cursor: pointer;
+  border: 1px solid #d9d9d9; background: #fff;
+  color: var(--text-color);
+  display: inline-flex; align-items: center; gap: 4px;
+  transition: all .3s; line-height: 1.5715;
+}
+.ant-btn:hover { color: var(--primary-color); border-color: var(--primary-color); }
+.ant-btn-primary {
+  background: var(--primary-color); color: #fff; border-color: var(--primary-color);
+}
+.ant-btn-primary:hover { background: var(--primary-hover); border-color: var(--primary-hover); }
+.ant-btn-danger { color: #ff4d4f; border-color: #ff4d4f; }
+.ant-btn-danger:hover { color: #ff7875; border-color: #ff7875; }
+.ant-btn-link {
+  border: none; background: none; color: var(--primary-color);
+  padding: 0 4px; height: auto;
+}
+.ant-btn-link:hover { color: var(--primary-hover); }
+.ant-btn-sm { height: 24px; padding: 0 7px; font-size: 14px; }
+.btn-group { display: flex; gap: 8px; align-items: center; }
+
+/* ===== Ant Design Input ===== */
+.ant-input {
+  height: 32px; padding: 4px 11px; font-size: 14px;
+  border: 1px solid #d9d9d9; border-radius: var(--border-radius);
+  color: var(--text-color); outline: none; transition: border-color .3s;
+  width: 100%; max-width: 360px;
+}
+.ant-input:hover { border-color: var(--primary-color); }
+.ant-input:focus { border-color: var(--primary-color); box-shadow: 0 0 0 2px rgba(24,144,255,0.2); }
+.ant-input::placeholder { color: #bfbfbf; }
+
+.ant-select {
+  height: 32px; padding: 0 11px; font-size: 14px;
+  border: 1px solid #d9d9d9; border-radius: var(--border-radius);
+  color: var(--text-color); outline: none; background: #fff;
+  min-width: 180px; transition: border-color .3s;
+}
+.ant-select:hover { border-color: var(--primary-color); }
+
+.ant-textarea {
+  padding: 4px 11px; font-size: 14px; font-family: inherit;
+  border: 1px solid #d9d9d9; border-radius: var(--border-radius);
+  color: var(--text-color); outline: none; resize: vertical;
+  width: 100%; max-width: 480px; min-height: 80px;
+  transition: border-color .3s;
+}
+.ant-textarea:hover { border-color: var(--primary-color); }
+.ant-textarea:focus { border-color: var(--primary-color); box-shadow: 0 0 0 2px rgba(24,144,255,0.2); }
+
+/* ===== Ant Design Tag ===== */
+.ant-tag {
+  display: inline-block; padding: 0 7px; font-size: 12px;
+  line-height: 20px; border-radius: var(--border-radius);
+  border: 1px solid #d9d9d9; background: #fafafa; color: var(--text-color);
+  white-space: nowrap;
+}
+.ant-tag-blue { color: #1890ff; background: #e6f7ff; border-color: #91d5ff; }
+.ant-tag-orange { color: #fa8c16; background: #fff7e6; border-color: #ffd591; }
+.ant-tag-red { color: #ff4d4f; background: #fff1f0; border-color: #ffa39e; }
+.ant-tag-green { color: #52c41a; background: #f6ffed; border-color: #b7eb8f; }
+.ant-tag-cyan { color: #13c2c2; background: #e6fffb; border-color: #87e8de; }
+.ant-tag-purple { color: #722ed1; background: #f9f0ff; border-color: #d3adf7; }
+.ant-tag-default { color: rgba(0,0,0,0.85); background: #fafafa; border-color: #d9d9d9; }
+
+/* ===== Ant Design Badge / Status ===== */
+.ant-badge-status-dot {
+  display: inline-block; width: 6px; height: 6px;
+  border-radius: 50%; margin-right: 8px; vertical-align: middle;
+}
+.ant-badge-status-success { background: #52c41a; }
+.ant-badge-status-processing { background: #1890ff; }
+.ant-badge-status-warning { background: #faad14; }
+.ant-badge-status-error { background: #ff4d4f; }
+.ant-badge-status-default { background: #d9d9d9; }
+
+/* ===== Form ===== */
+.ant-form-item {
+  display: flex; align-items: flex-start; margin-bottom: 24px;
+}
+.ant-form-label {
+  width: 120px; flex-shrink: 0; text-align: right; white-space: nowrap;
+  padding-right: 12px; line-height: 32px; color: var(--text-color);
+  font-size: 14px;
+}
+.ant-form-label .required { color: #ff4d4f; margin-right: 4px; }
+.ant-form-control { flex: 1; }
+.ant-form-extra { color: var(--text-secondary); font-size: 14px; margin-top: 4px; line-height: 1.5; }
+
+/* ===== Card ===== */
+.ant-card {
+  background: #fff; border: 1px solid var(--border-color);
+  border-radius: var(--border-radius); margin-bottom: var(--gutter);
+}
+.ant-card-head {
+  padding: 0 16px; min-height: 48px; border-bottom: 1px solid var(--border-color);
+  display: flex; align-items: center; justify-content: space-between;
+  font-size: 16px; font-weight: 500; color: var(--text-color);
+}
+.ant-card-body { padding: 16px; }
+
+/* ===== Alert ===== */
+.ant-alert {
+  padding: 8px 15px; font-size: 14px; line-height: 1.5715;
+  border-radius: var(--border-radius); margin-bottom: var(--gutter);
+  border: 1px solid; display: flex; gap: 8px;
+}
+.ant-alert-info { background: #e6f7ff; border-color: #91d5ff; color: rgba(0,0,0,0.85); }
+.ant-alert-warning { background: #fffbe6; border-color: #ffe58f; color: rgba(0,0,0,0.85); }
+
+/* ===== Statistic Cards ===== */
+.stat-row { display: flex; gap: var(--gutter); margin-bottom: var(--gutter); }
+.stat-card {
+  flex: 1; background: #fff; border: 1px solid var(--border-color);
+  border-radius: var(--border-radius); padding: 16px 24px;
+}
+.stat-card .stat-value { font-size: 24px; font-weight: 500; color: var(--text-color); }
+.stat-card .stat-label { font-size: 14px; color: var(--text-secondary); margin-top: 4px; }
+
+/* ===== Pagination ===== */
+.ant-pagination {
+  display: flex; align-items: center; justify-content: flex-end;
+  gap: 4px; padding: 16px; font-size: 14px;
+}
+.ant-pagination-info { color: var(--text-secondary); margin-right: 8px; }
+.ant-pagination-item {
+  min-width: 32px; height: 32px; border: 1px solid #d9d9d9;
+  border-radius: var(--border-radius); background: #fff;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; font-size: 14px; color: var(--text-color);
+}
+.ant-pagination-item:hover { border-color: var(--primary-color); color: var(--primary-color); }
+.ant-pagination-item.active { background: var(--primary-color); color: #fff; border-color: var(--primary-color); }
+
+/* ===== Tree ===== */
+.ant-tree { padding: 4px 0; }
+.ant-tree-node { padding: 0; }
+.ant-tree-node-content {
+  display: flex; align-items: center; padding: 6px 8px;
+  cursor: pointer; transition: background .3s; gap: 8px; font-size: 14px;
+}
+.ant-tree-node-content:hover { background: #e6f7ff; }
+.ant-tree-node-content.selected { background: #e6f7ff; color: var(--primary-color); }
+.ant-tree-switcher { width: 20px; text-align: center; font-size: 10px; color: rgba(0,0,0,0.45); flex-shrink: 0; cursor: pointer; }
+.ant-tree-icon { font-size: 14px; color: rgba(0,0,0,0.45); }
+.ant-tree-title { flex: 1; }
+.ant-tree-extra { font-size: 12px; color: var(--text-secondary); }
+.ant-tree-children { padding-left: 24px; }
+
+/* ===== Search ===== */
+.ant-input-search {
+  display: inline-flex; align-items: center;
+  border: 1px solid #d9d9d9; border-radius: var(--border-radius);
+  overflow: hidden; background: #fff; height: 32px;
+}
+.ant-input-search input {
+  border: none; padding: 4px 11px; font-size: 14px; outline: none;
+  width: 200px; height: 100%;
+  font-family: inherit;
+}
+.ant-input-search .ant-input-search-button {
+  padding: 0 11px; background: #fafafa; border: none; border-left: 1px solid #d9d9d9;
+  cursor: pointer; height: 100%; color: rgba(0,0,0,0.45); font-size: 14px;
+}
+.ant-input-search .ant-input-search-button:hover { color: var(--primary-color); }
+
+/* ===== Filter Bar ===== */
+.filter-bar { display: flex; align-items: center; gap: 8px; margin-bottom: var(--gutter); flex-wrap: wrap; }
+
+/* ===== Modal ===== */
+.ant-modal-overlay {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.45); z-index: 1000;
+  display: flex; align-items: center; justify-content: center;
+}
+.ant-modal {
+  background: #fff; border-radius: var(--border-radius); width: 520px; max-height: 80vh;
+  overflow-y: auto; box-shadow: 0 3px 6px -4px rgba(0,0,0,0.12), 0 6px 16px 0 rgba(0,0,0,0.08);
+}
+.ant-modal-header {
+  padding: 16px 24px; border-bottom: 1px solid var(--border-color);
+  font-size: 16px; font-weight: 500;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.ant-modal-close { cursor: pointer; font-size: 16px; color: rgba(0,0,0,0.45); background: none; border: none; }
+.ant-modal-close:hover { color: rgba(0,0,0,0.75); }
+.ant-modal-body { padding: 24px; }
+.ant-modal-footer {
+  padding: 10px 16px; border-top: 1px solid var(--border-color);
+  display: flex; justify-content: flex-end; gap: 8px;
+}
+
+/* ===== Steps ===== */
+.ant-steps { display: flex; align-items: center; margin-bottom: 24px; }
+.ant-step { display: flex; align-items: center; gap: 8px; }
+.ant-step-icon {
+  width: 32px; height: 32px; border-radius: 32px;
+  border: 1px solid #d9d9d9; background: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; color: rgba(0,0,0,0.25);
+}
+.ant-step.active .ant-step-icon { background: var(--primary-color); border-color: var(--primary-color); color: #fff; }
+.ant-step.done .ant-step-icon { background: var(--primary-color); border-color: var(--primary-color); color: #fff; }
+.ant-step-title { font-size: 14px; color: rgba(0,0,0,0.45); }
+.ant-step.active .ant-step-title { color: var(--text-color); font-weight: 500; }
+.ant-step.done .ant-step-title { color: var(--text-color); }
+.ant-step-tail { flex: 1; height: 1px; background: #d9d9d9; margin: 0 12px; }
+.ant-step-tail.done { background: var(--primary-color); }
+
+/* ===== Permission Matrix ===== */
+.perm-matrix { width: 100%; border-collapse: collapse; font-size: 14px; }
+.perm-matrix th { background: var(--table-header-bg); padding: 12px; text-align: center; border: 1px solid var(--border-color); font-weight: 500; }
+.perm-matrix td { padding: 12px; text-align: center; border: 1px solid var(--border-color); }
+.perm-matrix td:first-child { text-align: left; background: var(--table-header-bg); }
+
+/* Permission Module Groups (角色权限配置) */
+.perm-module-group { border: 1px solid var(--border-color); border-radius: 4px; margin-bottom: 8px; }
+.perm-module-header { padding: 8px 12px; background: var(--table-header-bg); border-bottom: 1px solid var(--border-color); }
+.perm-module-header strong { font-weight: 500; }
+.perm-module-points { padding: 8px 12px 8px 32px; display: flex; flex-wrap: wrap; gap: 4px 16px; }
+.perm-module-points .ant-checkbox-wrapper { min-width: 70px; }
+
+/* ===== Descriptions ===== */
+.ant-descriptions { font-size: 14px; }
+.ant-descriptions-row { display: flex; border-bottom: 1px solid var(--border-color); }
+.ant-descriptions-row:last-child { border-bottom: none; }
+.ant-descriptions-label {
+  width: 140px; flex-shrink: 0; padding: 10px 16px;
+  background: var(--table-header-bg); color: var(--text-color);
+  text-align: right; font-weight: normal; white-space: nowrap;
+}
+.ant-descriptions-content { flex: 1; padding: 10px 16px; word-break: break-all; }
+.ant-descriptions-content .ant-tag { margin-bottom: 2px; }
+
+/* ===== Org Overflow Popover ===== */
+.org-overflow-trigger {
+  position: relative; display: inline-block; cursor: pointer;
+  color: var(--primary-color); font-size: 13px; vertical-align: middle;
+}
+.org-overflow-trigger:hover { color: var(--primary-hover); text-decoration: underline; }
+.org-overflow-popover {
+  display: none; position: absolute; left: 0; top: 100%; z-index: 1050;
+  min-width: 240px; max-width: 420px; padding: 12px 16px;
+  background: #fff; border-radius: 4px;
+  box-shadow: 0 3px 6px -4px rgba(0,0,0,.12), 0 6px 16px 0 rgba(0,0,0,.08), 0 9px 28px 8px rgba(0,0,0,.05);
+  margin-top: 4px;
+}
+.org-overflow-trigger:hover .org-overflow-popover { display: block; }
+.org-overflow-popover .ant-tag { margin: 2px 4px 2px 0; }
+.org-overflow-popover-title {
+  display: block; font-size: 13px; color: var(--text-secondary);
+  margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid var(--border-color);
+}
+
+/* ===== Divider ===== */
+.ant-divider { border-top: 1px solid var(--border-color); margin: 16px 0; }
+
+/* ===== Split Layout ===== */
+.split-layout { display: flex; gap: var(--gutter); }
+.split-left { width: 280px; flex-shrink: 0; }
+.split-right { flex: 1; min-width: 0; }
+
+/* ===== Page visibility ===== */
+.page { display: none; }
+.page.active { display: block; }
+
+/* ===== Empty ===== */
+.ant-empty { text-align: center; padding: 48px; color: var(--text-secondary); }
+.ant-empty-icon { font-size: 48px; margin-bottom: 8px; color: #d9d9d9; }
+
+/* ===== Radio / Checkbox Ant style ===== */
+input[type="checkbox"], input[type="radio"] { accent-color: var(--primary-color); }
+.ant-radio-group, .ant-checkbox-group { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+.ant-radio-wrapper, .ant-checkbox-wrapper {
+  display: inline-flex; align-items: center; gap: 4px;
+  cursor: pointer; font-size: 14px; color: var(--text-color);
+}
+
+/* ===== 行内链接 ===== */
+a, .link { color: var(--primary-color); text-decoration: none; cursor: pointer; }
+a:hover, .link:hover { color: var(--primary-hover); }
+
+/* ===== Toggle Switch ===== */
+.toggle-switch {
+  position: relative; display: inline-block; width: 36px; height: 20px; vertical-align: middle;
+}
+.toggle-switch input { opacity: 0; width: 0; height: 0; }
+.toggle-slider {
+  position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+  background: #ccc; border-radius: 20px; transition: .2s;
+}
+.toggle-slider::before {
+  content: ""; position: absolute; height: 16px; width: 16px; left: 2px; bottom: 2px;
+  background: white; border-radius: 50%; transition: .2s;
+}
+.toggle-switch input:checked + .toggle-slider { background: #1890ff; }
+.toggle-switch input:checked + .toggle-slider::before { transform: translateX(16px); }
+
+/* ===== 资源目录可折叠大类 ===== */
+.catalog-category-section { margin-bottom: 16px; }
+.catalog-category-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 12px; cursor: pointer; border-radius: 4px;
+  transition: background .2s; user-select: none;
+}
+.catalog-category-header:hover { background: rgba(0,0,0,0.02); }
+.catalog-category-left { display: flex; align-items: center; gap: 4px; }
+.catalog-category-arrow {
+  display: inline-block; font-size: 16px; font-weight: bold;
+  color: var(--text-secondary); transition: transform .25s;
+  width: 16px; text-align: center;
+}
+.catalog-category-arrow.expanded { transform: rotate(90deg); }
+.catalog-category-actions { display: flex; align-items: center; }
+.catalog-category-body {
+  overflow: hidden; max-height: 2000px; transition: max-height .35s ease;
+}
+.catalog-category-body.collapsed { max-height: 0; }
+
+/* ===== 资源目录子行 ===== */
+.catalog-child-row td { background: #fafafa; }
+.catalog-child-row td:first-child { color: var(--text-secondary); }
+
+/* ===== 弹窗内子资源编辑行 ===== */
+.catalog-child-edit-row {
+  padding: 10px 12px;
+  background: #fafafa;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+.catalog-child-edit-row .ant-checkbox-group { font-size: 13px; }

@@ -1,0 +1,16 @@
+<div class="page-header-wrapper">
+  <div class="page-header">
+    <h3 class="page-title">角色管理</h3>
+    <div class="btn-group">
+      <button class="ant-btn ant-btn-primary" data-modal="role/add-role" title="仅超级管理员可创建角色">+ 创建角色</button>
+    </div>
+  </div>
+</div>
+<div class="page-content">
+  <div class="page-content-inner">
+    <div class="ant-alert ant-alert-info" style="margin-bottom:16px;">
+      说明：功能模块权限（角色）与资源权限（reporter / developer / master）是两套独立的权限体系。超级管理员可创建和管理角色，部门负责人可为部门内成员分配已有角色。
+    </div>
+    <div id="role-list-container"></div>
+  </div>
+</div>

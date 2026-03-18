@@ -1,0 +1,31 @@
+<div class="page-header-wrapper">
+  <div class="page-header">
+    <h3 class="page-title">云账号管理</h3>
+  </div>
+  <div class="ant-tabs">
+    <div class="ant-tabs-nav">
+      <span class="ant-tabs-tab active" data-tab-show="cloud-tab-main" data-tab-hide="cloud-tab-sub">主账号管理</span>
+      <span class="ant-tabs-tab" data-tab-show="cloud-tab-sub" data-tab-hide="cloud-tab-main">子账号管理</span>
+    </div>
+  </div>
+</div>
+<div class="page-content">
+  <div class="page-content-inner">
+    <div id="cloud-tab-main">
+      <div class="ant-alert ant-alert-info" style="margin-bottom:16px;">每个部门仅可关联一个阿里云主账号，由部门负责人操作。平台使用该账号统一申请云上资源、调用云上接口。关联的主账号必须具备创建子账号的权限。</div>
+      <div id="cloud-main-container"></div>
+    </div>
+    <div id="cloud-tab-sub" style="display:none;">
+      <div class="ant-alert ant-alert-info" style="margin-bottom:16px;background:#e6f7ff;border:1px solid #91d5ff;border-radius:4px;padding:8px 12px;color:#1890ff;font-size:13px;">
+        &#9432; 仅展示我的子账号和本部门子账号（部门负责人视角）。子账号仅归属于个人，仅供本人查看。
+      </div>
+      <div class="ant-alert ant-alert-warning" style="margin-bottom:16px;background:#fffbe6;border:1px solid #ffe58f;border-radius:4px;padding:8px 12px;color:#d48806;font-size:13px;">&#9888; 通过子账号创建的云上资源属于孤儿资源，需由部门负责人进行分配。</div>
+      <div class="filter-bar">
+        <button class="ant-btn ant-btn-primary" data-modal="cloud/apply-sub">+ 申请子账号</button>
+        <select class="ant-select" id="cloud-sub-dept" style="min-width:120px;"><option value="">全部部门</option><option value="基础架构部">基础架构部</option><option value="业务研发部">业务研发部</option><option value="数据平台部">数据平台部</option></select>
+        <select class="ant-select" id="cloud-sub-status" style="min-width:120px;"><option value="">全部状态</option><option value="正常">正常</option><option value="审批中">审批中</option><option value="已回收">已回收</option></select>
+      </div>
+      <div id="cloud-sub-container"></div>
+    </div>
+  </div>
+</div>

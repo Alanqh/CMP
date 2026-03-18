@@ -1,0 +1,20 @@
+<div class="ant-modal-overlay" style="display:none;">
+  <div class="ant-modal" style="width:600px;">
+    <div class="ant-modal-header"><span id="role-detail-title">角色详情</span> <button class="ant-modal-close">&times;</button></div>
+    <div class="ant-modal-body">
+      <div class="ant-descriptions" style="margin-bottom:16px;">
+        <div class="ant-descriptions-row"><div class="ant-descriptions-label">角色名称</div><div class="ant-descriptions-content" id="role-detail-name">--</div></div>
+        <div class="ant-descriptions-row"><div class="ant-descriptions-label">角色类型</div><div class="ant-descriptions-content" id="role-detail-type">--</div></div>
+        <div class="ant-descriptions-row"><div class="ant-descriptions-label">角色描述</div><div class="ant-descriptions-content" id="role-detail-scope">--</div></div>
+      </div>
+      <div style="font-weight:500;margin-bottom:8px;">已授权成员（<span id="role-detail-count">0</span> 人）</div>
+      <table class="ant-table">
+        <thead><tr><th>姓名</th><th>邮箱</th><th>所属部门</th></tr></thead>
+        <tbody id="role-detail-users"></tbody>
+      </table>
+    </div>
+    <div class="ant-modal-footer">
+      <button class="ant-btn" data-close-modal>关闭</button>
+    </div>
+  </div>
+</div>

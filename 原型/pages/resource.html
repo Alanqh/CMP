@@ -1,0 +1,40 @@
+<div class="page-header-wrapper">
+  <div class="page-header">
+    <h3 class="page-title">资源列表</h3>
+    <button class="ant-btn ant-btn-primary" data-modal="resource/apply-resource">+ 申请资源</button>
+  </div>
+</div>
+<div class="page-content-transparent">
+  <div class="stat-row" id="resource-stats"></div>
+  <div class="ant-card">
+    <div class="ant-card-body">
+      <div class="ant-alert ant-alert-info" style="margin-bottom:12px;background:#e6f7ff;border:1px solid #91d5ff;border-radius:4px;padding:8px 12px;color:#1890ff;font-size:13px;">
+        &#9432; 权限说明：<strong>reporter</strong> = 只读查看；<strong>developer</strong> = 读写操作（数据库账号创建等）；<strong>master</strong> = 完全授权管理。数据库/中间件类资源的 master 权限仅组长和部门负责人可持有。
+      </div>
+      <div class="filter-bar">
+        <div class="ant-input-search"><input id="resource-search" placeholder="搜索资源名称/ID..." /><button class="ant-input-search-button">&#128269;</button></div>
+        <select class="ant-select" id="resource-type-filter" style="min-width:140px;">
+          <option value="">全部类型</option>
+          <option value="ECS">ECS 云服务器</option>
+          <option value="K8S">K8S 集群</option>
+          <option value="RDS">RDS 云数据库</option>
+          <option value="PG">PolarDB PostgreSQL</option>
+          <option value="MongoDB">MongoDB</option>
+          <option value="Redis">Redis 缓存</option>
+          <option value="SLB">SLB 负载均衡</option>
+          <option value="ALB">ALB 应用负载均衡</option>
+          <option value="NLB">NLB 网络负载均衡</option>
+          <option value="Kafka">Kafka 消息队列</option>
+          <option value="ES">Elasticsearch</option>
+          <option value="MaxCompute">MaxCompute</option>
+          <option value="Flink">Flink</option>
+          <option value="OSS">OSS 对象存储</option>
+          <option value="CDN">CDN 流量包</option>
+        </select>
+        <select class="ant-select" id="resource-group-filter" style="min-width:120px;"><option value="">全部组</option><option value="容器平台组">容器平台组</option><option value="网络组">网络组</option><option value="存储组">存储组</option><option value="用户服务组">用户服务组</option><option value="订单交易组">订单交易组</option><option value="前端组">前端组</option><option value="大数据组">大数据组</option><option value="AI算法组">AI算法组</option></select>
+        <select class="ant-select" id="resource-project-filter" style="min-width:130px;"><option value="">全部项目</option><option value="核心基础设施">核心基础设施</option><option value="网络基础设施">网络基础设施</option><option value="用户中心">用户中心</option><option value="订单系统">订单系统</option><option value="数据管道">数据管道</option><option value="前端资源池">前端资源池</option></select>
+      </div>
+      <div id="resource-table-container"></div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,36 @@
+<div class="ant-modal-overlay" style="display:none;">
+  <div class="ant-modal">
+    <div class="ant-modal-header"><span id="edit-org-title">编辑</span> <button class="ant-modal-close">&times;</button></div>
+    <div class="ant-modal-body">
+      <div class="ant-form-item">
+        <div class="ant-form-label"><span class="required">*</span><span id="edit-org-name-label">名称</span></div>
+        <div class="ant-form-control"><input class="ant-input" id="edit-org-name" placeholder="请输入名称" /></div>
+      </div>
+      <div class="ant-form-item">
+        <div class="ant-form-label"><span id="edit-org-leader-required"></span><span id="edit-org-leader-label">负责人</span></div>
+        <div class="ant-form-control">
+          <select class="ant-select" id="edit-org-leader" style="width:100%;max-width:360px;"></select>
+          <div class="ant-form-extra" id="edit-org-leader-extra"></div>
+        </div>
+      </div>
+      <div class="ant-form-item" id="edit-org-parent-item" style="display:none;">
+        <div class="ant-form-label">所属</div>
+        <div class="ant-form-control">
+          <input class="ant-input" id="edit-org-parent" disabled style="background:#f5f5f5;" />
+          <div class="ant-form-extra">一期不支持跨部门/跨层级迁移</div>
+        </div>
+      </div>
+      <div class="ant-form-item" id="edit-org-matchrule-item" style="display:none;">
+        <div class="ant-form-label">ERP匹配规则</div>
+        <div class="ant-form-control">
+          <input class="ant-input" id="edit-org-matchrule" placeholder="如：容器|docker|k8s" />
+          <div class="ant-form-extra">用于匹配ERP员工部门，支持正则表达式或简单字符串，多个规则用 | 分隔</div>
+        </div>
+      </div>
+    </div>
+    <div class="ant-modal-footer">
+      <button class="ant-btn" data-close-modal>取消</button>
+      <button class="ant-btn ant-btn-primary">确定</button>
+    </div>
+  </div>
+</div>

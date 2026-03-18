@@ -1,0 +1,23 @@
+<div class="page-header-wrapper">
+  <div class="page-header">
+    <h3 class="page-title">用户管理</h3>
+    <button class="ant-btn ant-btn-primary" id="btn-create-user" title="仅超级管理员可创建用户">+ 创建用户</button>
+  </div>
+</div>
+<div class="page-content-transparent">
+  <div class="stat-row" id="user-stats"></div>
+  <div class="ant-card">
+    <div class="ant-card-body">
+      <div class="ant-alert ant-alert-info" style="margin-bottom:16px;">
+        说明：用户以邮箱为唯一标识，正常由ERP自动同步。超管可手动创建特殊用户。部门负责人可为本部门成员分配角色。系统使用SSO登录，无需管理密码。
+      </div>
+      <div class="filter-bar">
+        <div class="ant-input-search"><input id="user-search" placeholder="搜索姓名/邮箱..." /><button class="ant-input-search-button">&#128269;</button></div>
+        <select class="ant-select" id="user-dept-filter" style="min-width:140px;">
+          <option value="">全部部门</option>
+        </select>
+      </div>
+      <div id="user-table-container"></div>
+    </div>
+  </div>
+</div>

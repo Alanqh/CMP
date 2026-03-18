@@ -1,0 +1,22 @@
+<div class="page-header-wrapper">
+  <div class="page-header">
+    <h3 class="page-title">操作审计</h3>
+    <button class="ant-btn" id="audit-export-btn">导出日志</button>
+  </div>
+</div>
+<div class="page-content">
+  <div class="page-content-inner">
+    <div class="ant-alert ant-alert-info" style="margin-bottom:16px;background:#e6f7ff;border:1px solid #91d5ff;border-radius:4px;padding:8px 12px;color:#1890ff;font-size:13px;">
+      &#9432; 审计日志仅对管理角色可见（超管、部门负责人、运维负责人、工单处理人），按部门做数据隔离。
+    </div>
+    <div class="filter-bar">
+      <div class="ant-input-search"><input id="audit-search" placeholder="搜索操作人/操作对象..." /><button class="ant-input-search-button">&#128269;</button></div>
+      <select class="ant-select" id="audit-type-filter" style="min-width:130px;"><option value="">全部操作类型</option><option value="资源操作">资源操作</option><option value="权限变更">权限变更</option><option value="组织架构">组织架构变更</option><option value="云账号">云账号操作</option><option value="审核流程">审核流程操作</option><option value="工单操作">工单操作</option><option value="账号管理">账号管理</option></select>
+      <select class="ant-select" id="audit-dept-filter" style="min-width:120px;"><option value="">全部部门</option><option value="基础架构部">基础架构部</option><option value="业务研发部">业务研发部</option><option value="数据平台部">数据平台部</option></select>
+      <input type="date" class="ant-input" id="audit-date-from" style="max-width:150px;" value="2026-03-01" />
+      <span style="color:var(--text-secondary);">至</span>
+      <input type="date" class="ant-input" id="audit-date-to" style="max-width:150px;" value="2026-03-16" />
+    </div>
+    <div id="audit-table-container"></div>
+  </div>
+</div>

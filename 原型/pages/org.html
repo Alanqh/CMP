@@ -1,0 +1,30 @@
+<div class="page-header-wrapper">
+  <div class="page-header">
+    <h3 class="page-title">组织架构</h3>
+    <div class="btn-group">
+      <button class="ant-btn" data-modal="org/add-dept" title="仅超级管理员可创建部门">+ 创建部门</button>
+      <button class="ant-btn ant-btn-primary" data-modal="org/add-group">+ 创建组</button>
+    </div>
+  </div>
+</div>
+<div class="page-content-transparent">
+  <div class="split-layout">
+    <!-- 左侧树 -->
+    <div class="split-left">
+      <div class="ant-card">
+        <div class="ant-card-head">
+          <span>组织结构</span>
+          <span class="org-dept-count" style="font-size:12px;color:var(--text-secondary);">3 个部门</span>
+        </div>
+        <div class="ant-card-body" style="padding:8px;">
+          <div id="org-tree-container"></div>
+        </div>
+      </div>
+    </div>
+    <!-- 右侧详情 -->
+    <div class="split-right">
+      <div id="org-detail-container"></div>
+      <div id="org-members-container"></div>
+    </div>
+  </div>
+</div>

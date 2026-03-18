@@ -1,0 +1,31 @@
+<div class="ant-modal-overlay" style="display:none;">
+  <div class="ant-modal" style="width:680px;max-height:85vh;overflow-y:auto;">
+    <div class="ant-modal-header">申请资源 <button class="ant-modal-close">&times;</button></div>
+    <div class="ant-modal-body">
+      <div class="ant-alert ant-alert-info" style="margin-bottom:16px;">资源将归属到您当前所在组：<strong>容器平台组</strong>。组长和部门负责人自动获得 master 权限，同组成员获得 developer 权限。审核通过后系统将使用部门主账号自动创建云上资源。</div>
+      <div class="ant-steps" style="margin-bottom:24px;">
+        <div class="ant-step active"><div class="ant-step-icon">1</div><div class="ant-step-title">选择类型</div></div>
+        <div class="ant-step-tail"></div>
+        <div class="ant-step"><div class="ant-step-icon">2</div><div class="ant-step-title">填写表单</div></div>
+        <div class="ant-step-tail"></div>
+        <div class="ant-step"><div class="ant-step-icon">3</div><div class="ant-step-title">提交审批</div></div>
+      </div>
+
+      <div class="ant-form-item">
+        <div class="ant-form-label"><span class="required">*</span>资源类型</div>
+        <div class="ant-form-control">
+          <select class="ant-select" id="modal-apply-res-type" style="width:100%;max-width:400px;">
+            <option value="">请选择资源类型...</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- 动态表单区域 -->
+      <div id="modal-apply-dynamic-form"></div>
+    </div>
+    <div class="ant-modal-footer">
+      <button class="ant-btn" data-close-modal>取消</button>
+      <button class="ant-btn ant-btn-primary" id="modal-apply-submit-btn">提交申请</button>
+    </div>
+  </div>
+</div>

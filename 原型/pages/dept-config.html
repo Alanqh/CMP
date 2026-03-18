@@ -1,0 +1,25 @@
+<div class="page-header-wrapper">
+  <div class="page-header">
+    <h3 class="page-title">部门配置</h3>
+    <div class="btn-group">
+      <span style="line-height:32px;margin-right:8px;">选择部门：</span>
+      <select class="ant-select" id="dept-config-dept-select" style="min-width:160px;">
+        <option value="dept-infra">基础架构部</option>
+        <option value="dept-biz">业务研发部</option>
+        <option value="dept-data">数据平台部</option>
+      </select>
+    </div>
+  </div>
+  <div class="ant-tabs">
+    <div class="ant-tabs-nav">
+      <span class="ant-tabs-tab active dept-cfg-tab" data-dept-tab="account">主账号配置</span>
+      <span class="ant-tabs-tab dept-cfg-tab" data-dept-tab="template">资源操作配置</span>
+      <span class="ant-tabs-tab dept-cfg-tab" data-dept-tab="approval">资源审批配置</span>
+      <span class="ant-tabs-tab dept-cfg-tab" data-dept-tab="ticket-handler">工单处理配置</span>
+    </div>
+  </div>
+</div>
+<div class="page-content">
+  <div class="page-content-inner" id="dept-config-content">
+  </div>
+</div>
