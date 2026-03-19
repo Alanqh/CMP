@@ -1,16 +1,16 @@
 <div class="page-header-wrapper">
   <div class="page-header">
-    <h3 class="page-title">项目管理</h3>
-    <button class="ant-btn ant-btn-primary" data-modal="project/add-project">+ 创建项目</button>
+    <h3 class="page-title">资源组管理</h3>
+    <button class="ant-btn ant-btn-primary" data-modal="project/add-project">+ 创建资源组</button>
   </div>
 </div>
 <div class="page-content-transparent">
   <div class="stat-row" id="project-stats"></div>
   <div class="ant-card">
     <div class="ant-card-body">
-      <div class="ant-alert ant-alert-info" style="margin-bottom:16px;">项目由部门负责人统一创建，用于批量管理资源和批量授权。一个资源仅能绑定一个项目。</div>
+      <div class="ant-alert ant-alert-info" style="margin-bottom:16px;">资源组是资源的逻辑容器，用于组织和管理资源，支持批量授权。所有资源申请时必须选择一个资源组。一个资源仅能绑定一个资源组。</div>
       <div class="filter-bar">
-        <div class="ant-input-search"><input id="project-search" placeholder="搜索项目名称..." /><button class="ant-input-search-button">&#128269;</button></div>
+        <div class="ant-input-search"><input id="project-search" placeholder="搜索资源组名称..." /><button class="ant-input-search-button">&#128269;</button></div>
         <select class="ant-select" id="project-dept-filter" style="min-width:140px;"><option value="">全部部门</option><option value="基础架构部">基础架构部</option><option value="业务研发部">业务研发部</option><option value="数据平台部">数据平台部</option></select>
       </div>
       <div id="project-table-container"></div>

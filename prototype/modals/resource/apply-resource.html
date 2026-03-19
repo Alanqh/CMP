@@ -1,7 +1,7 @@
-<div class="ant-modal-overlay" style="display:none;">
-  <div class="ant-modal" style="width:680px;max-height:85vh;overflow-y:auto;">
-    <div class="ant-modal-header">申请资源 <button class="ant-modal-close">&times;</button></div>
-    <div class="ant-modal-body">
+<div class="ant-drawer-overlay" style="display:none;">
+  <div class="ant-drawer" style="width:760px;">
+    <div class="ant-drawer-header">申请资源 <button class="ant-drawer-close">&times;</button></div>
+    <div class="ant-drawer-body">
       <div class="ant-alert ant-alert-info" style="margin-bottom:16px;">资源将归属到您当前所在组：<strong>容器平台组</strong>。组长和部门负责人自动获得 master 权限，同组成员获得 developer 权限。审核通过后系统将使用部门主账号自动创建云上资源。</div>
       <div class="ant-steps" style="margin-bottom:24px;">
         <div class="ant-step active"><div class="ant-step-icon">1</div><div class="ant-step-title">选择类型</div></div>
@@ -20,10 +20,62 @@
         </div>
       </div>
 
+      <div class="ant-form-item">
+        <div class="ant-form-label"><span class="required">*</span>所属资源组</div>
+        <div class="ant-form-control">
+          <select class="ant-select" id="modal-apply-res-group" style="width:100%;max-width:400px;">
+            <option value="">请选择资源组...</option>
+          </select>
+          <div class="ant-form-extra">资源组是资源的逻辑容器，用于组织管理和批量授权</div>
+        </div>
+      </div>
+
       <!-- 动态表单区域 -->
       <div id="modal-apply-dynamic-form"></div>
+
+      <!-- 计费配置区域 -->
+      <div id="modal-apply-pricing" style="display:none;">
+        <div style="font-weight:500;font-size:14px;color:#1890ff;margin:16px 0 10px;padding-bottom:6px;border-bottom:1px solid #f0f0f0;">&#128176; 计费配置</div>
+        <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end;">
+          <div class="ant-form-item" style="flex:0 0 auto;margin-bottom:0;">
+            <div class="ant-form-label"><span class="required">*</span>实例个数</div>
+            <div class="ant-form-control">
+              <input class="ant-input" type="number" id="modal-apply-quantity" value="1" min="1" max="100" style="width:100px;" />
+            </div>
+          </div>
+          <div class="ant-form-item" style="flex:0 0 auto;margin-bottom:0;">
+            <div class="ant-form-label"><span class="required">*</span>付费类型</div>
+            <div class="ant-form-control">
+              <select class="ant-select" id="modal-apply-pay-type" style="width:130px;">
+                <option value="prepaid">包年包月</option>
+                <option value="postpaid">按量付费</option>
+              </select>
+            </div>
+          </div>
+          <div class="ant-form-item" id="modal-apply-period-item" style="flex:0 0 auto;margin-bottom:0;">
+            <div class="ant-form-label"><span class="required">*</span>付费周期</div>
+            <div class="ant-form-control">
+              <select class="ant-select" id="modal-apply-period" style="width:130px;">
+                <option value="1m">1个月</option>
+                <option value="3m">3个月</option>
+                <option value="6m">6个月</option>
+                <option value="1y">1年</option>
+                <option value="2y">2年</option>
+                <option value="3y">3年</option>
+              </select>
+            </div>
+          </div>
+          <div style="flex:1;min-width:200px;padding:8px 16px;background:#f6ffed;border:1px solid #b7eb8f;border-radius:4px;">
+            <div style="font-size:12px;color:var(--text-secondary);">单价（参考）</div>
+            <div style="font-size:18px;font-weight:600;color:#52c41a;" id="modal-apply-unit-price">--</div>
+            <div style="font-size:12px;color:var(--text-secondary);margin-top:4px;">总价（参考）</div>
+            <div style="font-size:20px;font-weight:700;color:#fa8c16;" id="modal-apply-total-price">--</div>
+            <div style="font-size:11px;color:#999;margin-top:2px;">* 仅供预算参考，以实际账单为准</div>
+          </div>
+        </div>
+      </div>
     </div>
-    <div class="ant-modal-footer">
+    <div class="ant-drawer-footer">
       <button class="ant-btn" data-close-modal>取消</button>
       <button class="ant-btn ant-btn-primary" id="modal-apply-submit-btn">提交申请</button>
     </div>

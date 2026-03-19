@@ -19,6 +19,7 @@ window.MockData = {
       id: 'dept-infra', name: '基础架构部', type: 'dept', icon: '&#128196;', memberCount: 26,
       leader: { name: '张明远', username: 'zhangmy' },
       cloudAccount: '阿里云 - infra-main (主账号)',
+      matchRule: '信息技术部-基础架构部-*',
       projects: ['核心基础设施', '网络基础设施', '容灾备份系统', '监控告警平台', 'CI/CD 流水线'],
       children: [
         {
@@ -36,6 +37,7 @@ window.MockData = {
       id: 'dept-biz', name: '业务研发部', type: 'dept', icon: '&#128196;', memberCount: 42,
       leader: { name: '刘佳琪', username: 'liujq' },
       cloudAccount: '阿里云 - biz-prod (主账号)',
+      matchRule: '信息技术部-业务研发部-*',
       projects: ['用户中心', '订单系统', '前端资源池'],
       children: [
         { id: 'grp-user', name: '用户服务组', type: 'group', icon: '&#128193;', memberCount: 15, leader: { name: '马丽华', username: 'malh' }, matchRule: '用户服务|用户中心', children: [] },
@@ -47,6 +49,7 @@ window.MockData = {
       id: 'dept-data', name: '数据平台部', type: 'dept', icon: '&#128196;', memberCount: 18,
       leader: { name: '周文博', username: 'zhouwb' },
       cloudAccount: '',
+      matchRule: '信息技术部-数据平台部-*',
       projects: ['数据管道'],
       children: [
         { id: 'grp-bigdata', name: '大数据组', type: 'group', icon: '&#128193;', memberCount: 10, leader: { name: '吴海波', username: 'wuhb' }, matchRule: '大数据|bigdata', children: [] },
@@ -302,24 +305,24 @@ window.MockData = {
   platformTemplates: [
     { id: 'ptpl-1', templateName: 'ECS申请模板', resType: 'ECS 云服务器', category: '计算类', opType: '申请', apiEndpoint: 'RunInstances', updateTime: '2025/11/20', fieldGroups: [
       { groupName: '基础配置', fields: [
-        { name: '实例名称', param: 'InstanceName', type: 'string', visible: true, required: true, regex: '' },
-        { name: '地域', param: 'RegionId', type: 'select', visible: true, required: true, options: '华北2（北京）,华东1（杭州）,华东2（上海）,华南1（深圳）' },
-        { name: '可用区', param: 'ZoneId', type: 'select', visible: true, required: true, options: '可用区A,可用区B,可用区C,可用区H' },
-        { name: '实例规格', param: 'InstanceType', type: 'select', visible: true, required: true, options: 'ecs.c7.large,ecs.c7.xlarge,ecs.c7.2xlarge,ecs.g7.2xlarge' }
+        { name: '实例名称', param: 'InstanceName', type: 'string', visible: true, required: true },
+        { name: '地域', param: 'RegionId', type: 'select', visible: true, required: true, referenceOptions: '华北2（北京）=cn-beijing,华东1（杭州）=cn-hangzhou,华东2（上海）=cn-shanghai,华南1（深圳）=cn-shenzhen' },
+        { name: '可用区', param: 'ZoneId', type: 'select', visible: true, required: true, referenceOptions: '' },
+        { name: '实例规格', param: 'InstanceType', type: 'select', visible: true, required: true, referenceOptions: 'ecs.c7.large,ecs.c7.xlarge,ecs.c7.2xlarge,ecs.g7.2xlarge' }
       ]},
       { groupName: '存储配置', fields: [
-        { name: '系统盘类型', param: 'SystemDisk.Category', type: 'select', visible: true, required: true, options: 'ESSD 云盘,高效云盘,SSD 云盘' },
+        { name: '系统盘类型', param: 'SystemDisk.Category', type: 'select', visible: true, required: true, referenceOptions: 'ESSD 云盘,高效云盘,SSD 云盘' },
         { name: '系统盘大小(GB)', param: 'SystemDisk.Size', type: 'number', visible: true, required: true, min: 20, max: 500, decimals: 0 },
-        { name: '数据盘类型', param: 'DataDisk.1.Category', type: 'select', visible: true, required: false, options: 'ESSD 云盘,高效云盘,SSD 云盘' },
+        { name: '数据盘类型', param: 'DataDisk.1.Category', type: 'select', visible: true, required: false, referenceOptions: 'ESSD 云盘,高效云盘,SSD 云盘' },
         { name: '数据盘大小(GB)', param: 'DataDisk.1.Size', type: 'number', visible: true, required: false, min: 20, max: 32768, decimals: 0 }
       ]},
       { groupName: '网络配置', fields: [
-        { name: 'VPC', param: 'VpcId', type: 'select', visible: true, required: true, options: 'vpc-prod-beijing,vpc-prod-hangzhou' },
-        { name: '交换机', param: 'VSwitchId', type: 'select', visible: true, required: true, options: 'vsw-prod-app,vsw-prod-db' },
-        { name: '安全组', param: 'SecurityGroupId', type: 'select', visible: true, required: true, options: 'sg-prod-web,sg-prod-app,sg-prod-internal' }
+        { name: 'VPC', param: 'VpcId', type: 'select', visible: true, required: true, referenceOptions: '' },
+        { name: '交换机', param: 'VSwitchId', type: 'select', visible: true, required: true, referenceOptions: '' },
+        { name: '安全组', param: 'SecurityGroupId', type: 'select', visible: true, required: true, referenceOptions: '' }
       ]},
       { groupName: '其他', fields: [
-        { name: '镜像', param: 'ImageId', type: 'select', visible: true, required: true, options: 'CentOS 7.9 64位,Alibaba Cloud Linux 3,Ubuntu 22.04 64位' },
+        { name: '镜像', param: 'ImageId', type: 'select', visible: true, required: true, referenceOptions: 'CentOS 7.9 64位,Alibaba Cloud Linux 3,Ubuntu 22.04 64位' },
         { name: '计费方式', param: 'InstanceChargeType', type: 'select', visible: true, required: true, options: '包年包月,按量付费' },
         { name: '购买数量', param: 'Amount', type: 'number', visible: true, required: true, min: 1, max: 100, decimals: 0 },
         { name: '用途说明', param: '_description', type: 'textarea', visible: true, required: false }
@@ -576,7 +579,7 @@ window.MockData = {
       ],
       permissions: {
         '资源管理': ['查看', '创建', '编辑', '删除'],
-        '项目管理': ['查看', '编辑'],
+        '资源组管理': ['查看', '编辑'],
         '工单管理': ['查看', '创建']
       }
     },
@@ -609,7 +612,7 @@ window.MockData = {
     { name: '组织架构管理', points: ['查看', '创建', '编辑', '删除'] },
     { name: '角色管理', points: ['查看', '创建', '编辑', '删除'] },
     { name: '云账号管理', points: ['查看', '创建', '编辑', '删除', '审批'] },
-    { name: '项目管理', points: ['查看', '创建', '编辑', '删除'] },
+    { name: '资源组管理', points: ['查看', '创建', '编辑', '删除'] },
     { name: '资源管理', points: ['查看', '创建', '编辑', '删除', '审批'] },
     { name: '工单管理', points: ['查看', '创建', '审批', '处理', '转移'] },
     { name: '操作审计', points: ['查看'] }
@@ -706,7 +709,7 @@ window.MockData = {
         { role: '部门负责人', name: '张明远', status: 'pending', time: '', remark: '' },
         { role: '指定审批人', name: '张明远', status: 'waiting', time: '', remark: '' }
       ],
-      formData: { '资源类型': 'ECS 云服务器', '操作类型': '申请', '规格': 'ecs.c6.2xlarge (8C16G)', '数量': '2', '系统盘': '40GB ESSD PL1', '数据盘': '200GB ESSD PL1', '所属项目': '核心基础设施', '用途说明': '生产环境 Web 服务扩容' }
+      formData: { '资源类型': 'ECS 云服务器', '操作类型': '申请', '规格': 'ecs.c6.2xlarge (8C16G)', '实例个数': '2', '付费类型': '包年包月', '付费周期': '1年', '单价（元/月）': '1,520.00', '总价（元）': '36,480.00', '系统盘': '40GB ESSD PL1', '数据盘': '200GB ESSD PL1', '所属资源组': '核心基础设施', '用途说明': '生产环境 Web 服务扩容' }
     },
     {
       id: 'APP-20260315-002', title: '申请 RDS 云数据库实例', type: 'resource', opType: '申请',
@@ -719,7 +722,7 @@ window.MockData = {
         { role: '直属领导', name: '刘佳琪', status: 'pending', time: '', remark: '' },
         { role: '部门负责人', name: '刘佳琪', status: 'waiting', time: '', remark: '' }
       ],
-      formData: { '资源类型': 'RDS 云数据库', '操作类型': '申请', '引擎版本': 'MySQL 8.0', '规格': 'rds.mysql.s3.large (4C8G)', '存储空间': '100GB', '高可用方案': '双机热备', '所属项目': '订单系统', '用途说明': '订单数据读写分离-从库' }
+      formData: { '资源类型': 'RDS 云数据库', '操作类型': '申请', '引擎版本': 'MySQL 8.0', '规格': 'rds.mysql.s3.large (4C8G)', '存储空间': '100GB', '实例个数': '1', '付费类型': '包年包月', '付费周期': '1年', '单价（元/月）': '980.00', '总价（元）': '11,760.00', '高可用方案': '双机热备', '所属资源组': '订单系统', '用途说明': '订单数据读写分离-从库' }
     },
     {
       id: 'APP-20260314-003', title: 'Kafka Topic 申请: user-events', type: 'resource', opType: '申请',
@@ -733,7 +736,7 @@ window.MockData = {
         { role: '部门负责人', name: '刘佳琪', status: 'done', time: '2026/03/14 15:00:00', remark: '同意（与直属领导为同一人）' },
         { role: '指定审批人', name: '马丽华', status: 'pending', time: '', remark: '' }
       ],
-      formData: { '资源类型': 'Kafka 消息队列 / Topic', '操作类型': '申请', 'Topic 名称': 'user-events', '分区数': '6', '副本数': '2', '数据保留': '72小时', '所属项目': '用户中心', '用途说明': '用户行为事件流' }
+      formData: { '资源类型': 'Kafka 消息队列 / Topic', '操作类型': '申请', 'Topic 名称': 'user-events', '分区数': '6', '副本数': '2', '实例个数': '1', '付费类型': '按量付费', '单价（元/时）': '0.00', '总价（元）': '0.00（按量）', '数据保留': '72小时', '所属资源组': '用户中心', '用途说明': '用户行为事件流' }
     },
     {
       id: 'APP-20260313-004', title: 'ECS 变配升级（8C16G→16C32G）', type: 'resource', opType: '变配',
@@ -759,7 +762,7 @@ window.MockData = {
         { role: '直属领导', name: '刘佳琪', status: 'done', time: '2026/03/12 15:00:00', remark: '同意' },
         { role: '部门负责人', name: '刘佳琪', status: 'done', time: '2026/03/12 16:00:00', remark: '同意' }
       ],
-      formData: { '资源类型': 'Redis 缓存', '操作类型': '申请', '规格': '4GB 主从版', '版本': 'Redis 6.0', '所属项目': '用户中心', '用途说明': '用户 Session 缓存' }
+      formData: { '资源类型': 'Redis 缓存', '操作类型': '申请', '规格': '4GB 主从版', '版本': 'Redis 6.0', '实例个数': '1', '付费类型': '包年包月', '付费周期': '1年', '单价（元/月）': '340.00', '总价（元）': '4,080.00', '所属资源组': '用户中心', '用途说明': '用户 Session 缓存' }
     },
     {
       id: 'APP-20260311-006', title: '申请 OSS 存储桶', type: 'resource', opType: '申请',
@@ -772,7 +775,7 @@ window.MockData = {
         { role: '直属领导', name: '刘佳琪', status: 'done', time: '2026/03/11 10:30:00', remark: '同意' },
         { role: '部门负责人', name: '刘佳琪', status: 'done', time: '2026/03/11 10:30:00', remark: '同意' }
       ],
-      formData: { '资源类型': 'OSS 对象存储', '操作类型': '申请', 'Bucket 名称': 'oss-frontend-static', '存储类型': '标准存储', '读写权限': '公共读', '所属项目': '前端资源池', '用途说明': '前端静态资源CDN回源' }
+      formData: { '资源类型': 'OSS 对象存储', '操作类型': '申请', 'Bucket 名称': 'oss-frontend-static', '存储类型': '标准存储', '读写权限': '公共读', '实例个数': '1', '付费类型': '按量付费', '单价（元/月）': '约200.00（按实际用量）', '总价（元）': '按量计费', '所属资源组': '前端资源池', '用途说明': '前端静态资源CDN回源' }
     },
     {
       id: 'APP-20260310-007', title: 'ECS 云服务器扩容磁盘', type: 'resource', opType: '扩容',
@@ -812,7 +815,7 @@ window.MockData = {
         { role: '部门负责人', name: '周文博', status: 'waiting', time: '', remark: '' },
         { role: '指定审批人', name: '吴海波', status: 'waiting', time: '', remark: '' }
       ],
-      formData: { '资源类型': 'Elasticsearch', '操作类型': '申请', '规格': '3节点 4C16G', '存储': '500GB SSD', '所属项目': '数据管道', '用途说明': '数据分析日志检索（申请人已撤回，改为使用现有集群）' }
+      formData: { '资源类型': 'Elasticsearch', '操作类型': '申请', '规格': '3节点 4C16G', '存储': '500GB SSD', '实例个数': '1（3节点集群）', '付费类型': '包年包月', '付费周期': '1年', '单价（元/月）': '2,880.00', '总价（元）': '34,560.00', '所属资源组': '数据管道', '用途说明': '数据分析日志检索（申请人已撤回，改为使用现有集群）' }
     },
     {
       id: 'APP-20260307-010', title: '申请子账号 developer 权限', type: 'subaccount', opType: '申请',
@@ -873,7 +876,15 @@ window.MockData = {
       cloudAccountBound: true,
       cloudAccountOptions: ['infra-main', 'infra-dev', 'shared-services'],
       templates: [
-        { id: 'tpl-1', resType: 'ECS 云服务器', opType: '申请', category: '计算类', customized: false, fieldOverrides: {} },
+        { id: 'tpl-1', resType: 'ECS 云服务器', opType: '申请', category: '计算类', customized: true, fieldOverrides: {
+          '0|RegionId': { show: true, options: '华北2（北京）=cn-beijing,华东1（杭州）=cn-hangzhou' },
+          '0|ZoneId': { show: true, cascadeFrom: 'RegionId', cascadeData: 'cn-beijing:可用区B=cn-beijing-b,可用区C=cn-beijing-c,可用区H=cn-beijing-h\ncn-hangzhou:可用区G=cn-hangzhou-g,可用区H=cn-hangzhou-h' },
+          '0|InstanceType': { show: true, options: 'ecs.c7.large=ecs.c7.large,ecs.c7.xlarge=ecs.c7.xlarge,ecs.c7.2xlarge=ecs.c7.2xlarge' },
+          '1|SystemDisk.Category': { show: true, options: 'ESSD 云盘=cloud_essd,高效云盘=cloud_efficiency' },
+          '2|VpcId': { show: true, options: 'prod-beijing-vpc=vpc-prod-beijing,prod-hangzhou-vpc=vpc-prod-hangzhou' },
+          '2|VSwitchId': { show: true, options: 'prod-app-vsw=vsw-prod-app,prod-db-vsw=vsw-prod-db' },
+          '2|SecurityGroupId': { show: true, options: 'app安全组=sg-prod-app,内部安全组=sg-prod-internal' }
+        } },
         { id: 'tpl-1a', resType: 'ECS 云服务器', opType: '变配', category: '计算类', customized: false, fieldOverrides: {} },
         { id: 'tpl-1b', resType: 'ECS 云服务器', opType: '扩容', category: '计算类', customized: false, fieldOverrides: {} },
         { id: 'tpl-1c', resType: 'ECS 云服务器', opType: '销毁', category: '计算类', customized: false, fieldOverrides: {} },
@@ -972,6 +983,67 @@ window.MockData = {
     }
   }
 };
+
+// ===== 资源包数据 =====
+MockData.resourcePackages = [
+  {
+    id: 'rp-001',
+    name: '容器平台资源包',
+    description: '容器平台组日常使用的核心资源集合，涵盖 K8s 集群、ECS 节点及负载均衡',
+    resources: [
+      { resId: 'i-cs-001', name: 'k8s-prod-cluster', type: 'K8S 集群', typeColor: 'purple', perm: 'master' },
+      { resId: 'i-ecs-001', name: 'k8s-node-01', type: 'ECS 云服务器', typeColor: 'blue', perm: 'developer' },
+      { resId: 'i-ecs-002', name: 'k8s-node-02', type: 'ECS 云服务器', typeColor: 'blue', perm: 'developer' },
+      { resId: 'i-slb-001', name: 'prod-slb', type: 'SLB 负载均衡', typeColor: 'cyan', perm: 'reporter' }
+    ],
+    users: [
+      { name: '陈天宇', username: 'chenty', dept: '基础架构部' },
+      { name: '李思远', username: 'lisy', dept: '基础架构部' }
+    ]
+  },
+  {
+    id: 'rp-002',
+    name: '业务数据库资源包',
+    description: '业务研发部使用的数据库资源，含主从 RDS 及 Redis 缓存',
+    resources: [
+      { resId: 'i-rds-001', name: 'mysql-biz-master', type: 'RDS 云数据库', typeColor: 'orange', perm: 'master' },
+      { resId: 'i-rds-002', name: 'mysql-biz-slave', type: 'RDS 云数据库', typeColor: 'orange', perm: 'reporter' },
+      { resId: 'i-redis-001', name: 'redis-session', type: 'Redis 缓存', typeColor: 'red', perm: 'developer' }
+    ],
+    users: [
+      { name: '林志强', username: 'linzq', dept: '业务研发部' },
+      { name: '王浩然', username: 'wanghr', dept: '基础架构部' },
+      { name: '马丽华', username: 'malh', dept: '业务研发部' }
+    ]
+  },
+  {
+    id: 'rp-003',
+    name: '数据平台资源包',
+    description: '大数据平台资源集合，供数据平台组日常开发和分析使用',
+    resources: [
+      { resId: 'i-mc-001', name: 'maxcompute-prod', type: 'MaxCompute', typeColor: 'geekblue', perm: 'master' },
+      { resId: 'i-flink-001', name: 'flink-streaming', type: 'Flink 实时计算', typeColor: 'geekblue', perm: 'developer' },
+      { resId: 'i-es-001', name: 'es-search-cluster', type: 'Elasticsearch', typeColor: 'gold', perm: 'developer' },
+      { resId: 'i-oss-001', name: 'data-lake-bucket', type: 'OSS 对象存储', typeColor: 'lime', perm: 'reporter' }
+    ],
+    users: [
+      { name: '吴海波', username: 'wuhb', dept: '数据平台部' }
+    ]
+  },
+  {
+    id: 'rp-004',
+    name: '运维监控资源包',
+    description: '运维团队只读监控资源包，供值班人员查看所有生产资源状态',
+    resources: [
+      { resId: 'i-cs-001', name: 'k8s-prod-cluster', type: 'K8S 集群', typeColor: 'purple', perm: 'reporter' },
+      { resId: 'i-rds-001', name: 'mysql-biz-master', type: 'RDS 云数据库', typeColor: 'orange', perm: 'reporter' },
+      { resId: 'i-slb-001', name: 'prod-slb', type: 'SLB 负载均衡', typeColor: 'cyan', perm: 'reporter' }
+    ],
+    users: [
+      { name: '张明远', username: 'zhangmy', dept: '基础架构部' }
+    ]
+  }
+];
 
 // ===== 工具函数 =====
 

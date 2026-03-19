@@ -152,6 +152,8 @@
     html += '<div class="ant-descriptions-row"><div class="ant-descriptions-label">下级组</div><div class="ant-descriptions-content">' + childLabel + '</div></div>';
     if (org.type !== 'dept') {
       html += '<div class="ant-descriptions-row"><div class="ant-descriptions-label">ERP匹配规则</div><div class="ant-descriptions-content">' + (org.matchRule ? '<code style="background:#f5f5f5;padding:2px 8px;border:1px solid #d9d9d9;border-radius:2px;font-size:13px;">' + esc(org.matchRule) + '</code>' : '<span style="color:var(--text-secondary);">未配置</span>') + '</div></div>';
+    } else {
+      html += '<div class="ant-descriptions-row"><div class="ant-descriptions-label">ERP匹配规则</div><div class="ant-descriptions-content">' + (org.matchRule ? '<code style="background:#f5f5f5;padding:2px 8px;border:1px solid #d9d9d9;border-radius:2px;font-size:13px;">' + esc(org.matchRule) + '</code>' : '<span style="color:var(--text-secondary);">未配置</span>') + '<div style="font-size:11px;color:#999;margin-top:2px;">格式：A-B-C，支持通配符 *，多条规则用逗号分隔</div></div></div>';
     }
     if (org.type === 'dept') {
       html += '<div class="ant-descriptions-row"><div class="ant-descriptions-label">关联云账号</div><div class="ant-descriptions-content">' + (org.cloudAccount ? '<span class="ant-tag ant-tag-blue">' + esc(org.cloudAccount) + '</span>' : '--') + '</div></div>';
@@ -164,9 +166,9 @@
         projsHtml = projs.map(function (p) { return '<span class="ant-tag ant-tag-cyan">' + esc(p) + '</span>'; }).join(' ');
       } else {
         projsHtml = projs.slice(0, 2).map(function (p) { return '<span class="ant-tag ant-tag-cyan">' + esc(p) + '</span>'; }).join(' ');
-        projsHtml += ' <span class="org-overflow-trigger" data-overflow-type="projects" data-org-id="' + org.id + '">等 ' + projs.length + ' 个<span class="org-overflow-popover"><span class="org-overflow-popover-title">全部关联项目（' + projs.length + '）</span>' + projs.map(function (p) { return '<span class="ant-tag ant-tag-cyan">' + esc(p) + '</span>'; }).join('') + '</span></span>';
+        projsHtml += ' <span class="org-overflow-trigger" data-overflow-type="projects" data-org-id="' + org.id + '">等 ' + projs.length + ' 个<span class="org-overflow-popover"><span class="org-overflow-popover-title">全部关联资源组（' + projs.length + '）</span>' + projs.map(function (p) { return '<span class="ant-tag ant-tag-cyan">' + esc(p) + '</span>'; }).join('') + '</span></span>';
       }
-      html += '<div class="ant-descriptions-row"><div class="ant-descriptions-label">关联项目</div><div class="ant-descriptions-content">' + projsHtml + '</div></div>';
+      html += '<div class="ant-descriptions-row"><div class="ant-descriptions-label">关联资源组</div><div class="ant-descriptions-content">' + projsHtml + '</div></div>';
     }
     html += '</div></div></div>';
     return html;
@@ -586,15 +588,17 @@
         if (parentInput) parentInput.value = MockData.getParentDept(org.id) || '';
       }
     }
-    // 匹配规则（组才显示）
+    // 匹配规则（部门和组都显示，但说明文字不同）
     var matchRuleItem = document.getElementById('edit-org-matchrule-item');
     var matchRuleInput = document.getElementById('edit-org-matchrule');
+    var matchRuleExtra = document.getElementById('edit-org-matchrule-extra');
     if (matchRuleItem) {
-      if (isDept) {
-        matchRuleItem.style.display = 'none';
-      } else {
-        matchRuleItem.style.display = '';
-        if (matchRuleInput) matchRuleInput.value = org.matchRule || '';
+      matchRuleItem.style.display = '';
+      if (matchRuleInput) matchRuleInput.value = org.matchRule || '';
+      if (isDept && matchRuleInput) {
+        matchRuleInput.placeholder = '如：信息技术部-基础架构部-*,信息技术部-基础架构部-网络组';
+      } else if (matchRuleInput) {
+        matchRuleInput.placeholder = '如：*-容器平台组,*-docker组';
       }
     }
   }
@@ -1004,7 +1008,7 @@
     if (statsContainer) {
       var totalRes = 0; var depts = {};
       MockData.projects.forEach(function (p) { totalRes += p.resourceCount; depts[p.dept] = true; });
-      statsContainer.innerHTML = '<div class="stat-card"><div class="stat-value">' + MockData.projects.length + '</div><div class="stat-label">项目总数</div></div>' +
+      statsContainer.innerHTML = '<div class="stat-card"><div class="stat-value">' + MockData.projects.length + '</div><div class="stat-label">资源组总数</div></div>' +
         '<div class="stat-card"><div class="stat-value">' + totalRes + '</div><div class="stat-label">关联资源总数</div></div>' +
         '<div class="stat-card"><div class="stat-value">' + Object.keys(depts).length + '</div><div class="stat-label">涉及部门数</div></div>';
     }
@@ -1012,7 +1016,7 @@
     // Table
     var tableContainer = document.getElementById('project-table-container');
     if (!tableContainer) return;
-    var html = '<table class="ant-table"><thead><tr><th>项目名称</th><th>描述</th><th>所属部门</th><th>创建人</th><th>可查看资源 / 总资源</th><th>创建时间</th><th>操作</th></tr></thead><tbody>';
+    var html = '<table class="ant-table"><thead><tr><th>资源组名称</th><th>描述</th><th>所属部门</th><th>创建人</th><th>可查看资源 / 总资源</th><th>创建时间</th><th>操作</th></tr></thead><tbody>';
     if (data.length === 0) {
       html += '<tr><td colspan="7" style="text-align:center;color:var(--text-secondary);padding:32px;">暂无数据</td></tr>';
     }
@@ -1054,10 +1058,10 @@
         var totalCount = proj.resourceCount;
         loadAndShowModal('project/view-project', function () {
           var titleEl = document.getElementById('project-detail-title');
-          if (titleEl) titleEl.textContent = '项目资源 - ' + projName;
+          if (titleEl) titleEl.textContent = '资源组详情 - ' + projName;
           var bodyEl = document.getElementById('project-detail-body');
           if (bodyEl) bodyEl.innerHTML =
-            '<div class="ant-descriptions-row"><div class="ant-descriptions-label">项目名称</div><div class="ant-descriptions-content">' + esc(proj.name) + '</div></div>' +
+            '<div class="ant-descriptions-row"><div class="ant-descriptions-label">资源组名称</div><div class="ant-descriptions-content">' + esc(proj.name) + '</div></div>' +
             '<div class="ant-descriptions-row"><div class="ant-descriptions-label">所属部门</div><div class="ant-descriptions-content">' + esc(proj.dept) + '</div></div>' +
             '<div class="ant-descriptions-row"><div class="ant-descriptions-label">资源总数</div><div class="ant-descriptions-content">' + totalCount + ' 个（含您无权限查看的资源）</div></div>';
           var headerEl = document.getElementById('project-res-header');
@@ -1068,7 +1072,7 @@
           var resBodyEl = document.getElementById('project-res-body');
           if (!resBodyEl) return;
           if (projRes.length === 0) {
-            resBodyEl.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-secondary);">您在该项目下暂无可查看的资源</div>';
+            resBodyEl.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-secondary);">您在该资源组下暂无可查看的资源</div>';
           } else {
             var resHtml = '<table class="ant-table"><thead><tr><th>资源名称</th><th>资源ID</th><th>类型</th><th>所属组</th><th>状态</th><th>我的权限</th></tr></thead><tbody>';
             projRes.forEach(function (r) {
@@ -1120,16 +1124,16 @@
           var msgEl = document.getElementById('project-delete-msg');
           var extraEl = document.getElementById('project-delete-extra');
           var okBtn = document.getElementById('project-delete-ok');
-          if (msgEl) msgEl.textContent = '确定要删除项目「' + projName + '」吗？';
+          if (msgEl) msgEl.textContent = '确定要删除资源组「' + projName + '」吗？';
           if (extraEl) extraEl.textContent = resCount > 0
-            ? '该项目下仍有 ' + resCount + ' 个可见资源，删除后这些资源将解除项目绑定。此操作不可撤销。'
+            ? '该资源组下仍有 ' + resCount + ' 个可见资源，删除后这些资源将解除资源组绑定。此操作不可撤销。'
             : '此操作不可撤销。';
           if (okBtn) {
             okBtn.onclick = function () {
               MockData.projects = MockData.projects.filter(function (p) { return p.name !== projName; });
-              MockData.auditLogs.unshift({ time: new Date().toLocaleString('zh-CN').replace(/\//g, '/'), operator: '张明远', dept: '基础架构部', opType: '项目管理', opTypeColor: 'purple', target: projName, desc: '删除项目', ip: '10.128.0.10' });
+              MockData.auditLogs.unshift({ time: new Date().toLocaleString('zh-CN').replace(/\//g, '/'), operator: '张明远', dept: '基础架构部', opType: '资源组管理', opTypeColor: 'purple', target: projName, desc: '删除资源组', ip: '10.128.0.10' });
               hideModal();
-              showMessage('项目「' + projName + '」已删除', 'success');
+              showMessage('资源组「' + projName + '」已删除', 'success');
               pageCache = {};
               renderProjects();
             };
@@ -1672,7 +1676,7 @@
 
     var tableContainer = document.getElementById('resource-table-container');
     if (!tableContainer) return;
-    var html = '<table class="ant-table"><thead><tr><th class="check-col"><input type="checkbox" id="resource-select-all" /></th><th>资源名称</th><th>资源类型</th><th>所属组</th><th>所属项目</th><th>申请人</th><th>我的权限</th><th>状态</th><th>操作</th></tr></thead><tbody>';
+    var html = '<table class="ant-table"><thead><tr><th class="check-col"><input type="checkbox" id="resource-select-all" /></th><th>资源名称</th><th>资源类型</th><th>所属组</th><th>所属资源组</th><th>申请人</th><th>我的权限</th><th>状态</th><th>操作</th></tr></thead><tbody>';
     if (pageData.length === 0) {
       html += '<tr><td colspan="9" style="text-align:center;color:var(--text-secondary);padding:32px;">暂无数据</td></tr>';
     }
@@ -1735,7 +1739,7 @@
             '<div class="ant-descriptions-row"><div class="ant-descriptions-label">资源ID</div><div class="ant-descriptions-content" style="font-family:monospace;font-size:12px;">' + esc(res.resId) + '</div></div>' +
             '<div class="ant-descriptions-row"><div class="ant-descriptions-label">资源类型</div><div class="ant-descriptions-content"><span class="ant-tag ant-tag-' + res.typeColor + '">' + esc(res.type) + '</span></div></div>' +
             '<div class="ant-descriptions-row"><div class="ant-descriptions-label">所属组</div><div class="ant-descriptions-content">' + esc(res.group) + '</div></div>' +
-            '<div class="ant-descriptions-row"><div class="ant-descriptions-label">所属项目</div><div class="ant-descriptions-content">' + esc(res.project) + '</div></div>' +
+            '<div class="ant-descriptions-row"><div class="ant-descriptions-label">所属资源组</div><div class="ant-descriptions-content">' + esc(res.project) + '</div></div>' +
             '<div class="ant-descriptions-row"><div class="ant-descriptions-label">我的权限</div><div class="ant-descriptions-content"><span class="ant-tag ant-tag-' + res.permColor + '">' + esc(res.perm) + '</span></div></div>' +
             '<div class="ant-descriptions-row"><div class="ant-descriptions-label">状态</div><div class="ant-descriptions-content"><span class="ant-badge-status-dot ant-badge-status-' + res.statusClass + '"></span>' + esc(res.status) + '</div></div>';
         });
@@ -2477,6 +2481,7 @@
       html += '<td style="white-space:nowrap;">' + esc(t.createTime) + '</td>';
       html += '<td><a class="ant-btn-link ticket-view-btn" data-ticket-id="' + esc(t.id) + '">查看</a>';
       if (t.status === '待处理') html += ' <a class="ant-btn-link ticket-handle-btn" data-ticket-id="' + esc(t.id) + '">处理</a>';
+      if (t.status !== '已完结') html += ' <a class="ant-btn-link ticket-transfer-btn" data-ticket-id="' + esc(t.id) + '">转移</a>';
       html += '</td></tr>';
     });
     html += '</tbody></table><div id="ticket-pagination"></div>';
@@ -2517,6 +2522,37 @@
             });
             tlEl.innerHTML = tlHtml;
           }
+          // 转移按钮（非已完结时显示）
+          var drawerFooter = document.querySelector('#modal-container .ant-drawer-footer');
+          if (drawerFooter && ticket.status !== '已完结') {
+            var transferBtn = document.createElement('button');
+            transferBtn.className = 'ant-btn ant-btn-primary';
+            transferBtn.style.marginRight = '8px';
+            transferBtn.textContent = '转移工单';
+            drawerFooter.insertBefore(transferBtn, drawerFooter.firstChild);
+            transferBtn.onclick = function () {
+              showTicketTransferModal(ticket, function () {
+                // 刷新处理人显示
+                document.getElementById('view-ticket-handler').textContent = ticket.handler;
+                document.getElementById('view-ticket-status').textContent = ticket.status;
+                // 刷新时间线
+                var tlEl2 = document.getElementById('view-ticket-timeline');
+                if (tlEl2 && ticket.timeline) {
+                  var tlHtml2 = '';
+                  ticket.timeline.forEach(function (step) {
+                    tlHtml2 += '<div style="padding:8px 0 8px 16px;position:relative;">';
+                    tlHtml2 += '<div style="position:absolute;left:-8px;top:12px;width:12px;height:12px;border-radius:50%;background:#1890ff;border:2px solid #fff;"></div>';
+                    tlHtml2 += '<div style="font-weight:500;">' + esc(step.action) + '</div>';
+                    tlHtml2 += '<div style="font-size:12px;color:var(--text-secondary);">' + esc(step.time) + ' | ' + esc(step.operator) + '</div>';
+                    tlHtml2 += '<div style="font-size:13px;margin-top:2px;">' + esc(step.detail) + '</div>';
+                    tlHtml2 += '</div>';
+                  });
+                  tlEl2.innerHTML = tlHtml2;
+                }
+                renderTickets();
+              });
+            };
+          }
         });
       };
     });
@@ -2539,6 +2575,73 @@
         });
       };
     });
+
+    // 绑定转移按钮
+    tableContainer.querySelectorAll('.ticket-transfer-btn').forEach(function (btn) {
+      btn.onclick = function () {
+        var ticketId = btn.getAttribute('data-ticket-id');
+        var ticket = null;
+        for (var i = 0; i < MockData.tickets.length; i++) {
+          if (MockData.tickets[i].id === ticketId) { ticket = MockData.tickets[i]; break; }
+        }
+        if (!ticket) return;
+        showTicketTransferModal(ticket, function () { renderTickets(); });
+      };
+    });
+  }
+
+  // 工单转移弹窗
+  function showTicketTransferModal(ticket, onComplete) {
+    var members = MockData.members.filter(function (m) { return m.name !== ticket.handler; });
+    var memberOpts = members.map(function (m) {
+      return '<option value="' + esc(m.name) + '">' + esc(m.name) + '（' + esc(m.orgName) + ' · ' + esc(m.role) + '）</option>';
+    }).join('');
+
+    var html = '<div class="ant-modal-overlay" style="display:flex;">';
+    html += '<div class="ant-modal" style="width:480px;">';
+    html += '<div class="ant-modal-header">转移工单 <button class="ant-modal-close" onclick="hideModal()">&times;</button></div>';
+    html += '<div class="ant-modal-body">';
+    html += '<div style="margin-bottom:12px;color:var(--text-secondary);font-size:13px;">当前工单：<b>' + esc(ticket.id) + '</b> - ' + esc(ticket.title) + '</div>';
+    html += '<div style="margin-bottom:4px;color:var(--text-secondary);font-size:12px;">当前处理人：' + esc(ticket.handler) + '</div>';
+    html += '<div class="ant-form-item" style="margin-top:16px;"><div class="ant-form-label" style="font-weight:500;">转移给 <span style="color:red;">*</span></div>';
+    html += '<div class="ant-form-control"><select class="ant-select" id="transfer-target-member" style="width:100%;"><option value="">— 请选择新处理人 —</option>' + memberOpts + '</select></div></div>';
+    html += '<div class="ant-form-item"><div class="ant-form-label" style="font-weight:500;">转移原因 <span style="color:red;">*</span></div>';
+    html += '<div class="ant-form-control"><textarea class="ant-input" id="transfer-reason" rows="3" style="width:100%;resize:vertical;" placeholder="请说明转移原因…"></textarea></div></div>';
+    html += '</div>';
+    html += '<div class="ant-modal-footer">';
+    html += '<button class="ant-btn" onclick="hideModal()">取消</button>';
+    html += '<button class="ant-btn ant-btn-primary" id="transfer-confirm-btn">确认转移</button>';
+    html += '</div></div></div>';
+
+    var modalContainer = document.getElementById('modal-container');
+    modalContainer.innerHTML = html;
+    var overlay = modalContainer.querySelector('.ant-modal-overlay');
+    if (overlay) overlay.onclick = function (e) { if (e.target === overlay) hideModal(); };
+
+    var confirmBtn = document.getElementById('transfer-confirm-btn');
+    if (confirmBtn) {
+      confirmBtn.onclick = function () {
+        var targetName = document.getElementById('transfer-target-member').value;
+        var reason = (document.getElementById('transfer-reason').value || '').trim();
+        if (!targetName) { showMessage('请选择新处理人', 'error'); return; }
+        if (!reason) { showMessage('请填写转移原因', 'error'); return; }
+        var now = new Date();
+        var timeStr = now.getFullYear() + '/' +
+          String(now.getMonth() + 1).padStart(2, '0') + '/' +
+          String(now.getDate()).padStart(2, '0') + ' ' +
+          String(now.getHours()).padStart(2, '0') + ':' +
+          String(now.getMinutes()).padStart(2, '0') + ':' +
+          String(now.getSeconds()).padStart(2, '0');
+        var prevHandler = ticket.handler;
+        ticket.handler = targetName;
+        ticket.updateTime = timeStr;
+        if (!ticket.timeline) ticket.timeline = [];
+        ticket.timeline.push({ action: '工单转移', time: timeStr, operator: '张明远', detail: '由 ' + prevHandler + ' 转移给 ' + targetName + '，原因：' + reason });
+        hideModal();
+        showMessage('工单已转移给 ' + targetName, 'success');
+        if (onComplete) onComplete();
+      };
+    }
   }
 
   // =============================================
@@ -2575,7 +2678,8 @@
     var container = document.getElementById('modal-container');
     if (modalCache[name]) {
       container.innerHTML = modalCache[name];
-      container.querySelector('.ant-modal-overlay').style.display = 'flex';
+      var overlay = container.querySelector('.ant-modal-overlay, .ant-drawer-overlay');
+      if (overlay) overlay.style.display = 'flex';
       bindModalEvents(name);
       if (onReady) onReady();
       return;
@@ -2585,7 +2689,8 @@
       .then(function (html) {
         modalCache[name] = html;
         container.innerHTML = html;
-        container.querySelector('.ant-modal-overlay').style.display = 'flex';
+        var overlay = container.querySelector('.ant-modal-overlay, .ant-drawer-overlay');
+        if (overlay) overlay.style.display = 'flex';
         bindModalEvents(name);
         if (onReady) onReady();
       })
@@ -2596,7 +2701,7 @@
 
   function hideModal() {
     var container = document.getElementById('modal-container');
-    var overlay = container.querySelector('.ant-modal-overlay');
+    var overlay = container.querySelector('.ant-modal-overlay, .ant-drawer-overlay');
     if (overlay) overlay.style.display = 'none';
   }
 
@@ -2666,12 +2771,13 @@
     else if (id === 'res-config') initResConfigPage();
     else if (id === 'apply-records') initApplyRecordsPage();
     else if (id === 'review-records') initReviewRecordsPage();
+    else if (id === 'res-packages') initResPackagesPage();
   }
 
   function bindModalEvents(name) {
     var container = document.getElementById('modal-container');
-    // 关闭按钮
-    container.querySelectorAll('.ant-modal-close, [data-close-modal]').forEach(function (btn) {
+    // 关闭按钮（模态框和抽屉通用）
+    container.querySelectorAll('.ant-modal-close, .ant-drawer-close, [data-close-modal]').forEach(function (btn) {
       btn.onclick = function () { hideModal(); };
     });
 
@@ -2684,13 +2790,13 @@
       };
     }
 
-    // 取消按钮
-    container.querySelectorAll('.ant-modal-footer .ant-btn:not(.ant-btn-primary)').forEach(function (btn) {
+    // 取消按钮（模态框 footer 和抽屉 footer）
+    container.querySelectorAll('.ant-modal-footer .ant-btn:not(.ant-btn-primary), .ant-drawer-footer .ant-btn:not(.ant-btn-primary)').forEach(function (btn) {
       btn.onclick = function () { hideModal(); };
     });
 
     // 点击遮罩关闭
-    var overlay = container.querySelector('.ant-modal-overlay');
+    var overlay = container.querySelector('.ant-modal-overlay, .ant-drawer-overlay');
     if (overlay) {
       overlay.onclick = function (e) { if (e.target === overlay) hideModal(); };
     }
@@ -2714,9 +2820,9 @@
       } else if (leaderSelect && !leaderSelect.value && org.type !== 'dept') {
         org.leader = { name: '待指定', username: '' };
       }
-      // 保存匹配规则
+      // 保存匹配规则（部门和组都支持）
       var matchRuleInput = document.getElementById('edit-org-matchrule');
-      if (matchRuleInput && org.type !== 'dept') {
+      if (matchRuleInput) {
         org.matchRule = matchRuleInput.value.trim();
       }
       // 同步更新 members 中的 orgName
@@ -2799,15 +2905,17 @@
           createTime: new Date().toLocaleString('zh-CN').replace(/\//g, '/')
         });
         hideModal();
-        showMessage('创建项目「' + projName.value.trim() + '」成功', 'success');
-        MockData.auditLogs.unshift({ time: new Date().toLocaleString('zh-CN').replace(/\//g, '/'), operator: '张明远', dept: '基础架构部', opType: '资源操作', opTypeColor: 'blue', target: projName.value.trim(), desc: '创建项目', ip: '10.128.0.10' });
+        showMessage('创建资源组「' + projName.value.trim() + '」成功', 'success');
+        MockData.auditLogs.unshift({ time: new Date().toLocaleString('zh-CN').replace(/\//g, '/'), operator: '张明远', dept: '基础架构部', opType: '资源组管理', opTypeColor: 'blue', target: projName.value.trim(), desc: '创建资源组', ip: '10.128.0.10' });
         if (currentPage === 'project') { pageCache.project = null; loadPage('project'); }
       } else {
-        showMessage('请填写项目名称', 'warning');
+        showMessage('请填写资源组名称', 'warning');
       }
     } else if (name === 'resource/apply-resource') {
       var resTypeSelect = document.getElementById('modal-apply-res-type');
       if (!resTypeSelect || !resTypeSelect.value) { showMessage('请选择资源类型', 'warning'); return; }
+      var resGroupSelect = document.getElementById('modal-apply-res-group');
+      if (!resGroupSelect || !resGroupSelect.value) { showMessage('请选择所属资源组', 'warning'); return; }
       var selectedTpl = null;
       for (var i = 0; i < MockData.platformTemplates.length; i++) {
         if (MockData.platformTemplates[i].id === resTypeSelect.value) { selectedTpl = MockData.platformTemplates[i]; break; }
@@ -2817,9 +2925,10 @@
       // 从表单中尝试读取第一个string字段作为资源名
       var firstInput = document.querySelector('#modal-apply-dynamic-form .ant-input[type="text"], #modal-apply-dynamic-form .ant-input:not([type])');
       if (firstInput && firstInput.value.trim()) resName = firstInput.value.trim();
+      var selectedGroup = resGroupSelect.options[resGroupSelect.selectedIndex].text;
       MockData.resources.push({
         name: resName, resId: 'i-new-' + Date.now(), type: selectedTpl.resType.split(' ')[0], typeColor: 'blue', shape: '实例型',
-        group: '容器平台组', groupId: 'grp-container', project: '核心基础设施',
+        group: '容器平台组', groupId: 'grp-container', project: selectedGroup,
         perm: 'master', permColor: 'green', status: '审批中', statusClass: 'processing'
       });
       hideModal();
@@ -3272,7 +3381,7 @@
       var deptInput = document.getElementById('edit-project-dept');
       var descInput = document.getElementById('edit-project-desc');
       hideModal();
-      showMessage('项目信息已更新', 'success');
+      showMessage('资源组信息已更新', 'success');
       pageCache = {};
       if (currentPage === 'project') loadPage('project');
     } else if (name === 'res-catalog/add-category') {
@@ -3595,14 +3704,14 @@
       html += '<a class="ant-btn-link tpl-add-field-btn" data-gidx="' + gIdx + '" style="margin-left:12px;">+ 添加字段</a> ';
       html += '<a class="ant-btn-link tpl-del-group-btn" data-gidx="' + gIdx + '" style="color:#ff4d4f;margin-left:8px;">删除分组</a></div>';
       html += '</div>';
-      html += '<table class="ant-table" style="margin:0;table-layout:fixed;"><thead><tr>';
-      html += '<th style="width:14%;">字段名称</th>';
-      html += '<th style="width:14%;">参数名</th>';
-      html += '<th style="width:10%;">参数类型</th>';
-      html += '<th style="width:24%;">补充配置</th>';
-      html += '<th style="width:8%;">必填</th>';
-      html += '<th style="width:8%;">可见</th>';
-      html += '<th style="width:18%;">操作</th>';
+      html += '<table class="ant-table" style="margin:0;"><thead><tr>';
+      html += '<th style="width:14%;min-width:100px;">字段名称</th>';
+      html += '<th style="width:14%;min-width:100px;">参数名</th>';
+      html += '<th style="width:10%;min-width:90px;">参数类型</th>';
+      html += '<th style="width:28%;min-width:200px;">补充配置</th>';
+      html += '<th style="width:8%;min-width:70px;">必填</th>';
+      html += '<th style="width:8%;min-width:70px;">可见</th>';
+      html += '<th style="width:18%;min-width:120px;">操作</th>';
       html += '</tr></thead><tbody>';
       group.fields.forEach(function (field, fIdx) {
         html += '<tr>';
@@ -3613,23 +3722,30 @@
           html += '<option value="' + t + '"' + (field.type === t ? ' selected' : '') + '>' + t + '</option>';
         });
         html += '</select></td>';
-        // 补充配置列 - 根据type不同显示不同内容
-        html += '<td>';
+        // 补充配置列 - 显示摘要 + 设置按钮
+        html += '<td style="vertical-align:middle;">';
+        var summaryHtml = '';
         if (field.type === 'select') {
-          html += '<input class="ant-input tpl-field-options" data-gidx="' + gIdx + '" data-fidx="' + fIdx + '" value="' + esc(field.options || '') + '" placeholder="选项1,选项2..." style="height:28px;font-size:12px;" />';
+          var refCount = (field.referenceOptions || '').split(',').filter(function (o) { return o.trim(); }).length;
+          summaryHtml = refCount > 0
+            ? '<span style="color:#595959;">参考 ' + refCount + ' 个选项</span>'
+            : '<span style="color:#bfbfbf;font-size:12px;">无参考选项</span>';
         } else if (field.type === 'string') {
-          html += '<input class="ant-input tpl-field-regex" data-gidx="' + gIdx + '" data-fidx="' + fIdx + '" value="' + esc(field.regex || '') + '" placeholder="正则表达式（可空）" style="height:28px;font-size:12px;" />';
+          summaryHtml = '<span style="color:#bfbfbf;font-size:12px;">正则在部门配置</span>';
         } else if (field.type === 'number') {
-          html += '<div style="display:flex;gap:4px;">';
-          html += '<input class="ant-input tpl-field-min" data-gidx="' + gIdx + '" data-fidx="' + fIdx + '" value="' + (field.min != null ? field.min : '') + '" placeholder="最小" style="height:28px;width:60px;font-size:12px;" />';
-          html += '<input class="ant-input tpl-field-max" data-gidx="' + gIdx + '" data-fidx="' + fIdx + '" value="' + (field.max != null ? field.max : '') + '" placeholder="最大" style="height:28px;width:60px;font-size:12px;" />';
-          html += '<input class="ant-input tpl-field-decimals" data-gidx="' + gIdx + '" data-fidx="' + fIdx + '" value="' + (field.decimals != null ? field.decimals : '') + '" placeholder="小数" style="height:28px;width:48px;font-size:12px;" />';
-          html += '</div>';
+          var np = [];
+          if (field.min != null && field.min !== '') np.push('≥' + field.min);
+          if (field.max != null && field.max !== '') np.push('≤' + field.max);
+          summaryHtml = np.length ? '<span style="font-size:12px;">' + np.join(' ') + '</span>' : '<span style="color:#999;font-size:12px;">无限制</span>';
         } else if (field.type === 'fixed') {
-          html += '<input class="ant-input tpl-field-fixedvalue" data-gidx="' + gIdx + '" data-fidx="' + fIdx + '" value="' + esc(field.fixedValue || '') + '" placeholder="固定值" style="height:28px;font-size:12px;" />';
+          summaryHtml = field.fixedValue ? '<code style="font-size:11px;background:#f5f5f5;padding:1px 4px;">' + esc(field.fixedValue) + '</code>' : '<span style="color:#999;font-size:12px;">未设置</span>';
         } else {
-          html += '<span style="color:var(--text-secondary);font-size:12px;">--</span>';
+          summaryHtml = '<span style="color:#999;font-size:12px;">--</span>';
         }
+        html += '<div style="display:flex;align-items:center;justify-content:space-between;gap:6px;">';
+        html += summaryHtml;
+        html += '<button class="ant-btn ant-btn-sm tpl-field-settings-btn" data-gidx="' + gIdx + '" data-fidx="' + fIdx + '" style="padding:0 8px;height:24px;font-size:12px;flex-shrink:0;">&#9881;</button>';
+        html += '</div>';
         html += '</td>';
         // 是否必填列
         html += '<td style="text-align:center;"><label class="toggle-switch"><input type="checkbox" class="tpl-field-required" data-gidx="' + gIdx + '" data-fidx="' + fIdx + '"' + (field.required ? ' checked' : '') + ' /><span class="toggle-slider"></span></label></td>';
@@ -3775,6 +3891,16 @@
         renderResConfigTemplateEdit(container, tpl);
       };
     });
+
+    // 字段设置按钮
+    container.querySelectorAll('.tpl-field-settings-btn').forEach(function (btn) {
+      btn.onclick = function () {
+        var gIdx = parseInt(btn.getAttribute('data-gidx'));
+        var fIdx = parseInt(btn.getAttribute('data-fidx'));
+        syncTemplateInputs(container, tpl);
+        showFieldSettingsModal(tpl, gIdx, fIdx, container);
+      };
+    });
   }
 
   // 同步编辑页输入到模板数据
@@ -3816,40 +3942,132 @@
       var fIdx = parseInt(cb.getAttribute('data-fidx'));
       if (tpl.fieldGroups[gIdx] && tpl.fieldGroups[gIdx].fields[fIdx]) tpl.fieldGroups[gIdx].fields[fIdx].required = cb.checked;
     });
-    // select 选项
-    container.querySelectorAll('.tpl-field-options').forEach(function (input) {
-      var gIdx = parseInt(input.getAttribute('data-gidx'));
-      var fIdx = parseInt(input.getAttribute('data-fidx'));
-      if (tpl.fieldGroups[gIdx] && tpl.fieldGroups[gIdx].fields[fIdx]) tpl.fieldGroups[gIdx].fields[fIdx].options = input.value;
-    });
-    // string 正则
-    container.querySelectorAll('.tpl-field-regex').forEach(function (input) {
-      var gIdx = parseInt(input.getAttribute('data-gidx'));
-      var fIdx = parseInt(input.getAttribute('data-fidx'));
-      if (tpl.fieldGroups[gIdx] && tpl.fieldGroups[gIdx].fields[fIdx]) tpl.fieldGroups[gIdx].fields[fIdx].regex = input.value;
-    });
-    // number min/max/decimals
-    container.querySelectorAll('.tpl-field-min').forEach(function (input) {
-      var gIdx = parseInt(input.getAttribute('data-gidx'));
-      var fIdx = parseInt(input.getAttribute('data-fidx'));
-      if (tpl.fieldGroups[gIdx] && tpl.fieldGroups[gIdx].fields[fIdx]) tpl.fieldGroups[gIdx].fields[fIdx].min = input.value !== '' ? Number(input.value) : null;
-    });
-    container.querySelectorAll('.tpl-field-max').forEach(function (input) {
-      var gIdx = parseInt(input.getAttribute('data-gidx'));
-      var fIdx = parseInt(input.getAttribute('data-fidx'));
-      if (tpl.fieldGroups[gIdx] && tpl.fieldGroups[gIdx].fields[fIdx]) tpl.fieldGroups[gIdx].fields[fIdx].max = input.value !== '' ? Number(input.value) : null;
-    });
-    container.querySelectorAll('.tpl-field-decimals').forEach(function (input) {
-      var gIdx = parseInt(input.getAttribute('data-gidx'));
-      var fIdx = parseInt(input.getAttribute('data-fidx'));
-      if (tpl.fieldGroups[gIdx] && tpl.fieldGroups[gIdx].fields[fIdx]) tpl.fieldGroups[gIdx].fields[fIdx].decimals = input.value !== '' ? Number(input.value) : null;
-    });
-    // fixed 固定值
-    container.querySelectorAll('.tpl-field-fixedvalue').forEach(function (input) {
-      var gIdx = parseInt(input.getAttribute('data-gidx'));
-      var fIdx = parseInt(input.getAttribute('data-fidx'));
-      if (tpl.fieldGroups[gIdx] && tpl.fieldGroups[gIdx].fields[fIdx]) tpl.fieldGroups[gIdx].fields[fIdx].fixedValue = input.value;
-    });
+  }
+
+  // ---- 字段设置弹窗 ----
+  function showFieldSettingsModal(tpl, gIdx, fIdx, editContainer) {
+    var field = tpl.fieldGroups[gIdx].fields[fIdx];
+    var group = tpl.fieldGroups[gIdx];
+    var typeLabels = { string: '文本', number: '数字', select: '下拉选择', textarea: '多行文本', fixed: '固定值' };
+    var otherSelects = group.fields.filter(function (f, fi) { return fi !== fIdx && f.type === 'select' && f.param; });
+
+    var html = '<div class="ant-modal-overlay" style="display:flex;">';
+    html += '<div class="ant-modal" style="width:620px;max-height:88vh;overflow-y:auto;">';
+    html += '<div class="ant-modal-header">字段设置 <span style="font-size:13px;color:var(--text-secondary);margin-left:8px;">· ' + esc(field.name || '未命名') + ' (' + esc(typeLabels[field.type] || field.type) + ')</span><button class="ant-modal-close" onclick="hideModal()">&times;</button></div>';
+    html += '<div class="ant-modal-body">';
+
+    if (field.type === 'select') {
+      // 平台层只配置参考选项（可选），实际选项和级联由部门配置
+      html += '<div class="ant-form-item">';
+      html += '<div class="ant-form-label">参考选项</div>';
+      html += '<div class="ant-form-control">';
+      html += '<div id="fset-options-list" style="margin-bottom:6px;"></div>';
+      html += '<button type="button" class="ant-btn ant-btn-dashed" id="fset-add-option" style="display:flex;width:100%;border-style:dashed;justify-content:center;">+ 添加参考选项</button>';
+      html += '<div class="ant-form-extra" style="margin-top:4px;">可选填。为各部门提供初始参考，部门负责人可在此基础上增删调整；不填则部门从零配置。</div>';
+      html += '</div></div>';
+
+    } else if (field.type === 'string') {
+      html += '<div style="color:var(--text-secondary);padding:12px 0;font-size:13px;">&#8505; 文本字段的正则校验规则由各部门在部门配置中自行设置，平台层无需配置。</div>';
+
+    } else if (field.type === 'number') {
+      html += '<div style="display:flex;gap:16px;">';
+      html += '<div class="ant-form-item" style="flex:1;"><div class="ant-form-label">最小值</div><div class="ant-form-control"><input class="ant-input" id="fset-min" type="number" value="' + (field.min != null ? field.min : '') + '" placeholder="不限" /></div></div>';
+      html += '<div class="ant-form-item" style="flex:1;"><div class="ant-form-label">最大值</div><div class="ant-form-control"><input class="ant-input" id="fset-max" type="number" value="' + (field.max != null ? field.max : '') + '" placeholder="不限" /></div></div>';
+      html += '<div class="ant-form-item" style="flex:0 0 100px;"><div class="ant-form-label">小数位数</div><div class="ant-form-control"><input class="ant-input" id="fset-decimals" type="number" value="' + (field.decimals != null ? field.decimals : '') + '" placeholder="0" min="0" max="10" /></div></div>';
+      html += '</div>';
+
+    } else if (field.type === 'fixed') {
+      html += '<div class="ant-form-item">';
+      html += '<div class="ant-form-label">固定值</div>';
+      html += '<div class="ant-form-control">';
+      html += '<input class="ant-input" id="fset-fixedvalue" value="' + esc(field.fixedValue || '') + '" placeholder="该字段在表单中显示为只读固定值，会直接传递给接口" />';
+      html += '<div class="ant-form-extra">用于传递固定参数，用户不可修改</div>';
+      html += '</div></div>';
+
+    } else {
+      html += '<div style="color:var(--text-secondary);padding:16px 0;">该字段类型暂无额外配置</div>';
+    }
+
+    html += '</div>'; // /modal-body
+    html += '<div class="ant-modal-footer">';
+    html += '<button class="ant-btn" onclick="hideModal()">取消</button>';
+    html += '<button class="ant-btn ant-btn-primary" id="fset-save-btn">保存</button>';
+    html += '</div>';
+    html += '</div></div>';
+
+    var mc = document.getElementById('modal-container');
+    mc.innerHTML = html;
+    var overlay = mc.querySelector('.ant-modal-overlay');
+    if (overlay) overlay.onclick = function (e) { if (e.target === overlay) hideModal(); };
+
+    // ---- 动态表单：参考选项列表（仅 select 类型） ----
+    if (field.type === 'select') {
+      var optsList = document.getElementById('fset-options-list');
+      var addOptBtn = document.getElementById('fset-add-option');
+
+      function createOptionRow(label, value) {
+        var row = document.createElement('div');
+        row.style.cssText = 'display:flex;align-items:center;gap:8px;margin-bottom:6px;';
+        var lIn = document.createElement('input');
+        lIn.className = 'ant-input fset-opt-label';
+        lIn.value = label;
+        lIn.placeholder = '展示名';
+        lIn.style.cssText = 'flex:1;min-width:0;max-width:none;';
+        var eq = document.createElement('span');
+        eq.textContent = '=';
+        eq.style.cssText = 'color:#bbb;flex-shrink:0;font-size:14px;';
+        var vIn = document.createElement('input');
+        vIn.className = 'ant-input fset-opt-value';
+        vIn.value = value;
+        vIn.placeholder = '实际值';
+        vIn.style.cssText = 'flex:1;min-width:0;max-width:none;';
+        var delBtn = document.createElement('button');
+        delBtn.type = 'button';
+        delBtn.textContent = '×';
+        delBtn.style.cssText = 'flex-shrink:0;width:28px;height:28px;border:1px solid #ffccc7;border-radius:3px;background:#fff2f0;color:#ff4d4f;cursor:pointer;font-size:16px;line-height:1;padding:0;';
+        delBtn.onclick = function () { optsList.removeChild(row); };
+        row.appendChild(lIn); row.appendChild(eq); row.appendChild(vIn); row.appendChild(delBtn);
+        return row;
+      }
+
+      // 填充已有参考选项
+      (field.referenceOptions || '').split(',').map(function (s) { return s.trim(); }).filter(Boolean).forEach(function (opt) {
+        var eqIdx = opt.indexOf('=');
+        var lbl = eqIdx > 0 ? opt.slice(0, eqIdx).trim() : opt;
+        var val = eqIdx > 0 ? opt.slice(eqIdx + 1).trim() : opt;
+        optsList.appendChild(createOptionRow(lbl, val));
+      });
+
+      addOptBtn.onclick = function () { optsList.appendChild(createOptionRow('', '')); };
+    }
+
+    // 保存
+    document.getElementById('fset-save-btn').onclick = function () {
+      if (field.type === 'select') {
+        var optsList2 = document.getElementById('fset-options-list');
+        var opts = [];
+        Array.prototype.forEach.call(optsList2.children, function (row) {
+          var lIn = row.querySelector('.fset-opt-label');
+          var vIn = row.querySelector('.fset-opt-value');
+          if (lIn && vIn) {
+            var l = lIn.value.trim(), v = vIn.value.trim();
+            if (l || v) opts.push((l || v) + '=' + (v || l));
+          }
+        });
+        field.referenceOptions = opts.join(',');
+      } else if (field.type === 'number') {
+        var minV = (document.getElementById('fset-min') || {}).value;
+        var maxV = (document.getElementById('fset-max') || {}).value;
+        var decV = (document.getElementById('fset-decimals') || {}).value;
+        field.min = minV !== '' && minV != null ? Number(minV) : null;
+        field.max = maxV !== '' && maxV != null ? Number(maxV) : null;
+        field.decimals = decV !== '' && decV != null ? Number(decV) : null;
+      } else if (field.type === 'fixed') {
+        field.fixedValue = ((document.getElementById('fset-fixedvalue') || {}).value || '').trim();
+      }
+      hideModal();
+      renderResConfigTemplateEdit(editContainer, tpl);
+    };
   }
 
   // ---- 渲染模板表单字段（公共方法，用于预览和申请表单） ----
@@ -3867,16 +4085,32 @@
           html += '<div class="ant-form-extra" style="font-size:11px;color:#999;">固定值（不可修改）</div>';
         } else if (field.type === 'select') {
           var opts = (field.options || '').split(',').filter(function (o) { return o.trim(); });
-          html += '<select class="ant-select" style="width:100%;max-width:360px;"' + (disabled ? ' disabled' : '') + '>';
+          var cascadeAttrs = ' data-param="' + esc(field.param) + '"';
+          if (field.cascadeFrom) {
+            cascadeAttrs += ' data-cascade-from="' + esc(field.cascadeFrom) + '"';
+            if (field.cascadeData) cascadeAttrs += ' data-cascade-data="' + esc(field.cascadeData) + '"';
+          }
+          var cascadeHint = field.cascadeFrom ? '<div class="ant-form-extra" style="font-size:11px;color:#999;">&#8631; 级联依赖字段: ' + esc(field.cascadeFrom) + '（选择后自动筛选）</div>' : '';
+          html += '<select class="ant-select tpl-cascade-child" style="width:100%;max-width:360px;"' + cascadeAttrs + (disabled ? ' disabled' : '') + '>';
           html += '<option value="">请选择' + esc(field.name) + '</option>';
           opts.forEach(function (opt) {
             opt = opt.trim();
-            html += '<option value="' + esc(opt) + '"' + (field.defaultValue === opt ? ' selected' : '') + '>' + esc(opt) + '</option>';
+            // 支持 "展示名=实际值" 格式
+            var eqIdx = opt.indexOf('=');
+            var label, value;
+            if (eqIdx > 0) {
+              label = opt.substring(0, eqIdx).trim();
+              value = opt.substring(eqIdx + 1).trim();
+            } else {
+              label = opt;
+              value = opt;
+            }
+            html += '<option value="' + esc(value) + '"' + (field.defaultValue === value ? ' selected' : '') + '>' + esc(label) + '</option>';
           });
           if (opts.length === 0) {
             html += '<option>请选择' + esc(field.name) + '</option>';
           }
-          html += '</select>';
+          html += '</select>' + cascadeHint;
         } else if (field.type === 'textarea') {
           html += '<textarea class="ant-textarea"' + (disabled ? ' disabled' : '') + ' placeholder="请输入' + esc(field.name) + '">' + esc(field.defaultValue || '') + '</textarea>';
         } else if (field.type === 'number') {
@@ -3901,6 +4135,51 @@
       });
     });
     return html;
+  }
+
+  // ---- 初始化表单中的级联字段（渲染后调用） ----
+  function initCascadeFields(container) {
+    // 找所有有 data-cascade-from 的 select
+    container.querySelectorAll('select[data-cascade-from]').forEach(function (childSel) {
+      var parentParam = childSel.getAttribute('data-cascade-from');
+      var cascadeDataRaw = childSel.getAttribute('data-cascade-data') || '';
+      // 解析级联规则: "parentVal:opt1Label=opt1Val,opt2Label=opt2Val\n..."
+      var cascadeMap = {};
+      cascadeDataRaw.split('\n').forEach(function (line) {
+        line = line.trim();
+        if (!line) return;
+        var colonIdx = line.indexOf(':');
+        if (colonIdx < 0) return;
+        var parentVal = line.substring(0, colonIdx).trim();
+        var childOptsStr = line.substring(colonIdx + 1).trim();
+        cascadeMap[parentVal] = childOptsStr;
+      });
+      // 找到同一表单中 name/param 匹配的父 select
+      var parentSel = container.querySelector('select[data-param="' + parentParam + '"]');
+      if (!parentSel) return;
+      function applyOptions() {
+        var parentVal = parentSel.value;
+        var childOptsStr = cascadeMap[parentVal] || '';
+        var prevVal = childSel.value;
+        childSel.innerHTML = '<option value="">请选择...</option>';
+        if (childOptsStr) {
+          childOptsStr.split(',').forEach(function (opt) {
+            opt = opt.trim();
+            if (!opt) return;
+            var eqIdx = opt.indexOf('=');
+            var label = eqIdx > 0 ? opt.substring(0, eqIdx).trim() : opt;
+            var val = eqIdx > 0 ? opt.substring(eqIdx + 1).trim() : opt;
+            var option = document.createElement('option');
+            option.value = val;
+            option.textContent = label;
+            if (val === prevVal) option.selected = true;
+            childSel.appendChild(option);
+          });
+        }
+      }
+      parentSel.addEventListener('change', applyOptions);
+      if (parentSel.value) applyOptions();
+    });
   }
 
   // ---- 模板预览弹窗 ----
@@ -4403,8 +4682,7 @@
     var html = '<div style="margin-bottom:16px;">';
     html += '<a class="ant-btn-link dept-tpl-back-btn" style="font-size:14px;">&larr; 返回模板列表</a>';
     html += '</div>';
-    html += '<div class="ant-card"><div class="ant-card-head"><span>编辑部门模板 - ' + esc(resLabel) + ' / ' + esc(deptTpl.opType) + '</span>';
-    html += '<div class="btn-group"><button class="ant-btn ant-btn-sm dept-tpl-compare-btn" style="margin-right:8px;">对比预览</button></div></div>';
+    html += '<div class="ant-card"><div class="ant-card-head"><span>编辑部门模板 - ' + esc(resLabel) + ' / ' + esc(deptTpl.opType) + '</span></div>';
     html += '<div class="ant-card-body">';
     html += '<div class="ant-alert ant-alert-info" style="margin-bottom:16px;">';
     html += '<b>受限编辑规则：</b>select类型只能减选项不能加；string可设置固定值；number的min/max只能在平台范围内缩小；textarea可设默认值；fixed不可编辑。<b>必填字段如果关闭"展示"则必须提供默认值。</b>';
@@ -4437,18 +4715,34 @@
         if (field.type === 'fixed') {
           html += '<span style="color:#999;font-size:12px;">不可编辑: ' + esc(field.fixedValue || '') + '</span>';
         } else if (field.type === 'select') {
-          // select: checkbox列表，只能减不能加
-          var allOpts = (field.options || '').split(',').filter(function (o) { return o.trim(); }).map(function (o) { return o.trim(); });
-          var keptOpts = override.keptOptions || allOpts.slice();
-          html += '<div class="dept-tpl-select-opts" data-key="' + esc(key) + '" style="font-size:12px;">';
-          allOpts.forEach(function (opt) {
-            var checked = keptOpts.indexOf(opt) !== -1;
-            html += '<label style="display:inline-flex;align-items:center;margin-right:8px;cursor:pointer;"><input type="checkbox" class="dept-tpl-select-opt" data-key="' + esc(key) + '" value="' + esc(opt) + '"' + (checked ? ' checked' : '') + ' /> ' + esc(opt) + '</label>';
-          });
+          // 部门负责人配置选项或级联——显示摘要 + ⚙ 按钮
+          var hasOpts = !!(override.options && override.options.trim());
+          var hasCascade = !!(override.cascadeFrom);
+          var isUnconfigured = !hasOpts && !hasCascade;
+          var summaryText = '';
+          if (hasCascade) {
+            var ruleLines = (override.cascadeData || '').split('\n').filter(Boolean).length;
+            summaryText = '级联 ← ' + esc(override.cascadeFrom) + '，' + ruleLines + ' 条规则';
+          } else if (hasOpts) {
+            var optCount2 = override.options.split(',').filter(Boolean).length;
+            summaryText = optCount2 + ' 个选项';
+          } else {
+            summaryText = (field.required ? '⚠ 必填未配置' : '未配置');
+          }
+          var summaryStyle = (isUnconfigured && field.required)
+            ? 'font-size:12px;color:#ff4d4f;'
+            : (isUnconfigured ? 'font-size:12px;color:#bfbfbf;' : 'font-size:12px;color:#595959;');
+          html += '<div style="display:flex;align-items:center;gap:6px;">';
+          html += '<span style="' + summaryStyle + '">' + summaryText + '</span>';
+          html += '<button class="ant-btn ant-btn-sm dept-tpl-select-settings-btn" data-key="' + esc(key) + '" style="padding:0 8px;height:22px;font-size:11px;flex-shrink:0;">&#9881; 配置</button>';
           html += '</div>';
         } else if (field.type === 'string') {
           var fixedVal = override.fixedValue || '';
-          html += '<input class="ant-input dept-tpl-fixed-value" data-key="' + esc(key) + '" value="' + esc(fixedVal) + '" placeholder="固定值（填后申请人不可编辑）" style="height:28px;font-size:12px;max-width:240px;" />';
+          var regexVal = override.regex || '';
+          html += '<div style="display:flex;flex-direction:column;gap:4px;">';
+          html += '<input class="ant-input dept-tpl-fixed-value" data-key="' + esc(key) + '" value="' + esc(fixedVal) + '" placeholder="固定值（填后申请人不可编辑）" style="height:26px;font-size:12px;max-width:240px;" />';
+          html += '<input class="ant-input dept-tpl-string-regex" data-key="' + esc(key) + '" value="' + esc(regexVal) + '" placeholder="正则校验（留空不限制）" style="height:26px;font-size:12px;max-width:240px;font-family:monospace;" />';
+          html += '</div>';
         } else if (field.type === 'number') {
           var deptMin = override.deptMin !== undefined ? override.deptMin : '';
           var deptMax = override.deptMax !== undefined ? override.deptMax : '';
@@ -4466,7 +4760,12 @@
         html += '</td>';
         // 平台原始值
         html += '<td style="font-size:11px;color:#999;">';
-        if (field.type === 'select') html += '选项: ' + esc(field.options || '');
+        if (field.type === 'select') {
+          var refOpts = (field.referenceOptions || '').split(',').filter(Boolean).map(function (o) {
+            var eq = o.indexOf('='); return eq > 0 ? o.slice(0, eq).trim() : o.trim();
+          });
+          html += refOpts.length ? ('参考: ' + esc(refOpts.join(', '))) : '<span style="color:#bfbfbf;">无参考选项</span>';
+        }
         else if (field.type === 'number') html += 'min:' + (field.min != null ? field.min : '--') + ' max:' + (field.max != null ? field.max : '--');
         else if (field.type === 'fixed') html += esc(field.fixedValue || '');
         else html += '--';
@@ -4483,6 +4782,24 @@
     html += '</div></div>';
     container.innerHTML = html;
 
+    // 绑定 select 字段的 ⚙ 配置按钮
+    container.querySelectorAll('.dept-tpl-select-settings-btn').forEach(function (btn) {
+      btn.onclick = function () {
+        var key = btn.getAttribute('data-key');
+        var parts = key.split('|');
+        var gIdx = parseInt(parts[0]);
+        var param = parts[1];
+        var pField = (platformTpl.fieldGroups[gIdx] || { fields: [] }).fields.find(function (f) { return f.param === param; });
+        var pGroup = platformTpl.fieldGroups[gIdx];
+        if (!pField) return;
+        if (!deptTpl.fieldOverrides) deptTpl.fieldOverrides = {};
+        if (!deptTpl.fieldOverrides[key]) deptTpl.fieldOverrides[key] = {};
+        showDeptFieldSettingsModal(pField, pGroup, key, deptTpl.fieldOverrides[key], function () {
+          renderDeptTemplateEdit(container, cfg, state.deptConfig._editingTplIdx);
+        });
+      };
+    });
+
     // 返回
     container.querySelectorAll('.dept-tpl-back-btn').forEach(function (btn) {
       btn.onclick = function () {
@@ -4490,14 +4807,6 @@
         renderDeptTemplates(container, cfg);
       };
     });
-
-    // 对比预览按钮
-    var compareBtn = container.querySelector('.dept-tpl-compare-btn');
-    if (compareBtn) {
-      compareBtn.onclick = function () {
-        showDeptTemplateComparePreview(platformTpl, deptTpl);
-      };
-    }
 
     // 保存
     var saveBtn = container.querySelector('.dept-tpl-save-btn');
@@ -4511,16 +4820,26 @@
           if (!overrides[key]) overrides[key] = {};
           overrides[key].show = cb.checked;
         });
-        // 收集 select 保留选项
-        var selectGroups = {};
-        container.querySelectorAll('.dept-tpl-select-opt').forEach(function (cb) {
-          var key = cb.getAttribute('data-key');
-          if (!selectGroups[key]) selectGroups[key] = [];
-          if (cb.checked) selectGroups[key].push(cb.value);
+        // 收集 select 配置（已由 showDeptFieldSettingsModal 直接写入 deptTpl.fieldOverrides，
+        // 这里只需把它们合并进本次 overrides，防止与其他字段的收集冲突）
+        (platformTpl.fieldGroups || []).forEach(function (g, gi) {
+          g.fields.forEach(function (f) {
+            if (f.type !== 'select') return;
+            var k = gi + '|' + f.param;
+            var saved = deptTpl.fieldOverrides && deptTpl.fieldOverrides[k];
+            if (saved) {
+              if (!overrides[k]) overrides[k] = {};
+              if (saved.options !== undefined) overrides[k].options = saved.options;
+              if (saved.cascadeFrom !== undefined) overrides[k].cascadeFrom = saved.cascadeFrom;
+              if (saved.cascadeData !== undefined) overrides[k].cascadeData = saved.cascadeData;
+            }
+          });
         });
-        Object.keys(selectGroups).forEach(function (key) {
+        // 收集 string 正则
+        container.querySelectorAll('.dept-tpl-string-regex').forEach(function (input) {
+          var key = input.getAttribute('data-key');
           if (!overrides[key]) overrides[key] = {};
-          overrides[key].keptOptions = selectGroups[key];
+          overrides[key].regex = input.value.trim();
         });
         // 收集 string 固定值
         container.querySelectorAll('.dept-tpl-fixed-value').forEach(function (input) {
@@ -4563,7 +4882,7 @@
         var hasCustom = false;
         Object.keys(overrides).forEach(function (k) {
           var o = overrides[k];
-          if (o.show === false || o.defaultValue || o.fixedValue || o.keptOptions || o.deptMin !== undefined || o.deptMax !== undefined) hasCustom = true;
+          if (o.show === false || o.defaultValue || o.fixedValue || o.options || o.cascadeFrom || o.regex || o.deptMin !== undefined || o.deptMax !== undefined) hasCustom = true;
         });
         deptTpl.customized = hasCustom;
         state.deptConfig._editingTplIdx = null;
@@ -4573,45 +4892,188 @@
     }
   }
 
-  // 对比预览弹窗
-  function showDeptTemplateComparePreview(platformTpl, deptTpl) {
-    var html = '<div class="ant-modal-overlay" style="display:flex;">';
-    html += '<div class="ant-modal" style="width:900px;max-height:80vh;overflow-y:auto;">';
-    html += '<div class="ant-modal-header">对比预览 - ' + esc(platformTpl.resType) + ' / ' + esc(platformTpl.opType) + ' <button class="ant-modal-close" onclick="hideModal()">&times;</button></div>';
-    html += '<div class="ant-modal-body" style="display:flex;gap:16px;">';
-    // 左栏：平台标准模板
-    html += '<div style="flex:1;border:1px solid #e8e8e8;border-radius:6px;padding:12px;"><div style="font-weight:500;color:#1890ff;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #f0f0f0;">平台标准模板</div>';
-    html += renderTemplateFormFields(platformTpl, { disabled: true });
-    html += '</div>';
-    // 右栏：应用部门覆盖后
-    html += '<div style="flex:1;border:1px solid #e8e8e8;border-radius:6px;padding:12px;"><div style="font-weight:500;color:#52c41a;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #f0f0f0;">部门覆盖后效果</div>';
-    // 构造覆盖后的模板
-    var overriddenTpl = JSON.parse(JSON.stringify(platformTpl));
-    var overrides = deptTpl.fieldOverrides || {};
-    (overriddenTpl.fieldGroups || []).forEach(function (group, gIdx) {
-      group.fields = group.fields.filter(function (field) {
-        var key = gIdx + '|' + field.param;
-        var ov = overrides[key];
-        if (ov && ov.show === false) return false;
-        if (ov) {
-          if (ov.fixedValue) { field.type = 'fixed'; field.fixedValue = ov.fixedValue; }
-          if (ov.defaultValue) field.defaultValue = ov.defaultValue;
-          if (ov.keptOptions) field.options = ov.keptOptions.join(',');
-          if (ov.deptMin !== undefined) field.min = ov.deptMin;
-          if (ov.deptMax !== undefined) field.max = ov.deptMax;
-        }
-        return true;
-      });
+  // 部门级 select 字段设置弹窗
+  function showDeptFieldSettingsModal(platformField, platformGroup, key, override, onSave) {
+    var otherSelects = platformGroup.fields.filter(function (f) {
+      return f !== platformField && f.type === 'select' && f.param;
     });
-    html += renderTemplateFormFields(overriddenTpl, { disabled: true });
+    var cascadeEnabled = !!override.cascadeFrom;
+
+    var html = '<div class="ant-modal-overlay" style="display:flex;">';
+    html += '<div class="ant-modal" style="width:620px;max-height:88vh;overflow-y:auto;">';
+    html += '<div class="ant-modal-header">字段选项配置 <span style="font-size:13px;color:var(--text-secondary);margin-left:8px;">· ' + esc(platformField.name) + '</span><button class="ant-modal-close" onclick="hideModal()">&times;</button></div>';
+    html += '<div class="ant-modal-body">';
+
+    // 平台参考选项提示
+    if (platformField.referenceOptions) {
+      var refLabels = platformField.referenceOptions.split(',').map(function (o) {
+        var eq = o.indexOf('='); return esc(eq > 0 ? o.slice(0, eq).trim() : o.trim());
+      }).join('，');
+      html += '<div style="background:#f6ffed;border:1px solid #b7eb8f;border-radius:4px;padding:8px 12px;margin-bottom:16px;font-size:12px;">';
+      html += '&#128161; 平台参考选项：' + refLabels;
+      html += '<div style="color:#888;margin-top:2px;">可直接采用，也可自行增删调整</div>';
+      html += '</div>';
+    }
+
+    // 级联开关
+    html += '<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">';
+    html += '<label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:14px;font-weight:500;">';
+    html += '<input type="checkbox" id="dfset-cascade-enable"' + (cascadeEnabled ? ' checked' : '') + ' />';
+    html += '<span>开启级联</span>';
+    html += '</label>';
+    html += '<span style="font-size:12px;color:var(--text-secondary);">开启后此字段的选项由父字段的值决定</span>';
     html += '</div>';
-    html += '</div>';
-    html += '<div class="ant-modal-footer"><button class="ant-btn" onclick="hideModal()">关闭</button></div>';
+
+    // 区域A：普通选项
+    html += '<div id="dfset-options-section"' + (cascadeEnabled ? ' style="display:none;"' : '') + '>';
+    html += '<div class="ant-form-item"><div class="ant-form-label">选项配置</div><div class="ant-form-control">';
+    html += '<div id="dfset-options-list" style="margin-bottom:6px;"></div>';
+    html += '<button type="button" class="ant-btn ant-btn-dashed" id="dfset-add-option" style="display:flex;width:100%;border-style:dashed;justify-content:center;">+ 添加选项</button>';
+    html += '<div class="ant-form-extra" style="margin-top:4px;">展示名 = 实际传参值，如：华北2（北京）= cn-beijing</div>';
+    html += '</div></div></div>';
+
+    // 区域B：级联配置
+    html += '<div id="dfset-cascade-section"' + (cascadeEnabled ? '' : ' style="display:none;"') + '>';
+    html += '<div class="ant-form-item"><div class="ant-form-label">级联父字段</div><div class="ant-form-control">';
+    if (otherSelects.length === 0) {
+      html += '<div class="ant-alert ant-alert-info" style="margin:0;">当前分组中没有其他 select 字段，请先添加父字段</div>';
+    } else {
+      html += '<select class="ant-select" id="dfset-cascade-from" style="width:100%;">';
+      html += '<option value="">请选择父字段（必须是 select 类型）...</option>';
+      otherSelects.forEach(function (pf) {
+        html += '<option value="' + esc(pf.param) + '"' + (override.cascadeFrom === pf.param ? ' selected' : '') + '>' + esc(pf.name || pf.param) + ' &lt;' + esc(pf.param) + '&gt;</option>';
+      });
+      html += '</select>';
+      html += '<div class="ant-form-extra">父字段值变化时，自动筛选本字段的可用选项</div>';
+    }
     html += '</div></div>';
-    var modalContainer = document.getElementById('modal-container');
-    modalContainer.innerHTML = html;
-    var overlay = modalContainer.querySelector('.ant-modal-overlay');
+    html += '<div class="ant-form-item"><div class="ant-form-label">级联规则</div><div class="ant-form-control">';
+    html += '<div id="dfset-cascade-rules-list" style="margin-bottom:6px;"></div>';
+    html += '<button type="button" class="ant-btn ant-btn-dashed" id="dfset-add-rule" style="display:flex;width:100%;border-style:dashed;justify-content:center;">+ 添加规则</button>';
+    html += '<div class="ant-form-extra" style="margin-top:4px;">每条规则：父字段的某个值 → 本字段对应的子选项列表</div>';
+    html += '</div></div>';
+    html += '</div>';
+
+    html += '</div>';
+    html += '<div class="ant-modal-footer"><button class="ant-btn" onclick="hideModal()">取消</button><button class="ant-btn ant-btn-primary" id="dfset-save-btn">保存</button></div>';
+    html += '</div></div>';
+
+    var mc = document.getElementById('modal-container');
+    mc.innerHTML = html;
+    var overlay = mc.querySelector('.ant-modal-overlay');
     if (overlay) overlay.onclick = function (e) { if (e.target === overlay) hideModal(); };
+
+    // 工具函数：创建选项行
+    function makeOptRow(lbl, val, parentList) {
+      var row = document.createElement('div');
+      row.style.cssText = 'display:flex;align-items:center;gap:8px;margin-bottom:6px;';
+      var lIn = document.createElement('input'); lIn.className = 'ant-input dfset-opt-label'; lIn.value = lbl; lIn.placeholder = '展示名'; lIn.style.cssText = 'flex:1;min-width:0;max-width:none;';
+      var eq = document.createElement('span'); eq.textContent = '='; eq.style.cssText = 'color:#bbb;flex-shrink:0;';
+      var vIn = document.createElement('input'); vIn.className = 'ant-input dfset-opt-value'; vIn.value = val; vIn.placeholder = '实际值'; vIn.style.cssText = 'flex:1;min-width:0;max-width:none;';
+      var del = document.createElement('button'); del.type = 'button'; del.textContent = '×'; del.style.cssText = 'flex-shrink:0;width:28px;height:28px;border:1px solid #ffccc7;border-radius:3px;background:#fff2f0;color:#ff4d4f;cursor:pointer;font-size:16px;line-height:1;padding:0;';
+      del.onclick = function () { parentList.removeChild(row); };
+      row.appendChild(lIn); row.appendChild(eq); row.appendChild(vIn); row.appendChild(del);
+      return row;
+    }
+
+    // 工具函数：创建子选项行
+    function makeChildRow(cLbl, cVal, parentDiv) {
+      var row = document.createElement('div'); row.style.cssText = 'display:flex;align-items:center;gap:6px;margin-bottom:4px;';
+      var lIn = document.createElement('input'); lIn.className = 'ant-input dfset-child-label'; lIn.value = cLbl; lIn.placeholder = '子展示名'; lIn.style.cssText = 'flex:1;min-width:0;max-width:none;height:28px;font-size:12px;';
+      var eq = document.createElement('span'); eq.textContent = '='; eq.style.cssText = 'color:#bbb;flex-shrink:0;font-size:13px;';
+      var vIn = document.createElement('input'); vIn.className = 'ant-input dfset-child-value'; vIn.value = cVal; vIn.placeholder = '子实际值'; vIn.style.cssText = 'flex:1;min-width:0;max-width:none;height:28px;font-size:12px;';
+      var del = document.createElement('button'); del.type = 'button'; del.textContent = '×'; del.style.cssText = 'flex-shrink:0;width:22px;height:22px;border:none;background:none;color:#ff7875;cursor:pointer;font-size:15px;line-height:1;padding:0;';
+      del.onclick = function () { if (row.parentElement) row.parentElement.removeChild(row); };
+      row.appendChild(lIn); row.appendChild(eq); row.appendChild(vIn); row.appendChild(del);
+      return row;
+    }
+
+    // 工具函数：创建级联规则行
+    function makeRuleRow(pVal, children, rulesList) {
+      var ruleDiv = document.createElement('div'); ruleDiv.style.cssText = 'border:1px solid #e8e8e8;border-radius:4px;padding:10px 12px;margin-bottom:8px;background:#fafafa;';
+      var headerRow = document.createElement('div'); headerRow.style.cssText = 'display:flex;align-items:center;gap:8px;margin-bottom:8px;';
+      var pLbl = document.createElement('span'); pLbl.textContent = '父字段值'; pLbl.style.cssText = 'font-size:12px;color:#888;flex-shrink:0;width:52px;';
+      var pIn = document.createElement('input'); pIn.className = 'ant-input dfset-rule-parent'; pIn.value = pVal; pIn.placeholder = '父字段的实际传参值'; pIn.style.cssText = 'flex:1;min-width:0;max-width:none;height:28px;font-size:12px;';
+      var delBtn = document.createElement('button'); delBtn.type = 'button'; delBtn.textContent = '删除规则'; delBtn.style.cssText = 'flex-shrink:0;padding:0 8px;height:24px;border:1px solid #ffccc7;border-radius:3px;background:#fff2f0;color:#ff4d4f;cursor:pointer;font-size:12px;';
+      delBtn.onclick = function () { rulesList.removeChild(ruleDiv); };
+      headerRow.appendChild(pLbl); headerRow.appendChild(pIn); headerRow.appendChild(delBtn);
+      var childLbl = document.createElement('div'); childLbl.textContent = '↳ 子选项'; childLbl.style.cssText = 'font-size:12px;color:#888;margin-bottom:4px;';
+      var childrenDiv = document.createElement('div'); childrenDiv.className = 'dfset-rule-children'; childrenDiv.style.cssText = 'padding-left:8px;';
+      var addChildBtn = document.createElement('button'); addChildBtn.type = 'button'; addChildBtn.textContent = '+ 添加子选项'; addChildBtn.style.cssText = 'display:flex;justify-content:center;margin-top:4px;padding:0 8px;height:24px;font-size:12px;border:1px dashed #d9d9d9;border-radius:3px;background:#fff;cursor:pointer;width:100%;';
+      addChildBtn.onclick = function () { childrenDiv.appendChild(makeChildRow('', '', childrenDiv)); };
+      (children || []).forEach(function (c) { childrenDiv.appendChild(makeChildRow(c.label, c.value, childrenDiv)); });
+      ruleDiv.appendChild(headerRow); ruleDiv.appendChild(childLbl); ruleDiv.appendChild(childrenDiv); ruleDiv.appendChild(addChildBtn);
+      return ruleDiv;
+    }
+
+    // 填充选项
+    var optsList = document.getElementById('dfset-options-list');
+    (override.options || '').split(',').map(function (s) { return s.trim(); }).filter(Boolean).forEach(function (opt) {
+      var eq = opt.indexOf('=');
+      optsList.appendChild(makeOptRow(eq > 0 ? opt.slice(0, eq).trim() : opt, eq > 0 ? opt.slice(eq + 1).trim() : opt, optsList));
+    });
+    document.getElementById('dfset-add-option').onclick = function () { optsList.appendChild(makeOptRow('', '', optsList)); };
+
+    // 填充级联规则
+    var rulesList = document.getElementById('dfset-cascade-rules-list');
+    if (rulesList) {
+      (override.cascadeData || '').split('\n').filter(Boolean).forEach(function (line) {
+        var ci = line.indexOf(':');
+        var pVal = ci >= 0 ? line.slice(0, ci).trim() : line.trim();
+        var children = (ci >= 0 ? line.slice(ci + 1) : '').split(',').map(function (s) {
+          s = s.trim(); var eq = s.indexOf('=');
+          return eq > 0 ? { label: s.slice(0, eq).trim(), value: s.slice(eq + 1).trim() } : { label: s, value: s };
+        }).filter(function (c) { return c.label || c.value; });
+        rulesList.appendChild(makeRuleRow(pVal, children, rulesList));
+      });
+      var addRuleBtn = document.getElementById('dfset-add-rule');
+      if (addRuleBtn) addRuleBtn.onclick = function () { rulesList.appendChild(makeRuleRow('', [], rulesList)); };
+    }
+
+    // 级联开关联动
+    var cascadeChk = document.getElementById('dfset-cascade-enable');
+    var optSec = document.getElementById('dfset-options-section');
+    var cascSec = document.getElementById('dfset-cascade-section');
+    if (cascadeChk) {
+      cascadeChk.onchange = function () {
+        var on = cascadeChk.checked;
+        if (optSec) optSec.style.display = on ? 'none' : '';
+        if (cascSec) cascSec.style.display = on ? '' : 'none';
+      };
+    }
+
+    // 保存
+    document.getElementById('dfset-save-btn').onclick = function () {
+      if (cascadeChk && cascadeChk.checked) {
+        override.cascadeFrom = ((document.getElementById('dfset-cascade-from') || {}).value || '').trim();
+        var rules = [];
+        Array.prototype.forEach.call(rulesList.children, function (ruleDiv) {
+          var pIn = ruleDiv.querySelector('.dfset-rule-parent');
+          var childrenDiv = ruleDiv.querySelector('.dfset-rule-children');
+          if (!pIn) return;
+          var pVal = pIn.value.trim();
+          var childParts = [];
+          Array.prototype.forEach.call(childrenDiv.children, function (childRow) {
+            var cl = childRow.querySelector('.dfset-child-label'), cv = childRow.querySelector('.dfset-child-value');
+            if (cl && cv) { var cL = cl.value.trim(), cV = cv.value.trim(); if (cL || cV) childParts.push((cL || cV) + '=' + (cV || cL)); }
+          });
+          if (pVal) rules.push(pVal + ':' + childParts.join(','));
+        });
+        override.cascadeData = rules.join('\n');
+        override.options = '';
+      } else {
+        override.cascadeFrom = '';
+        override.cascadeData = '';
+        var opts = [];
+        Array.prototype.forEach.call(optsList.children, function (row) {
+          var lIn = row.querySelector('.dfset-opt-label'), vIn = row.querySelector('.dfset-opt-value');
+          if (lIn && vIn) { var l = lIn.value.trim(), v = vIn.value.trim(); if (l || v) opts.push((l || v) + '=' + (v || l)); }
+        });
+        override.options = opts.join(',');
+      }
+      hideModal();
+      onSave();
+    };
   }
 
   function renderDeptApproval(container, cfg, deptId) {
@@ -4993,7 +5455,19 @@
   function initApplyResourceModal() {
     var sel = document.getElementById('modal-apply-res-type');
     var formContainer = document.getElementById('modal-apply-dynamic-form');
+    var pricingContainer = document.getElementById('modal-apply-pricing');
     if (!sel || !formContainer) return;
+
+    // 填充资源组下拉
+    var resGroupSel = document.getElementById('modal-apply-res-group');
+    if (resGroupSel) {
+      MockData.projects.forEach(function (p) {
+        var opt = document.createElement('option');
+        opt.value = p.name;
+        opt.textContent = p.name + '（' + p.dept + '）';
+        resGroupSel.appendChild(opt);
+      });
+    }
 
     // 筛选有已配置申请操作模板的资源
     var applyTemplates = MockData.platformTemplates.filter(function (tpl) {
@@ -5011,10 +5485,57 @@
       }
     });
 
+    // 价格参考数据（模拟单价，元/月）
+    var unitPrices = {
+      'ECS 云服务器': 760, 'K8S 集群': 2400, 'RDS 云数据库': 980,
+      'PolarDB PostgreSQL': 1200, 'MongoDB': 680, 'Redis 缓存': 340,
+      'SLB 负载均衡': 120, 'ALB 应用负载均衡': 180, 'NLB 网络负载均衡': 150,
+      'Kafka 消息队列': 880, 'Elasticsearch': 960, 'MaxCompute': 1500,
+      'Flink 实时计算': 1200, 'OSS 对象存储': 200, 'CDN 流量包': 300,
+      '块存储 ESSD': 80, '文件存储 NAS': 160, '云原生网关': 400, '实时数仓 Hologres': 1800
+    };
+    var periodMonths = { '1m': 1, '3m': 3, '6m': 6, '1y': 12, '2y': 24, '3y': 36 };
+
+    function updatePricing() {
+      var unitPriceEl = document.getElementById('modal-apply-unit-price');
+      var totalPriceEl = document.getElementById('modal-apply-total-price');
+      var quantityEl = document.getElementById('modal-apply-quantity');
+      var payTypeEl = document.getElementById('modal-apply-pay-type');
+      var periodEl = document.getElementById('modal-apply-period');
+      var periodItem = document.getElementById('modal-apply-period-item');
+      if (!unitPriceEl || !totalPriceEl) return;
+
+      var isPostpaid = payTypeEl && payTypeEl.value === 'postpaid';
+      if (periodItem) periodItem.style.display = isPostpaid ? 'none' : '';
+
+      var tplId = sel.value;
+      var tpl = null;
+      for (var i = 0; i < MockData.platformTemplates.length; i++) {
+        if (MockData.platformTemplates[i].id === tplId) { tpl = MockData.platformTemplates[i]; break; }
+      }
+      if (!tpl) { unitPriceEl.textContent = '--'; totalPriceEl.textContent = '--'; return; }
+
+      var basePrice = unitPrices[tpl.resType] || 0;
+      var qty = parseInt(quantityEl ? quantityEl.value : 1) || 1;
+
+      if (isPostpaid) {
+        var hourly = (basePrice / 720).toFixed(4);
+        unitPriceEl.textContent = '¥' + hourly + ' /小时（按量）';
+        totalPriceEl.textContent = '按量计费';
+      } else {
+        var months = periodEl ? (periodMonths[periodEl.value] || 1) : 1;
+        var unitTotal = basePrice;
+        var grandTotal = basePrice * qty * months;
+        unitPriceEl.textContent = '¥' + unitTotal.toLocaleString() + ' /月/实例';
+        totalPriceEl.textContent = '¥' + grandTotal.toLocaleString() + ' 元';
+      }
+    }
+
     sel.onchange = function () {
       var tplId = sel.value;
       if (!tplId) {
         formContainer.innerHTML = '';
+        if (pricingContainer) pricingContainer.style.display = 'none';
         return;
       }
       var tpl = null;
@@ -5022,11 +5543,66 @@
         if (MockData.platformTemplates[i].id === tplId) { tpl = MockData.platformTemplates[i]; break; }
       }
       if (!tpl) { formContainer.innerHTML = ''; return; }
+
+      // 合并当前部门的 fieldOverrides 到模板副本
+      var mergedTpl = JSON.parse(JSON.stringify(tpl));
+      var deptCfg = MockData.deptConfig['dept-infra']; // 原型中固定为 dept-infra
+      var deptTplEntry = deptCfg && (deptCfg.templates || []).find(function (t) { return t.id === tplId; });
+      var deptOverrides = (deptTplEntry && deptTplEntry.fieldOverrides) || {};
+      var unconfiguredRequired = [];
+
+      (mergedTpl.fieldGroups || []).forEach(function (group, gIdx) {
+        group.fields.forEach(function (field) {
+          var key = gIdx + '|' + field.param;
+          var ov = deptOverrides[key] || {};
+          if (ov.show === false) { field.visible = false; return; }
+          if (field.type === 'select') {
+            if (ov.cascadeFrom) {
+              field.cascadeFrom = ov.cascadeFrom;
+              field.cascadeData = ov.cascadeData || '';
+              field.options = '';
+            } else if (ov.options) {
+              field.options = ov.options;
+              field.cascadeFrom = '';
+              field.cascadeData = '';
+            } else {
+              // 使用参考选项作为兜底（如果有）
+              field.options = field.referenceOptions || '';
+              field.cascadeFrom = '';
+              field.cascadeData = '';
+              if (field.required && field.visible !== false) {
+                unconfiguredRequired.push(field.name);
+              }
+            }
+          }
+          if (ov.fixedValue) { field.type = 'fixed'; field.fixedValue = ov.fixedValue; }
+          if (ov.defaultValue) field.defaultValue = ov.defaultValue;
+          if (ov.regex) field.regex = ov.regex;
+          if (ov.deptMin !== undefined) field.min = ov.deptMin;
+          if (ov.deptMax !== undefined) field.max = ov.deptMax;
+        });
+      });
+
       var html = '<div class="ant-divider"></div>';
+      if (unconfiguredRequired.length > 0) {
+        html += '<div style="background:#fff7e6;border:1px solid #ffd591;border-radius:4px;padding:10px 14px;margin-bottom:12px;font-size:13px;color:#874d00;">';
+        html += '&#9888; 以下必填字段尚未配置选项，申请可能无法完成，请联系部门负责人在"部门配置"中完善：';
+        html += '<strong>' + esc(unconfiguredRequired.join('、')) + '</strong>';
+        html += '</div>';
+      }
       html += '<div style="font-size:14px;font-weight:500;margin-bottom:16px;color:var(--text-color);">' + esc(tpl.resType) + ' - 申请参数</div>';
-      html += renderTemplateFormFields(tpl, { disabled: false });
+      html += renderTemplateFormFields(mergedTpl, { disabled: false });
       formContainer.innerHTML = html;
+      initCascadeFields(formContainer);
+      if (pricingContainer) pricingContainer.style.display = '';
+      updatePricing();
     };
+
+    // 绑定计费配置变化
+    ['modal-apply-quantity', 'modal-apply-pay-type', 'modal-apply-period'].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) el.oninput = el.onchange = updatePricing;
+    });
   }
 
   // =============================================
@@ -5242,10 +5818,10 @@
   // 申请详情弹窗
   // =============================================
   function showApplyDetailModal(record) {
-    var html = '<div class="ant-modal-overlay" style="display:flex;">';
-    html += '<div class="ant-modal" style="width:720px;max-height:80vh;overflow-y:auto;">';
-    html += '<div class="ant-modal-header">申请详情 - ' + esc(record.id) + ' <button class="ant-modal-close" onclick="hideModal()">&times;</button></div>';
-    html += '<div class="ant-modal-body">';
+    var html = '<div class="ant-drawer-overlay" style="display:flex;">';
+    html += '<div class="ant-drawer">';
+    html += '<div class="ant-drawer-header">申请详情 - ' + esc(record.id) + ' <button class="ant-drawer-close" onclick="hideModal()">&times;</button></div>';
+    html += '<div class="ant-drawer-body">';
     // 流程节点状态条
     html += '<div style="margin-bottom:20px;padding:16px;background:#fafafa;border-radius:8px;border:1px solid #f0f0f0;">';
     html += '<div style="font-size:13px;font-weight:500;margin-bottom:8px;color:var(--text-color);">审批流程</div>';
@@ -5274,12 +5850,12 @@
       html += '</tbody></table></div>';
     }
     html += '</div>';
-    html += '<div class="ant-modal-footer"><button class="ant-btn" onclick="hideModal()">关闭</button></div>';
+    html += '<div class="ant-drawer-footer"><button class="ant-btn" onclick="hideModal()">关闭</button></div>';
     html += '</div></div>';
 
     var container = document.getElementById('modal-container');
     container.innerHTML = html;
-    var overlay = container.querySelector('.ant-modal-overlay');
+    var overlay = container.querySelector('.ant-drawer-overlay');
     if (overlay) overlay.onclick = function (e) { if (e.target === overlay) hideModal(); };
   }
 
@@ -5287,10 +5863,10 @@
   // 审核详情弹窗（含通过/驳回）
   // =============================================
   function showReviewDetailModal(record, onAction) {
-    var html = '<div class="ant-modal-overlay" style="display:flex;">';
-    html += '<div class="ant-modal" style="width:720px;max-height:80vh;overflow-y:auto;">';
-    html += '<div class="ant-modal-header">审核详情 - ' + esc(record.id) + ' <button class="ant-modal-close" onclick="hideModal()">&times;</button></div>';
-    html += '<div class="ant-modal-body">';
+    var html = '<div class="ant-drawer-overlay" style="display:flex;">';
+    html += '<div class="ant-drawer">';
+    html += '<div class="ant-drawer-header">审核详情 - ' + esc(record.id) + ' <button class="ant-drawer-close" onclick="hideModal()">&times;</button></div>';
+    html += '<div class="ant-drawer-body">';
     // 流程节点状态条
     html += '<div style="margin-bottom:20px;padding:16px;background:#fafafa;border-radius:8px;border:1px solid #f0f0f0;">';
     html += '<div style="font-size:13px;font-weight:500;margin-bottom:8px;color:var(--text-color);">审批流程</div>';
@@ -5332,12 +5908,12 @@
       html += '</div></div>';
     }
     html += '</div>';
-    html += '<div class="ant-modal-footer"><button class="ant-btn" onclick="hideModal()">关闭</button></div>';
+    html += '<div class="ant-drawer-footer"><button class="ant-btn" onclick="hideModal()">关闭</button></div>';
     html += '</div></div>';
 
     var container = document.getElementById('modal-container');
     container.innerHTML = html;
-    var overlay = container.querySelector('.ant-modal-overlay');
+    var overlay = container.querySelector('.ant-drawer-overlay');
     if (overlay) overlay.onclick = function (e) { if (e.target === overlay) hideModal(); };
 
     // 绑定通过/驳回按钮
@@ -5485,6 +6061,316 @@
         };
       };
     });
+  }
+
+  function initResPackagesPage() {
+    var searchEl = document.getElementById('res-pkg-search');
+    if (searchEl) searchEl.oninput = function () { renderResPackages(searchEl.value); };
+    var addBtn = document.getElementById('res-pkg-add-btn');
+    if (addBtn) addBtn.onclick = function () { showNewResPackageModal(); };
+    renderResPackages('');
+  }
+
+  function renderResPackages(keyword) {
+    var tableContainer = document.getElementById('res-pkg-table-container');
+    if (!tableContainer) return;
+
+    var packages = MockData.resourcePackages || [];
+
+    var filtered = packages.filter(function (pkg) {
+      if (keyword) {
+        var kw = keyword.toLowerCase();
+        return pkg.name.toLowerCase().indexOf(kw) !== -1 || (pkg.description || '').toLowerCase().indexOf(kw) !== -1;
+      }
+      return true;
+    });
+
+    if (filtered.length === 0) {
+      tableContainer.innerHTML = '<div style="text-align:center;color:var(--text-secondary);padding:40px;">暂无资源包数据</div>';
+      return;
+    }
+
+    var html = '<table class="ant-table"><thead><tr><th>资源包名称</th><th>描述</th><th>包含资源</th><th>已授权用户</th><th>操作</th></tr></thead><tbody>';
+    filtered.forEach(function (pkg) {
+      var resTags = (pkg.resources || []).slice(0, 2).map(function (r) {
+        return '<span class="ant-tag ant-tag-' + esc(r.typeColor || 'default') + '">' + esc(r.name) + '</span>';
+      }).join('');
+      var resCount = (pkg.resources || []).length;
+      if (resCount > 2) resTags += '<span style="font-size:12px;color:var(--text-secondary);">等 ' + resCount + ' 个</span>';
+
+      var userTags = (pkg.users || []).slice(0, 2).map(function (u) {
+        return '<span class="ant-tag">' + esc(u.name) + '</span>';
+      }).join('');
+      var userCount = (pkg.users || []).length;
+      if (userCount > 2) userTags += '<span style="font-size:12px;color:var(--text-secondary);">等 ' + userCount + ' 人</span>';
+
+      html += '<tr>';
+      html += '<td><strong>' + esc(pkg.name) + '</strong></td>';
+      html += '<td style="color:var(--text-secondary);font-size:13px;max-width:220px;">' + esc(pkg.description || '--') + '</td>';
+      html += '<td>' + (resTags || '<span style="color:var(--text-secondary);">暂无</span>') + '</td>';
+      html += '<td>' + (userTags || '<span style="color:var(--text-secondary);">暂无</span>') + '</td>';
+      html += '<td>';
+      html += '<a class="ant-btn-link res-pkg-edit" data-pkg-id="' + esc(pkg.id) + '">编辑</a> ';
+      html += '<a class="ant-btn-link res-pkg-delete" data-pkg-id="' + esc(pkg.id) + '" style="color:#ff4d4f;">删除</a>';
+      html += '</td></tr>';
+    });
+    html += '</tbody></table>';
+    tableContainer.innerHTML = html;
+
+    tableContainer.querySelectorAll('.res-pkg-edit').forEach(function (btn) {
+      btn.onclick = function () {
+        var pkgId = btn.getAttribute('data-pkg-id');
+        var pkg = packages.find(function (p) { return p.id === pkgId; });
+        if (pkg) showResPackageEditModal(pkg);
+      };
+    });
+
+    tableContainer.querySelectorAll('.res-pkg-delete').forEach(function (btn) {
+      btn.onclick = function () {
+        var pkgId = btn.getAttribute('data-pkg-id');
+        var pkg = packages.find(function (p) { return p.id === pkgId; });
+        if (pkg) showResPackageDeleteConfirm(pkg);
+      };
+    });
+  }
+
+  function showNewResPackageModal() {
+    var html = '<div class="ant-modal-overlay" style="display:flex;">';
+    html += '<div class="ant-modal" style="width:480px;">';
+    html += '<div class="ant-modal-header">新建资源包 <button class="ant-modal-close" onclick="hideModal()">&times;</button></div>';
+    html += '<div class="ant-modal-body">';
+    html += '<div class="ant-form-item"><div class="ant-form-label">资源包名称 <span style="color:red;">*</span></div>';
+    html += '<div class="ant-form-control"><input class="ant-input" id="new-pkg-name" placeholder="请输入资源包名称" style="width:100%;"></div></div>';
+    html += '<div class="ant-form-item"><div class="ant-form-label">描述</div>';
+    html += '<div class="ant-form-control"><textarea class="ant-input" id="new-pkg-desc" rows="3" style="width:100%;resize:vertical;" placeholder="请输入描述（选填）"></textarea></div></div>';
+    html += '</div>';
+    html += '<div class="ant-modal-footer"><button class="ant-btn" onclick="hideModal()">取消</button><button class="ant-btn ant-btn-primary" id="new-pkg-confirm-btn">创建</button></div>';
+    html += '</div></div>';
+    var mc = document.getElementById('modal-container');
+    mc.innerHTML = html;
+    var overlay = mc.querySelector('.ant-modal-overlay');
+    if (overlay) overlay.onclick = function (e) { if (e.target === overlay) hideModal(); };
+    document.getElementById('new-pkg-confirm-btn').onclick = function () {
+      var name = (document.getElementById('new-pkg-name').value || '').trim();
+      var desc = (document.getElementById('new-pkg-desc').value || '').trim();
+      if (!name) { showMessage('请输入资源包名称', 'error'); return; }
+      var newId = 'rp-' + String(Date.now()).slice(-6);
+      MockData.resourcePackages.push({ id: newId, name: name, description: desc, resources: [], users: [] });
+      hideModal();
+      showMessage('资源包「' + name + '」已创建', 'success');
+      renderResPackages(document.getElementById('res-pkg-search') ? document.getElementById('res-pkg-search').value : '');
+    };
+  }
+
+  function showResPackageDeleteConfirm(pkg) {
+    var html = '<div class="ant-modal-overlay" style="display:flex;">';
+    html += '<div class="ant-modal" style="width:400px;">';
+    html += '<div class="ant-modal-header">删除资源包 <button class="ant-modal-close" onclick="hideModal()">&times;</button></div>';
+    html += '<div class="ant-modal-body">';
+    html += '<div class="ant-alert ant-alert-error" style="margin-bottom:16px;">此操作不可恢复，请确认！</div>';
+    html += '<p>确定删除资源包 <b>' + esc(pkg.name) + '</b>？</p>';
+    html += '<p style="font-size:12px;color:var(--text-secondary);">包含 ' + (pkg.resources || []).length + ' 个资源，已授权 ' + (pkg.users || []).length + ' 名用户。</p>';
+    html += '</div>';
+    html += '<div class="ant-modal-footer"><button class="ant-btn" onclick="hideModal()">取消</button>';
+    html += '<button class="ant-btn" id="pkg-delete-confirm-btn" style="background:#ff4d4f;color:#fff;border-color:#ff4d4f;">确认删除</button></div>';
+    html += '</div></div>';
+    var mc = document.getElementById('modal-container');
+    mc.innerHTML = html;
+    var overlay = mc.querySelector('.ant-modal-overlay');
+    if (overlay) overlay.onclick = function (e) { if (e.target === overlay) hideModal(); };
+    document.getElementById('pkg-delete-confirm-btn').onclick = function () {
+      var idx = MockData.resourcePackages.indexOf(pkg);
+      if (idx !== -1) MockData.resourcePackages.splice(idx, 1);
+      hideModal();
+      showMessage('资源包「' + pkg.name + '」已删除', 'success');
+      renderResPackages(document.getElementById('res-pkg-search') ? document.getElementById('res-pkg-search').value : '');
+    };
+  }
+
+  function showResPackageEditModal(pkg) {
+    var activeTab = 0;
+    var permLabels = { master: '管理员', developer: '开发者', reporter: '只读' };
+
+    function getKeyword() {
+      var s = document.getElementById('res-pkg-search');
+      return s ? s.value : '';
+    }
+
+    function renderTabContent(tab) {
+      if (tab === 0) {
+        return '<div class="ant-form-item"><div class="ant-form-label">资源包名称 <span style="color:red;">*</span></div>' +
+          '<div class="ant-form-control"><input class="ant-input" id="res-pkg-edit-name" value="' + esc(pkg.name) + '" style="width:100%;"></div></div>' +
+          '<div class="ant-form-item"><div class="ant-form-label">描述</div>' +
+          '<div class="ant-form-control"><textarea class="ant-input" id="res-pkg-edit-desc" rows="3" style="width:100%;resize:vertical;">' + esc(pkg.description || '') + '</textarea></div></div>';
+      }
+      if (tab === 1) {
+        var html = '<div style="background:#fafafa;border:1px solid #f0f0f0;border-radius:6px;padding:12px;margin-bottom:16px;">';
+        html += '<div style="font-weight:500;margin-bottom:8px;">添加资源</div>';
+        html += '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;">';
+        html += '<div style="flex:2;min-width:110px;"><div style="font-size:12px;color:var(--text-secondary);margin-bottom:4px;">资源名称</div><input class="ant-input" id="res-add-name" placeholder="如 k8s-prod" style="width:100%;min-width:0;max-width:none;"></div>';
+        html += '<div style="flex:2;min-width:110px;"><div style="font-size:12px;color:var(--text-secondary);margin-bottom:4px;">资源ID</div><input class="ant-input" id="res-add-id" placeholder="如 i-xxx-001" style="width:100%;min-width:0;max-width:none;"></div>';
+        html += '<div style="flex:1.5;min-width:90px;"><div style="font-size:12px;color:var(--text-secondary);margin-bottom:4px;">类型</div><input class="ant-input" id="res-add-type" placeholder="如 ECS" style="width:100%;min-width:0;max-width:none;"></div>';
+        html += '<div style="flex:1;min-width:80px;"><div style="font-size:12px;color:var(--text-secondary);margin-bottom:4px;">权限</div>';
+        html += '<select class="ant-select" id="res-add-perm" style="width:100%;"><option value="reporter">只读</option><option value="developer">开发者</option><option value="master">管理员</option></select></div>';
+        html += '<button class="ant-btn ant-btn-primary ant-btn-sm" id="res-add-confirm-btn" style="flex-shrink:0;align-self:flex-end;">添加</button>';
+        html += '</div></div>';
+        if (!pkg.resources || pkg.resources.length === 0) {
+          html += '<div style="text-align:center;color:var(--text-secondary);padding:24px;">暂无资源，请添加</div>';
+        } else {
+          html += '<table class="ant-table"><thead><tr><th>资源名称</th><th>资源ID</th><th>类型</th><th>权限</th><th>操作</th></tr></thead><tbody>';
+          pkg.resources.forEach(function (r, idx) {
+            html += '<tr><td>' + esc(r.name) + '</td>';
+            html += '<td style="font-size:12px;color:var(--text-secondary);font-family:monospace;">' + esc(r.resId) + '</td>';
+            html += '<td><span class="ant-tag ant-tag-' + esc(r.typeColor || 'default') + '">' + esc(r.type) + '</span></td>';
+            html += '<td><select class="ant-select res-perm-select" data-res-idx="' + idx + '" style="width:90px;">';
+            ['reporter', 'developer', 'master'].forEach(function (p) {
+              html += '<option value="' + p + '"' + (r.perm === p ? ' selected' : '') + '>' + permLabels[p] + '</option>';
+            });
+            html += '</select></td>';
+            html += '<td><a class="ant-btn-link res-remove-btn" data-res-idx="' + idx + '" style="color:#ff4d4f;">移除</a></td></tr>';
+          });
+          html += '</tbody></table>';
+        }
+        return html;
+      }
+      if (tab === 2) {
+        var addedUsernames = (pkg.users || []).map(function (u) { return u.username; });
+        var availableMembers = MockData.members.filter(function (m) { return addedUsernames.indexOf(m.username) === -1; });
+        var html = '<div style="background:#fafafa;border:1px solid #f0f0f0;border-radius:6px;padding:12px;margin-bottom:16px;">';
+        html += '<div style="font-weight:500;margin-bottom:8px;">添加用户</div>';
+        html += '<div style="display:flex;gap:8px;align-items:flex-end;">';
+        html += '<div style="flex:1;"><select class="ant-select" id="user-add-select" style="width:100%;">';
+        html += '<option value="">— 请选择成员 —</option>';
+        availableMembers.forEach(function (m) {
+          html += '<option value="' + esc(m.username) + '" data-name="' + esc(m.name) + '" data-dept="' + esc(m.orgName) + '">' + esc(m.name) + '（' + esc(m.orgName) + '）</option>';
+        });
+        html += '</select></div>';
+        html += '<button class="ant-btn ant-btn-primary ant-btn-sm" id="user-add-confirm-btn" style="flex-shrink:0;">添加</button>';
+        html += '</div></div>';
+        var users = pkg.users || [];
+        if (users.length === 0) {
+          html += '<div style="text-align:center;color:var(--text-secondary);padding:24px;">暂无授权用户，请添加</div>';
+        } else {
+          html += '<table class="ant-table"><thead><tr><th>姓名</th><th>账号</th><th>部门</th><th>操作</th></tr></thead><tbody>';
+          users.forEach(function (u, idx) {
+            html += '<tr><td>' + esc(u.name) + '</td>';
+            html += '<td style="font-size:12px;color:var(--text-secondary);">' + esc(u.username + '@sohu-inc.com') + '</td>';
+            html += '<td>' + esc(u.dept || '') + '</td>';
+            html += '<td><a class="ant-btn-link user-remove-btn" data-user-idx="' + idx + '" style="color:#ff4d4f;">移除</a></td></tr>';
+          });
+          html += '</tbody></table>';
+        }
+        return html;
+      }
+      return '';
+    }
+
+    function bindTabEvents(tab) {
+      var body = document.getElementById('res-pkg-edit-body');
+      if (!body) return;
+      if (tab === 0) {
+        var saveBtn = document.getElementById('res-pkg-save-basic');
+        if (saveBtn) {
+          saveBtn.onclick = function () {
+            var name = (document.getElementById('res-pkg-edit-name').value || '').trim();
+            if (!name) { showMessage('请输入资源包名称', 'error'); return; }
+            pkg.name = name;
+            pkg.description = (document.getElementById('res-pkg-edit-desc').value || '').trim();
+            showMessage('基本信息已保存', 'success');
+            renderResPackages(getKeyword());
+          };
+        }
+      }
+      if (tab === 1) {
+        body.querySelectorAll('.res-perm-select').forEach(function (sel) {
+          sel.onchange = function () {
+            var idx = parseInt(sel.getAttribute('data-res-idx'));
+            if (pkg.resources[idx]) pkg.resources[idx].perm = sel.value;
+          };
+        });
+        body.querySelectorAll('.res-remove-btn').forEach(function (btn) {
+          btn.onclick = function () {
+            pkg.resources.splice(parseInt(btn.getAttribute('data-res-idx')), 1);
+            body.innerHTML = renderTabContent(1);
+            bindTabEvents(1);
+            renderResPackages(getKeyword());
+            showMessage('资源已移除', 'success');
+          };
+        });
+        var addConfirmBtn = document.getElementById('res-add-confirm-btn');
+        if (addConfirmBtn) {
+          addConfirmBtn.onclick = function () {
+            var resName = (document.getElementById('res-add-name').value || '').trim();
+            var resId = (document.getElementById('res-add-id').value || '').trim();
+            var resType = (document.getElementById('res-add-type').value || '').trim();
+            var resPerm = document.getElementById('res-add-perm').value;
+            if (!resName || !resId || !resType) { showMessage('请填写资源名称、ID 和类型', 'error'); return; }
+            var typeColorMap = { 'ECS': 'blue', 'RDS': 'orange', 'SLB': 'cyan', 'OSS': 'lime', 'Redis': 'red', 'K8S': 'purple', 'Elasticsearch': 'gold', 'Flink': 'geekblue' };
+            var typeColor = 'default';
+            for (var k in typeColorMap) { if (resType.indexOf(k) !== -1) { typeColor = typeColorMap[k]; break; } }
+            if (!pkg.resources) pkg.resources = [];
+            pkg.resources.push({ resId: resId, name: resName, type: resType, typeColor: typeColor, perm: resPerm });
+            body.innerHTML = renderTabContent(1);
+            bindTabEvents(1);
+            renderResPackages(getKeyword());
+            showMessage('资源已添加', 'success');
+          };
+        }
+      }
+      if (tab === 2) {
+        body.querySelectorAll('.user-remove-btn').forEach(function (btn) {
+          btn.onclick = function () {
+            pkg.users.splice(parseInt(btn.getAttribute('data-user-idx')), 1);
+            body.innerHTML = renderTabContent(2);
+            bindTabEvents(2);
+            renderResPackages(getKeyword());
+            showMessage('用户已移除', 'success');
+          };
+        });
+        var addUserBtn = document.getElementById('user-add-confirm-btn');
+        if (addUserBtn) {
+          addUserBtn.onclick = function () {
+            var sel = document.getElementById('user-add-select');
+            if (!sel || !sel.value) { showMessage('请选择成员', 'error'); return; }
+            var opt = sel.options[sel.selectedIndex];
+            if (!pkg.users) pkg.users = [];
+            pkg.users.push({ name: opt.getAttribute('data-name'), username: sel.value, dept: opt.getAttribute('data-dept') });
+            body.innerHTML = renderTabContent(2);
+            bindTabEvents(2);
+            renderResPackages(getKeyword());
+            showMessage('用户已添加', 'success');
+          };
+        }
+      }
+    }
+
+    function renderModal() {
+      var tabNames = ['基本信息', '资源管理', '用户管理'];
+      var html = '<div class="ant-modal-overlay" style="display:flex;">';
+      html += '<div class="ant-modal" style="width:720px;max-height:85vh;overflow-y:auto;">';
+      html += '<div class="ant-modal-header">编辑资源包 - ' + esc(pkg.name) + ' <button class="ant-modal-close" onclick="hideModal()">&times;</button></div>';
+      html += '<div style="border-bottom:1px solid #f0f0f0;padding:0 24px;display:flex;">';
+      tabNames.forEach(function (t, i) {
+        var active = i === activeTab;
+        html += '<div class="res-pkg-tab-btn" data-tab="' + i + '" style="padding:10px 16px;cursor:pointer;border-bottom:2px solid ' + (active ? '#1890ff' : 'transparent') + ';color:' + (active ? '#1890ff' : 'inherit') + ';font-weight:' + (active ? '500' : 'normal') + ';">' + t + '</div>';
+      });
+      html += '</div>';
+      html += '<div class="ant-modal-body" id="res-pkg-edit-body">' + renderTabContent(activeTab) + '</div>';
+      html += '<div class="ant-modal-footer">';
+      if (activeTab === 0) html += '<button class="ant-btn ant-btn-primary" id="res-pkg-save-basic">保存基本信息</button>';
+      html += '<button class="ant-btn" onclick="hideModal()">关闭</button>';
+      html += '</div></div></div>';
+      var mc = document.getElementById('modal-container');
+      mc.innerHTML = html;
+      var overlay = mc.querySelector('.ant-modal-overlay');
+      if (overlay) overlay.onclick = function (e) { if (e.target === overlay) hideModal(); };
+      mc.querySelectorAll('.res-pkg-tab-btn').forEach(function (tab) {
+        tab.onclick = function () { activeTab = parseInt(tab.getAttribute('data-tab')); renderModal(); };
+      });
+      bindTabEvents(activeTab);
+    }
+
+    renderModal();
   }
 
   // ===== 初始化 =====
