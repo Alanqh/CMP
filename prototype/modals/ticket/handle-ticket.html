@@ -1,7 +1,7 @@
-<div class="ant-modal-overlay" style="display:none;">
-  <div class="ant-modal" style="width:520px;">
-    <div class="ant-modal-header"><span id="ticket-handle-title">处理工单</span> <button class="ant-modal-close">&times;</button></div>
-    <div class="ant-modal-body">
+<div class="ant-drawer-overlay" style="display:none;">
+  <div class="ant-drawer" style="width:540px;">
+    <div class="ant-drawer-header"><span id="ticket-handle-title">接单处理</span> <button class="ant-drawer-close">&times;</button></div>
+    <div class="ant-drawer-body">
       <div class="ant-form-item">
         <div class="ant-form-label">工单编号</div>
         <div class="ant-form-control"><span id="ticket-handle-id" style="font-weight:500;">--</span></div>
@@ -10,16 +10,19 @@
         <div class="ant-form-label">工单标题</div>
         <div class="ant-form-control"><span id="ticket-handle-name">--</span></div>
       </div>
-      <div class="ant-form-item">
+      <div class="ant-form-item" style="margin-top:16px;">
         <div class="ant-form-label"><span class="required">*</span>处理备注</div>
         <div class="ant-form-control">
-          <textarea class="ant-textarea" id="ticket-handle-remark" placeholder="请输入处理备注..."></textarea>
+          <textarea class="ant-textarea" id="ticket-handle-remark" rows="4" placeholder="请输入处理备注，说明接单原因或处理计划..."></textarea>
         </div>
       </div>
+      <div style="background:#e6f7ff;border:1px solid #91d5ff;border-radius:4px;padding:10px 14px;margin-top:16px;font-size:13px;color:#1890ff;">
+        接单后工单状态将变更为 <strong>处理中</strong>，您将成为该工单的处理人。
+      </div>
     </div>
-    <div class="ant-modal-footer">
+    <div class="ant-drawer-footer">
       <button class="ant-btn" data-close-modal>取消</button>
-      <button class="ant-btn ant-btn-primary">确认处理</button>
+      <button class="ant-btn ant-btn-primary">确认接单</button>
     </div>
   </div>
 </div>

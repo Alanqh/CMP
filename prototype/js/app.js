@@ -2383,6 +2383,15 @@
         '<div class="stat-card"><div class="stat-value" style="color:#1890ff;">' + processing + '</div><div class="stat-label">处理中</div></div>' +
         '<div class="stat-card"><div class="stat-value" style="color:#52c41a;">' + done + '</div><div class="stat-label">已完结</div></div>' +
         '<div class="stat-card"><div class="stat-value">' + MockData.tickets.length + '</div><div class="stat-label">总工单</div></div>';
+      // 状态流程说明（避免重复插入）
+      if (!document.getElementById('ticket-status-note')) {
+        var flowNote = document.createElement('div');
+        flowNote.id = 'ticket-status-note';
+        flowNote.className = 'ant-alert ant-alert-info';
+        flowNote.style.cssText = 'margin:8px 0;font-size:12px;';
+        flowNote.innerHTML = '<b>状态说明：</b>【待处理】工单已提交，处理人尚未接单；【处理中】处理人已接单，正在处理；【已完结】问题已解决。工单转移操作会记录在处理记录中。';
+        statsEl.parentNode.insertBefore(flowNote, statsEl.nextSibling);
+      }
     }
 
     // 部门筛选下拉
@@ -2480,7 +2489,8 @@
       html += '<td>' + esc(t.handler) + '</td>';
       html += '<td style="white-space:nowrap;">' + esc(t.createTime) + '</td>';
       html += '<td><a class="ant-btn-link ticket-view-btn" data-ticket-id="' + esc(t.id) + '">查看</a>';
-      if (t.status === '待处理') html += ' <a class="ant-btn-link ticket-handle-btn" data-ticket-id="' + esc(t.id) + '">处理</a>';
+      if (t.status === '待处理') html += ' <a class="ant-btn-link ticket-handle-btn" data-ticket-id="' + esc(t.id) + '">接单处理</a>';
+      if (t.status === '处理中') html += ' <a class="ant-btn-link ticket-close-btn" data-ticket-id="' + esc(t.id) + '">完结</a>';
       if (t.status !== '已完结') html += ' <a class="ant-btn-link ticket-transfer-btn" data-ticket-id="' + esc(t.id) + '">转移</a>';
       html += '</td></tr>';
     });
@@ -2522,7 +2532,7 @@
             });
             tlEl.innerHTML = tlHtml;
           }
-          // 转移按钮（非已完结时显示）
+          // 转移/完结按钮（非已完结时显示）
           var drawerFooter = document.querySelector('#modal-container .ant-drawer-footer');
           if (drawerFooter && ticket.status !== '已完结') {
             var transferBtn = document.createElement('button');
@@ -2530,6 +2540,20 @@
             transferBtn.style.marginRight = '8px';
             transferBtn.textContent = '转移工单';
             drawerFooter.insertBefore(transferBtn, drawerFooter.firstChild);
+            // 完结按钮（仅处理中）
+            if (ticket.status === '处理中') {
+              var closeBtn = document.createElement('button');
+              closeBtn.className = 'ant-btn';
+              closeBtn.style.cssText = 'margin-right:8px;background:#52c41a;color:#fff;border-color:#52c41a;';
+              closeBtn.textContent = '完结工单';
+              drawerFooter.insertBefore(closeBtn, drawerFooter.firstChild);
+              closeBtn.onclick = function () {
+                showTicketCloseDrawer(ticket, function () {
+                  document.getElementById('view-ticket-status') && (document.getElementById('view-ticket-status').textContent = ticket.status);
+                  renderTickets();
+                });
+              };
+            }
             transferBtn.onclick = function () {
               showTicketTransferModal(ticket, function () {
                 // 刷新处理人显示
@@ -2588,34 +2612,82 @@
         showTicketTransferModal(ticket, function () { renderTickets(); });
       };
     });
+
+    // 绑定完结按钮
+    tableContainer.querySelectorAll('.ticket-close-btn').forEach(function (btn) {
+      btn.onclick = function () {
+        var ticketId = btn.getAttribute('data-ticket-id');
+        var ticket = null;
+        for (var i = 0; i < MockData.tickets.length; i++) {
+          if (MockData.tickets[i].id === ticketId) { ticket = MockData.tickets[i]; break; }
+        }
+        if (!ticket) return;
+        // 用侧边抽屉确认完结
+        showTicketCloseDrawer(ticket, function () { renderTickets(); });
+      };
+    });
   }
 
-  // 工单转移弹窗
+  // 完结工单 - 使用侧边抽屉
+  function showTicketCloseDrawer(ticket, onComplete) {
+    var html = '<div class="ant-drawer-overlay" style="display:flex;">';
+    html += '<div class="ant-drawer" style="width:520px;">';
+    html += '<div class="ant-drawer-header">完结工单 <button class="ant-drawer-close" onclick="hideModal()">&times;</button></div>';
+    html += '<div class="ant-drawer-body">';
+    html += '<div class="ant-alert ant-alert-info" style="margin-bottom:16px;">工单完结后状态将变为「已完结」，不可再转移或处理。</div>';
+    html += '<div style="margin-bottom:12px;color:var(--text-secondary);">工单：<b>' + esc(ticket.id) + '</b> - ' + esc(ticket.title) + '</div>';
+    html += '<div class="ant-form-item"><div class="ant-form-label">解决方案 / 处理结果 <span style="color:red;">*</span></div>';
+    html += '<div class="ant-form-control"><textarea class="ant-input" id="close-ticket-remark" rows="4" style="width:100%;resize:vertical;" placeholder="请填写解决方案或处理结果..."></textarea></div></div>';
+    html += '</div>';
+    html += '<div class="ant-drawer-footer">';
+    html += '<button class="ant-btn" onclick="hideModal()">取消</button>';
+    html += '<button class="ant-btn ant-btn-primary" id="close-ticket-confirm-btn" style="background:#52c41a;border-color:#52c41a;">确认完结</button>';
+    html += '</div></div></div>';
+    var mc = document.getElementById('modal-container');
+    mc.innerHTML = html;
+    var overlay = mc.querySelector('.ant-drawer-overlay');
+    if (overlay) overlay.onclick = function (e) { if (e.target === overlay) hideModal(); };
+    document.getElementById('close-ticket-confirm-btn').onclick = function () {
+      var remark = (document.getElementById('close-ticket-remark').value || '').trim();
+      if (!remark) { showMessage('请填写处理结果', 'error'); return; }
+      var now = new Date();
+      var timeStr = now.getFullYear() + '/' + String(now.getMonth() + 1).padStart(2, '0') + '/' + String(now.getDate()).padStart(2, '0') + ' ' + String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0') + ':' + String(now.getSeconds()).padStart(2, '0');
+      ticket.status = '已完结';
+      ticket.statusClass = 'success';
+      ticket.updateTime = timeStr;
+      if (!ticket.timeline) ticket.timeline = [];
+      ticket.timeline.push({ time: timeStr, action: '已解决', operator: '当前用户', detail: remark });
+      hideModal();
+      showMessage('工单 ' + ticket.id + ' 已完结', 'success');
+      if (onComplete) onComplete();
+    };
+  }
   function showTicketTransferModal(ticket, onComplete) {
     var members = MockData.members.filter(function (m) { return m.name !== ticket.handler; });
     var memberOpts = members.map(function (m) {
       return '<option value="' + esc(m.name) + '">' + esc(m.name) + '（' + esc(m.orgName) + ' · ' + esc(m.role) + '）</option>';
     }).join('');
 
-    var html = '<div class="ant-modal-overlay" style="display:flex;">';
-    html += '<div class="ant-modal" style="width:480px;">';
-    html += '<div class="ant-modal-header">转移工单 <button class="ant-modal-close" onclick="hideModal()">&times;</button></div>';
-    html += '<div class="ant-modal-body">';
+    var html = '<div class="ant-drawer-overlay" style="display:flex;">';
+    html += '<div class="ant-drawer" style="width:540px;">';
+    html += '<div class="ant-drawer-header">转移工单 <button class="ant-drawer-close" onclick="hideModal()">&times;</button></div>';
+    html += '<div class="ant-drawer-body">';
     html += '<div style="margin-bottom:12px;color:var(--text-secondary);font-size:13px;">当前工单：<b>' + esc(ticket.id) + '</b> - ' + esc(ticket.title) + '</div>';
-    html += '<div style="margin-bottom:4px;color:var(--text-secondary);font-size:12px;">当前处理人：' + esc(ticket.handler) + '</div>';
-    html += '<div class="ant-form-item" style="margin-top:16px;"><div class="ant-form-label" style="font-weight:500;">转移给 <span style="color:red;">*</span></div>';
+    html += '<div style="margin-bottom:16px;color:var(--text-secondary);font-size:12px;">当前处理人：' + esc(ticket.handler) + ' &nbsp;|&nbsp; 状态：' + esc(ticket.status) + '</div>';
+    html += '<div class="ant-alert ant-alert-warning" style="margin-bottom:16px;font-size:12px;">转移后工单状态保持不变，转移记录将追加到处理记录中。</div>';
+    html += '<div class="ant-form-item"><div class="ant-form-label" style="font-weight:500;">转移给 <span style="color:red;">*</span></div>';
     html += '<div class="ant-form-control"><select class="ant-select" id="transfer-target-member" style="width:100%;"><option value="">— 请选择新处理人 —</option>' + memberOpts + '</select></div></div>';
     html += '<div class="ant-form-item"><div class="ant-form-label" style="font-weight:500;">转移原因 <span style="color:red;">*</span></div>';
-    html += '<div class="ant-form-control"><textarea class="ant-input" id="transfer-reason" rows="3" style="width:100%;resize:vertical;" placeholder="请说明转移原因…"></textarea></div></div>';
+    html += '<div class="ant-form-control"><textarea class="ant-input" id="transfer-reason" rows="4" style="width:100%;resize:vertical;" placeholder="请说明转移原因…"></textarea></div></div>';
     html += '</div>';
-    html += '<div class="ant-modal-footer">';
+    html += '<div class="ant-drawer-footer">';
     html += '<button class="ant-btn" onclick="hideModal()">取消</button>';
     html += '<button class="ant-btn ant-btn-primary" id="transfer-confirm-btn">确认转移</button>';
     html += '</div></div></div>';
 
     var modalContainer = document.getElementById('modal-container');
     modalContainer.innerHTML = html;
-    var overlay = modalContainer.querySelector('.ant-modal-overlay');
+    var overlay = modalContainer.querySelector('.ant-drawer-overlay');
     if (overlay) overlay.onclick = function (e) { if (e.target === overlay) hideModal(); };
 
     var confirmBtn = document.getElementById('transfer-confirm-btn');
@@ -3684,6 +3756,7 @@
     html += '</div>';
     html += '<div class="ant-card"><div class="ant-card-head"><span>编辑操作模板 - ' + esc(tpl.resType) + ' / ' + esc(tpl.opType) + '</span></div>';
     html += '<div class="ant-card-body">';
+    html += '<div class="ant-alert ant-alert-info" style="margin-bottom:16px;"><b>字段约束说明：</b>① 必填（required）字段若设为不可见（visible=false），则只能是 <code>fixed</code> 类型；② <code>fixed</code> 类型字段必须在"字段设置"中填写固定值。</div>';
     // 基本信息
     html += '<div style="display:flex;gap:32px;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid #f0f0f0;flex-wrap:wrap;">';
     html += '<div class="ant-form-item" style="flex:1;min-width:200px;margin-bottom:0;"><div class="ant-form-label">模板名称</div><div class="ant-form-control"><input class="ant-input tpl-template-name" value="' + esc(tpl.templateName || '') + '" placeholder="请输入模板名称" style="height:32px;" /></div></div>';
@@ -3707,19 +3780,33 @@
       html += '<table class="ant-table" style="margin:0;"><thead><tr>';
       html += '<th style="width:14%;min-width:100px;">字段名称</th>';
       html += '<th style="width:14%;min-width:100px;">参数名</th>';
-      html += '<th style="width:10%;min-width:90px;">参数类型</th>';
-      html += '<th style="width:28%;min-width:200px;">补充配置</th>';
       html += '<th style="width:8%;min-width:70px;">必填</th>';
       html += '<th style="width:8%;min-width:70px;">可见</th>';
+      html += '<th style="width:10%;min-width:90px;">参数类型</th>';
+      html += '<th style="width:28%;min-width:200px;">补充配置</th>';
       html += '<th style="width:18%;min-width:120px;">操作</th>';
       html += '</tr></thead><tbody>';
       group.fields.forEach(function (field, fIdx) {
-        html += '<tr>';
+        // 检测约束违规：必填不可见必须是fixed；fixed必须有固定值
+        var hasRequiredVisibleError = field.required && field.visible === false && field.type !== 'fixed';
+        var hasFixedNoValueError = field.type === 'fixed' && !field.fixedValue;
+        var rowStyle = (hasRequiredVisibleError || hasFixedNoValueError) ? ' style="background:#fff2f0;"' : '';
+        html += '<tr' + rowStyle + '>';
         html += '<td><input class="ant-input tpl-field-name" data-gidx="' + gIdx + '" data-fidx="' + fIdx + '" value="' + esc(field.name) + '" style="height:28px;" /></td>';
         html += '<td><input class="ant-input tpl-field-param" data-gidx="' + gIdx + '" data-fidx="' + fIdx + '" value="' + esc(field.param) + '" style="height:28px;font-family:monospace;font-size:12px;" /></td>';
+        // 必填列（在参数类型之前）
+        html += '<td style="text-align:center;"><label class="toggle-switch"><input type="checkbox" class="tpl-field-required" data-gidx="' + gIdx + '" data-fidx="' + fIdx + '"' + (field.required ? ' checked' : '') + ' /><span class="toggle-slider"></span></label></td>';
+        // 可见列
+        html += '<td style="text-align:center;"><label class="toggle-switch"><input type="checkbox" class="tpl-field-visible" data-gidx="' + gIdx + '" data-fidx="' + fIdx + '"' + (field.visible ? ' checked' : '') + ' /><span class="toggle-slider"></span></label></td>';
+        // 参数类型列：必填且不可见时仅允许 fixed
+        var forceFixed = field.required && field.visible === false;
         html += '<td><select class="ant-select tpl-field-type" data-gidx="' + gIdx + '" data-fidx="' + fIdx + '" style="width:100%;">';
         ['string', 'number', 'select', 'textarea', 'fixed'].forEach(function (t) {
-          html += '<option value="' + t + '"' + (field.type === t ? ' selected' : '') + '>' + t + '</option>';
+          if (forceFixed && t !== 'fixed') {
+            html += '<option value="' + t + '" disabled style="color:#ccc;">' + t + '</option>';
+          } else {
+            html += '<option value="' + t + '"' + (field.type === t ? ' selected' : '') + '>' + t + '</option>';
+          }
         });
         html += '</select></td>';
         // 补充配置列 - 显示摘要 + 设置按钮
@@ -3747,9 +3834,6 @@
         html += '<button class="ant-btn ant-btn-sm tpl-field-settings-btn" data-gidx="' + gIdx + '" data-fidx="' + fIdx + '" style="padding:0 8px;height:24px;font-size:12px;flex-shrink:0;">&#9881;</button>';
         html += '</div>';
         html += '</td>';
-        // 是否必填列
-        html += '<td style="text-align:center;"><label class="toggle-switch"><input type="checkbox" class="tpl-field-required" data-gidx="' + gIdx + '" data-fidx="' + fIdx + '"' + (field.required ? ' checked' : '') + ' /><span class="toggle-slider"></span></label></td>';
-        html += '<td style="text-align:center;"><label class="toggle-switch"><input type="checkbox" class="tpl-field-visible" data-gidx="' + gIdx + '" data-fidx="' + fIdx + '"' + (field.visible ? ' checked' : '') + ' /><span class="toggle-slider"></span></label></td>';
         html += '<td><a class="ant-btn-link tpl-move-field-up" data-gidx="' + gIdx + '" data-fidx="' + fIdx + '"' + (fIdx === 0 ? ' style="color:var(--text-secondary);cursor:not-allowed;"' : '') + '>上移</a> ';
         html += '<a class="ant-btn-link tpl-move-field-down" data-gidx="' + gIdx + '" data-fidx="' + fIdx + '"' + (fIdx === group.fields.length - 1 ? ' style="color:var(--text-secondary);cursor:not-allowed;"' : '') + '>下移</a> ';
         html += '<a class="ant-btn-link tpl-del-field-btn" data-gidx="' + gIdx + '" data-fidx="' + fIdx + '" style="color:#ff4d4f;">删除</a></td>';
@@ -3782,6 +3866,22 @@
     if (saveBtn) {
       saveBtn.onclick = function () {
         syncTemplateInputs(container, tpl);
+        // 校验：fixed类型必须填写固定值；必填但不可见的字段只能是fixed类型
+        var errors = [];
+        (tpl.fieldGroups || []).forEach(function (group) {
+          group.fields.forEach(function (field) {
+            if (field.type === 'fixed' && !field.fixedValue) {
+              errors.push('字段「' + (field.name || field.param) + '」为 fixed 类型，必须在字段设置中填写固定值');
+            }
+            if (field.required && field.visible === false && field.type !== 'fixed') {
+              errors.push('字段「' + (field.name || field.param) + '」设为必填但不可见，只能使用 fixed 类型（当前类型：' + field.type + '）');
+            }
+          });
+        });
+        if (errors.length) {
+          showMessage(errors[0], 'error');
+          return;
+        }
         showMessage('模板「' + tpl.resType + ' / ' + tpl.opType + '」已保存', 'success');
       };
     }
@@ -4183,12 +4283,36 @@
   }
 
   // ---- 模板预览弹窗 ----
-  function showTemplatePreview(tpl) {
+  function showTemplatePreview(tpl, deptTpl) {
+    // 如果有部门模板，应用字段覆盖后预览
+    var previewTpl = tpl;
+    if (deptTpl && deptTpl.fieldOverrides) {
+      previewTpl = JSON.parse(JSON.stringify(tpl));
+      var overrides = deptTpl.fieldOverrides;
+      (previewTpl.fieldGroups || []).forEach(function (group, gIdx) {
+        group.fields.forEach(function (field) {
+          var key = gIdx + '|' + field.param;
+          var o = overrides[key];
+          if (!o) return;
+          if (o.show === false) field.visible = false;
+          if (o.regex !== undefined) field.regex = o.regex;
+          if (o.deptMin !== undefined) field.min = o.deptMin;
+          if (o.deptMax !== undefined) field.max = o.deptMax;
+          if (o.deptDecimals !== undefined) field.decimals = o.deptDecimals;
+          if (o.defaultValue !== undefined) field.defaultValue = o.defaultValue;
+          if (o.options !== undefined) field.options = o.options;
+          if (o.cascadeFrom !== undefined) field.cascadeFrom = o.cascadeFrom;
+          if (o.cascadeData !== undefined) field.cascadeData = o.cascadeData;
+        });
+      });
+    }
+    var title = '预览表单 - ' + esc(tpl.resType) + ' / ' + esc(tpl.opType);
+    if (deptTpl) title += '（部门视图）';
     var html = '<div class="ant-modal-overlay" style="display:flex;">';
     html += '<div class="ant-modal" style="width:640px;max-height:80vh;overflow-y:auto;">';
-    html += '<div class="ant-modal-header">预览表单 - ' + esc(tpl.resType) + ' / ' + esc(tpl.opType) + ' <button class="ant-modal-close" onclick="hideModal()">&times;</button></div>';
+    html += '<div class="ant-modal-header">' + title + ' <button class="ant-modal-close" onclick="hideModal()">&times;</button></div>';
     html += '<div class="ant-modal-body">';
-    html += renderTemplateFormFields(tpl, { disabled: true });
+    html += renderTemplateFormFields(previewTpl, { disabled: true });
     html += '</div>';
     html += '<div class="ant-modal-footer"><button class="ant-btn" onclick="hideModal()">关闭</button></div>';
     html += '</div></div>';
@@ -4685,7 +4809,12 @@
     html += '<div class="ant-card"><div class="ant-card-head"><span>编辑部门模板 - ' + esc(resLabel) + ' / ' + esc(deptTpl.opType) + '</span></div>';
     html += '<div class="ant-card-body">';
     html += '<div class="ant-alert ant-alert-info" style="margin-bottom:16px;">';
-    html += '<b>受限编辑规则：</b>select类型只能减选项不能加；string可设置固定值；number的min/max只能在平台范围内缩小；textarea可设默认值；fixed不可编辑。<b>必填字段如果关闭"展示"则必须提供默认值。</b>';
+    html += '<b>部门配置规则：</b>仅显示平台配置为「可见」的字段。各字段可配置范围：<br>';
+    html += '• <b>fixed</b>：只能决定是否展示；<br>';
+    html += '• <b>string</b>：可配置正则表达式校验及默认值；<br>';
+    html += '• <b>number</b>：可在平台范围内缩小 min/max，配置小数位数及默认值；<br>';
+    html += '• <b>select</b>：可配置选项 kv 及级联约束；<br>';
+    html += '• <b>textarea</b>：可配置默认值。';
     html += '</div>';
 
     (platformTpl.fieldGroups || []).forEach(function (group, gIdx) {
@@ -4709,7 +4838,7 @@
         html += '<td><code style="font-size:11px;">' + esc(field.param) + '</code></td>';
         html += '<td><span class="ant-tag ant-tag-default" style="font-size:11px;">' + esc(field.type) + '</span></td>';
         html += '<td style="text-align:center;">' + (field.required ? '<span class="ant-tag ant-tag-red" style="font-size:10px;">必填</span>' : '<span style="color:#999;font-size:11px;">选填</span>') + '</td>';
-        html += '<td style="text-align:center;"><label class="toggle-switch"><input type="checkbox" class="dept-tpl-field-show" data-key="' + esc(key) + '"' + (show ? ' checked' : '') + (field.type === 'fixed' ? ' disabled' : '') + ' /><span class="toggle-slider"></span></label></td>';
+        html += '<td style="text-align:center;"><label class="toggle-switch"><input type="checkbox" class="dept-tpl-field-show" data-key="' + esc(key) + '"' + (show ? ' checked' : '') + ' /><span class="toggle-slider"></span></label></td>';
         html += '<td>';
         // 根据字段类型渲染不同的编辑控件
         if (field.type === 'fixed') {
@@ -4737,18 +4866,26 @@
           html += '<button class="ant-btn ant-btn-sm dept-tpl-select-settings-btn" data-key="' + esc(key) + '" style="padding:0 8px;height:22px;font-size:11px;flex-shrink:0;">&#9881; 配置</button>';
           html += '</div>';
         } else if (field.type === 'string') {
-          var fixedVal = override.fixedValue || '';
           var regexVal = override.regex || '';
+          var strDefault = override.defaultValue || '';
           html += '<div style="display:flex;flex-direction:column;gap:4px;">';
-          html += '<input class="ant-input dept-tpl-fixed-value" data-key="' + esc(key) + '" value="' + esc(fixedVal) + '" placeholder="固定值（填后申请人不可编辑）" style="height:26px;font-size:12px;max-width:240px;" />';
           html += '<input class="ant-input dept-tpl-string-regex" data-key="' + esc(key) + '" value="' + esc(regexVal) + '" placeholder="正则校验（留空不限制）" style="height:26px;font-size:12px;max-width:240px;font-family:monospace;" />';
+          html += '<input class="ant-input dept-tpl-field-default" data-key="' + esc(key) + '" value="' + esc(strDefault) + '" placeholder="默认值（选填）" style="height:26px;font-size:12px;max-width:240px;" />';
           html += '</div>';
         } else if (field.type === 'number') {
           var deptMin = override.deptMin !== undefined ? override.deptMin : '';
           var deptMax = override.deptMax !== undefined ? override.deptMax : '';
-          html += '<div style="display:flex;gap:4px;align-items:center;font-size:12px;">';
-          html += 'min: <input class="ant-input dept-tpl-num-min" data-key="' + esc(key) + '" type="number" value="' + esc(deptMin) + '" placeholder="' + (field.min != null ? field.min : '无') + '" style="height:26px;width:60px;font-size:12px;" />';
-          html += ' max: <input class="ant-input dept-tpl-num-max" data-key="' + esc(key) + '" type="number" value="' + esc(deptMax) + '" placeholder="' + (field.max != null ? field.max : '无') + '" style="height:26px;width:60px;font-size:12px;" />';
+          var deptDecimals = override.deptDecimals !== undefined ? override.deptDecimals : '';
+          var numDefault = override.defaultValue !== undefined ? override.defaultValue : '';
+          html += '<div style="font-size:12px;">';
+          html += '<div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;margin-bottom:4px;">';
+          html += '下限: <input class="ant-input dept-tpl-num-min" data-key="' + esc(key) + '" type="number" value="' + esc(deptMin) + '" placeholder="' + (field.min != null ? field.min : '无') + '" style="height:26px;width:60px;font-size:12px;" />';
+          html += '上限: <input class="ant-input dept-tpl-num-max" data-key="' + esc(key) + '" type="number" value="' + esc(deptMax) + '" placeholder="' + (field.max != null ? field.max : '无') + '" style="height:26px;width:60px;font-size:12px;" />';
+          html += '小数位: <input class="ant-input dept-tpl-num-decimals" data-key="' + esc(key) + '" type="number" value="' + esc(deptDecimals) + '" placeholder="' + (field.decimals != null ? field.decimals : '0') + '" min="0" max="10" style="height:26px;width:50px;font-size:12px;" />';
+          html += '</div>';
+          html += '<div style="display:flex;align-items:center;gap:4px;">';
+          html += '默认值: <input class="ant-input dept-tpl-num-default" data-key="' + esc(key) + '" type="number" value="' + esc(numDefault) + '" placeholder="不填则无默认" style="height:26px;width:100px;font-size:12px;" />';
+          html += '</div>';
           html += '</div>';
         } else if (field.type === 'textarea') {
           var defVal = override.defaultValue || '';
@@ -4777,6 +4914,7 @@
 
     html += '<div style="padding-top:16px;border-top:1px solid #f0f0f0;display:flex;gap:12px;">';
     html += '<button class="ant-btn ant-btn-primary dept-tpl-save-btn">保存</button>';
+    html += '<button class="ant-btn dept-tpl-preview-btn">预览表单</button>';
     html += '<button class="ant-btn dept-tpl-back-btn">取消</button>';
     html += '</div>';
     html += '</div></div>';
@@ -4807,6 +4945,14 @@
         renderDeptTemplates(container, cfg);
       };
     });
+
+    // 预览
+    var previewBtn = container.querySelector('.dept-tpl-preview-btn');
+    if (previewBtn) {
+      previewBtn.onclick = function () {
+        showTemplatePreview(platformTpl, deptTpl);
+      };
+    }
 
     // 保存
     var saveBtn = container.querySelector('.dept-tpl-save-btn');
@@ -4858,6 +5004,16 @@
           if (!overrides[key]) overrides[key] = {};
           overrides[key].deptMax = input.value.trim() !== '' ? parseFloat(input.value) : undefined;
         });
+        container.querySelectorAll('.dept-tpl-num-decimals').forEach(function (input) {
+          var key = input.getAttribute('data-key');
+          if (!overrides[key]) overrides[key] = {};
+          overrides[key].deptDecimals = input.value.trim() !== '' ? parseInt(input.value) : undefined;
+        });
+        container.querySelectorAll('.dept-tpl-num-default').forEach(function (input) {
+          var key = input.getAttribute('data-key');
+          if (!overrides[key]) overrides[key] = {};
+          if (input.value.trim() !== '') overrides[key].defaultValue = input.value.trim();
+        });
         // 收集 textarea/string 默认值
         container.querySelectorAll('.dept-tpl-field-default').forEach(function (input) {
           var key = input.getAttribute('data-key');
@@ -4882,7 +5038,7 @@
         var hasCustom = false;
         Object.keys(overrides).forEach(function (k) {
           var o = overrides[k];
-          if (o.show === false || o.defaultValue || o.fixedValue || o.options || o.cascadeFrom || o.regex || o.deptMin !== undefined || o.deptMax !== undefined) hasCustom = true;
+          if (o.show === false || o.defaultValue || o.fixedValue || o.options || o.cascadeFrom || o.regex || o.deptMin !== undefined || o.deptMax !== undefined || o.deptDecimals !== undefined) hasCustom = true;
         });
         deptTpl.customized = hasCustom;
         state.deptConfig._editingTplIdx = null;
@@ -6090,7 +6246,9 @@
       return;
     }
 
-    var html = '<table class="ant-table"><thead><tr><th>资源包名称</th><th>描述</th><th>包含资源</th><th>已授权用户</th><th>操作</th></tr></thead><tbody>';
+    var html = '<table class="ant-table"><thead><tr><th>资源包名称</th><th>描述</th><th>创建人 / 时间</th><th>可见范围</th><th>包含资源</th><th>已授权用户</th><th>操作</th></tr></thead><tbody>';
+    var visibilityLabels = { all: '全员可见', dept: '本部门', admin: '仅管理员' };
+    var visibilityColors = { all: 'green', dept: 'blue', admin: 'orange' };
     filtered.forEach(function (pkg) {
       var resTags = (pkg.resources || []).slice(0, 2).map(function (r) {
         return '<span class="ant-tag ant-tag-' + esc(r.typeColor || 'default') + '">' + esc(r.name) + '</span>';
@@ -6104,13 +6262,21 @@
       var userCount = (pkg.users || []).length;
       if (userCount > 2) userTags += '<span style="font-size:12px;color:var(--text-secondary);">等 ' + userCount + ' 人</span>';
 
+      var vis = pkg.visibility || 'all';
+      var visLabel = visibilityLabels[vis] || vis;
+      if (vis === 'dept' && pkg.visibilityDept) visLabel = pkg.visibilityDept;
+      var visColor = visibilityColors[vis] || 'default';
+
       html += '<tr>';
       html += '<td><strong>' + esc(pkg.name) + '</strong></td>';
-      html += '<td style="color:var(--text-secondary);font-size:13px;max-width:220px;">' + esc(pkg.description || '--') + '</td>';
+      html += '<td style="color:var(--text-secondary);font-size:13px;max-width:200px;">' + esc(pkg.description || '--') + '</td>';
+      html += '<td style="font-size:12px;white-space:nowrap;">' + esc(pkg.creator || '--') + '<br><span style="color:var(--text-secondary);">' + esc(pkg.createTime || '') + '</span></td>';
+      html += '<td><span class="ant-tag ant-tag-' + visColor + '">' + esc(visLabel) + '</span></td>';
       html += '<td>' + (resTags || '<span style="color:var(--text-secondary);">暂无</span>') + '</td>';
       html += '<td>' + (userTags || '<span style="color:var(--text-secondary);">暂无</span>') + '</td>';
-      html += '<td>';
+      html += '<td style="white-space:nowrap;">';
       html += '<a class="ant-btn-link res-pkg-edit" data-pkg-id="' + esc(pkg.id) + '">编辑</a> ';
+      html += '<a class="ant-btn-link res-pkg-auth" data-pkg-id="' + esc(pkg.id) + '">用户授权</a> ';
       html += '<a class="ant-btn-link res-pkg-delete" data-pkg-id="' + esc(pkg.id) + '" style="color:#ff4d4f;">删除</a>';
       html += '</td></tr>';
     });
@@ -6125,6 +6291,14 @@
       };
     });
 
+    tableContainer.querySelectorAll('.res-pkg-auth').forEach(function (btn) {
+      btn.onclick = function () {
+        var pkgId = btn.getAttribute('data-pkg-id');
+        var pkg = packages.find(function (p) { return p.id === pkgId; });
+        if (pkg) showResPackageAuthDrawer(pkg);
+      };
+    });
+
     tableContainer.querySelectorAll('.res-pkg-delete').forEach(function (btn) {
       btn.onclick = function () {
         var pkgId = btn.getAttribute('data-pkg-id');
@@ -6135,31 +6309,175 @@
   }
 
   function showNewResPackageModal() {
-    var html = '<div class="ant-modal-overlay" style="display:flex;">';
-    html += '<div class="ant-modal" style="width:480px;">';
-    html += '<div class="ant-modal-header">新建资源包 <button class="ant-modal-close" onclick="hideModal()">&times;</button></div>';
-    html += '<div class="ant-modal-body">';
-    html += '<div class="ant-form-item"><div class="ant-form-label">资源包名称 <span style="color:red;">*</span></div>';
+    var html = '<div class="ant-drawer-overlay" style="display:flex;">';
+    html += '<div class="ant-drawer" style="width:760px;">';
+    html += '<div class="ant-drawer-header">新建资源包 <button class="ant-drawer-close" onclick="hideModal()">&times;</button></div>';
+    html += '<div class="ant-drawer-body">';
+    // 基本信息区
+    html += '<div style="display:flex;gap:24px;margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid #f0f0f0;flex-wrap:wrap;">';
+    html += '<div class="ant-form-item" style="flex:1;min-width:220px;"><div class="ant-form-label"><span class="required">*</span>资源包名称</div>';
     html += '<div class="ant-form-control"><input class="ant-input" id="new-pkg-name" placeholder="请输入资源包名称" style="width:100%;"></div></div>';
-    html += '<div class="ant-form-item"><div class="ant-form-label">描述</div>';
-    html += '<div class="ant-form-control"><textarea class="ant-input" id="new-pkg-desc" rows="3" style="width:100%;resize:vertical;" placeholder="请输入描述（选填）"></textarea></div></div>';
+    html += '<div class="ant-form-item" style="flex:2;min-width:300px;"><div class="ant-form-label">描述</div>';
+    html += '<div class="ant-form-control"><input class="ant-input" id="new-pkg-desc" placeholder="请输入描述（选填）" style="width:100%;"></div></div>';
+    html += '<div class="ant-form-item" style="flex:1;min-width:160px;"><div class="ant-form-label">可见范围</div>';
+    html += '<div class="ant-form-control"><select class="ant-select" id="new-pkg-visibility" style="width:100%;"><option value="all">全员可见</option><option value="dept" selected>本部门可见</option><option value="admin">仅管理员</option></select></div></div>';
     html += '</div>';
-    html += '<div class="ant-modal-footer"><button class="ant-btn" onclick="hideModal()">取消</button><button class="ant-btn ant-btn-primary" id="new-pkg-confirm-btn">创建</button></div>';
+    // 资源选择区
+    html += '<div style="font-weight:500;font-size:14px;margin-bottom:12px;">添加资源</div>';
+    html += '<div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;">';
+    html += '<select class="ant-select" id="new-pkg-res-select" style="flex:1;"><option value="">— 从有权限资源中搜索选择 —</option>';
+    MockData.resources.forEach(function (r) {
+      html += '<option value="' + esc(r.resId) + '" data-name="' + esc(r.name) + '" data-type="' + esc(r.type) + '" data-typecolor="' + esc(r.typeColor || 'default') + '">' + esc(r.name) + ' (' + esc(r.type) + ')</option>';
+    });
+    html += '</select>';
+    html += '<select class="ant-select" id="new-pkg-res-perm" style="width:100px;"><option value="reporter">只读</option><option value="developer">开发者</option><option value="master">管理员</option></select>';
+    html += '<button class="ant-btn ant-btn-primary" id="new-pkg-res-add-btn" style="flex-shrink:0;">+ 添加</button>';
+    html += '</div>';
+    // 已选资源列表
+    html += '<div style="font-size:12px;color:var(--text-secondary);margin-bottom:6px;">已选资源：</div>';
+    html += '<div id="new-pkg-res-list" style="min-height:80px;border:1px dashed #d9d9d9;border-radius:6px;padding:10px;background:#fafafa;">';
+    html += '<span style="color:#bfbfbf;font-size:13px;">暂未添加资源</span></div>';
+    html += '</div>';
+    html += '<div class="ant-drawer-footer">';
+    html += '<button class="ant-btn" onclick="hideModal()">取消</button>';
+    html += '<button class="ant-btn ant-btn-primary" id="new-pkg-confirm-btn">创建资源包</button>';
+    html += '</div>';
     html += '</div></div>';
     var mc = document.getElementById('modal-container');
     mc.innerHTML = html;
-    var overlay = mc.querySelector('.ant-modal-overlay');
+    var overlay = mc.querySelector('.ant-drawer-overlay');
     if (overlay) overlay.onclick = function (e) { if (e.target === overlay) hideModal(); };
+
+    var pendingResources = [];
+
+    function renderPendingRes() {
+      var listEl = document.getElementById('new-pkg-res-list');
+      if (!listEl) return;
+      if (pendingResources.length === 0) {
+        listEl.innerHTML = '<span style="color:#bfbfbf;font-size:13px;">暂未添加资源</span>';
+        return;
+      }
+      var lHtml = '<table style="width:100%;border-collapse:collapse;font-size:13px;">';
+      lHtml += '<thead><tr style="color:var(--text-secondary);border-bottom:1px solid #f0f0f0;">';
+      lHtml += '<th style="text-align:left;padding:4px 8px;font-weight:500;">资源名称</th>';
+      lHtml += '<th style="text-align:left;padding:4px 8px;font-weight:500;">类型</th>';
+      lHtml += '<th style="text-align:left;padding:4px 8px;font-weight:500;">权限</th>';
+      lHtml += '<th style="width:50px;"></th></tr></thead><tbody>';
+      pendingResources.forEach(function (r, i) {
+        lHtml += '<tr style="border-bottom:1px solid #f5f5f5;">';
+        lHtml += '<td style="padding:6px 8px;">' + esc(r.name) + '</td>';
+        lHtml += '<td style="padding:6px 8px;"><span class="ant-tag">' + esc(r.type) + '</span></td>';
+        lHtml += '<td style="padding:6px 8px;color:#1890ff;">' + esc(r.perm) + '</td>';
+        lHtml += '<td style="padding:6px 8px;text-align:center;"><a style="color:#ff4d4f;cursor:pointer;" data-remove-idx="' + i + '">删除</a></td>';
+        lHtml += '</tr>';
+      });
+      lHtml += '</tbody></table>';
+      listEl.innerHTML = lHtml;
+      listEl.querySelectorAll('[data-remove-idx]').forEach(function (a) {
+        a.onclick = function () { pendingResources.splice(parseInt(a.getAttribute('data-remove-idx')), 1); renderPendingRes(); };
+      });
+    }
+
+    document.getElementById('new-pkg-res-add-btn').onclick = function () {
+      var sel = document.getElementById('new-pkg-res-select');
+      if (!sel || !sel.value) return;
+      var opt = sel.options[sel.selectedIndex];
+      var perm = document.getElementById('new-pkg-res-perm').value;
+      pendingResources.push({ resId: sel.value, name: opt.getAttribute('data-name'), type: opt.getAttribute('data-type'), typeColor: opt.getAttribute('data-typecolor') || 'default', perm: perm });
+      sel.value = '';
+      renderPendingRes();
+    };
+
     document.getElementById('new-pkg-confirm-btn').onclick = function () {
       var name = (document.getElementById('new-pkg-name').value || '').trim();
       var desc = (document.getElementById('new-pkg-desc').value || '').trim();
       if (!name) { showMessage('请输入资源包名称', 'error'); return; }
       var newId = 'rp-' + String(Date.now()).slice(-6);
-      MockData.resourcePackages.push({ id: newId, name: name, description: desc, resources: [], users: [] });
+      var now = new Date();
+      var nowStr = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0') + ' ' + String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+      var vis = (document.getElementById('new-pkg-visibility') || {}).value || 'dept';
+      MockData.resourcePackages.push({ id: newId, name: name, description: desc, creator: '当前用户', creatorUsername: 'current', createTime: nowStr, visibility: vis, resources: pendingResources.slice(), users: [] });
       hideModal();
       showMessage('资源包「' + name + '」已创建', 'success');
       renderResPackages(document.getElementById('res-pkg-search') ? document.getElementById('res-pkg-search').value : '');
     };
+  }
+
+  function showResPackageAuthDrawer(pkg) {
+    function getKeyword() {
+      var s = document.getElementById('res-pkg-search');
+      return s ? s.value : '';
+    }
+
+    function renderAuthBody() {
+      var addedUsernames = (pkg.users || []).map(function (u) { return u.username; });
+      var availableMembers = MockData.members.filter(function (m) { return addedUsernames.indexOf(m.username) === -1; });
+      var html = '<div style="margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid #f0f0f0;">';
+      html += '<div style="font-size:13px;color:var(--text-secondary);">资源包：<b style="color:inherit;">' + esc(pkg.name) + '</b>　创建人：' + esc(pkg.creator || '--') + '　创建时间：' + esc(pkg.createTime || '--') + '</div>';
+      html += '</div>';
+      html += '<div style="display:flex;gap:8px;align-items:center;margin-bottom:16px;background:#fafafa;border:1px solid #f0f0f0;border-radius:6px;padding:12px;">';
+      html += '<select class="ant-select" id="user-add-select" style="flex:1;"><option value="">— 搜索选择成员 —</option>';
+      availableMembers.forEach(function (m) {
+        html += '<option value="' + esc(m.username) + '" data-name="' + esc(m.name) + '" data-dept="' + esc(m.orgName) + '">' + esc(m.name) + '（' + esc(m.orgName) + '）</option>';
+      });
+      html += '</select>';
+      html += '<button class="ant-btn ant-btn-primary" id="user-add-confirm-btn" style="flex-shrink:0;">+ 添加授权</button>';
+      html += '</div>';
+      var users = pkg.users || [];
+      if (users.length === 0) {
+        html += '<div style="text-align:center;color:var(--text-secondary);padding:32px;border:1px dashed #d9d9d9;border-radius:6px;">暂无授权用户，请添加</div>';
+      } else {
+        html += '<table class="ant-table"><thead><tr><th>姓名</th><th>账号</th><th>部门</th><th>操作</th></tr></thead><tbody>';
+        users.forEach(function (u, idx) {
+          html += '<tr><td>' + esc(u.name) + '</td>';
+          html += '<td style="font-size:12px;color:var(--text-secondary);font-family:monospace;">' + esc(u.username) + '@sohu-inc.com</td>';
+          html += '<td>' + esc(u.dept || '') + '</td>';
+          html += '<td><a class="ant-btn-link user-remove-btn" data-user-idx="' + idx + '" style="color:#ff4d4f;">撤销授权</a></td></tr>';
+        });
+        html += '</tbody></table>';
+      }
+      return html;
+    }
+
+    function bindAuthEvents() {
+      var body = document.getElementById('res-pkg-auth-body');
+      if (!body) return;
+      body.querySelectorAll('.user-remove-btn').forEach(function (btn) {
+        btn.onclick = function () {
+          pkg.users.splice(parseInt(btn.getAttribute('data-user-idx')), 1);
+          body.innerHTML = renderAuthBody();
+          bindAuthEvents();
+          renderResPackages(getKeyword());
+          showMessage('已撤销用户授权', 'success');
+        };
+      });
+      var addBtn = document.getElementById('user-add-confirm-btn');
+      if (addBtn) {
+        addBtn.onclick = function () {
+          var sel = document.getElementById('user-add-select');
+          if (!sel || !sel.value) { showMessage('请选择成员', 'error'); return; }
+          var opt = sel.options[sel.selectedIndex];
+          if (!pkg.users) pkg.users = [];
+          pkg.users.push({ name: opt.getAttribute('data-name'), username: sel.value, dept: opt.getAttribute('data-dept') });
+          body.innerHTML = renderAuthBody();
+          bindAuthEvents();
+          renderResPackages(getKeyword());
+          showMessage('授权成功', 'success');
+        };
+      }
+    }
+
+    var html = '<div class="ant-drawer-overlay" style="display:flex;">';
+    html += '<div class="ant-drawer" style="width:640px;">';
+    html += '<div class="ant-drawer-header">用户授权 - ' + esc(pkg.name) + ' <button class="ant-drawer-close" onclick="hideModal()">&times;</button></div>';
+    html += '<div class="ant-drawer-body" id="res-pkg-auth-body">' + renderAuthBody() + '</div>';
+    html += '<div class="ant-drawer-footer"><button class="ant-btn" onclick="hideModal()">关闭</button></div>';
+    html += '</div></div>';
+    var mc = document.getElementById('modal-container');
+    mc.innerHTML = html;
+    var overlay = mc.querySelector('.ant-drawer-overlay');
+    if (overlay) overlay.onclick = function (e) { if (e.target === overlay) hideModal(); };
+    bindAuthEvents();
   }
 
   function showResPackageDeleteConfirm(pkg) {
@@ -6188,189 +6506,128 @@
   }
 
   function showResPackageEditModal(pkg) {
-    var activeTab = 0;
-    var permLabels = { master: '管理员', developer: '开发者', reporter: '只读' };
-
     function getKeyword() {
       var s = document.getElementById('res-pkg-search');
       return s ? s.value : '';
     }
 
-    function renderTabContent(tab) {
-      if (tab === 0) {
-        return '<div class="ant-form-item"><div class="ant-form-label">资源包名称 <span style="color:red;">*</span></div>' +
-          '<div class="ant-form-control"><input class="ant-input" id="res-pkg-edit-name" value="' + esc(pkg.name) + '" style="width:100%;"></div></div>' +
-          '<div class="ant-form-item"><div class="ant-form-label">描述</div>' +
-          '<div class="ant-form-control"><textarea class="ant-input" id="res-pkg-edit-desc" rows="3" style="width:100%;resize:vertical;">' + esc(pkg.description || '') + '</textarea></div></div>';
-      }
-      if (tab === 1) {
-        var html = '<div style="background:#fafafa;border:1px solid #f0f0f0;border-radius:6px;padding:12px;margin-bottom:16px;">';
-        html += '<div style="font-weight:500;margin-bottom:8px;">添加资源</div>';
-        html += '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;">';
-        html += '<div style="flex:2;min-width:110px;"><div style="font-size:12px;color:var(--text-secondary);margin-bottom:4px;">资源名称</div><input class="ant-input" id="res-add-name" placeholder="如 k8s-prod" style="width:100%;min-width:0;max-width:none;"></div>';
-        html += '<div style="flex:2;min-width:110px;"><div style="font-size:12px;color:var(--text-secondary);margin-bottom:4px;">资源ID</div><input class="ant-input" id="res-add-id" placeholder="如 i-xxx-001" style="width:100%;min-width:0;max-width:none;"></div>';
-        html += '<div style="flex:1.5;min-width:90px;"><div style="font-size:12px;color:var(--text-secondary);margin-bottom:4px;">类型</div><input class="ant-input" id="res-add-type" placeholder="如 ECS" style="width:100%;min-width:0;max-width:none;"></div>';
-        html += '<div style="flex:1;min-width:80px;"><div style="font-size:12px;color:var(--text-secondary);margin-bottom:4px;">权限</div>';
-        html += '<select class="ant-select" id="res-add-perm" style="width:100%;"><option value="reporter">只读</option><option value="developer">开发者</option><option value="master">管理员</option></select></div>';
-        html += '<button class="ant-btn ant-btn-primary ant-btn-sm" id="res-add-confirm-btn" style="flex-shrink:0;align-self:flex-end;">添加</button>';
-        html += '</div></div>';
-        if (!pkg.resources || pkg.resources.length === 0) {
-          html += '<div style="text-align:center;color:var(--text-secondary);padding:24px;">暂无资源，请添加</div>';
-        } else {
-          html += '<table class="ant-table"><thead><tr><th>资源名称</th><th>资源ID</th><th>类型</th><th>权限</th><th>操作</th></tr></thead><tbody>';
-          pkg.resources.forEach(function (r, idx) {
-            html += '<tr><td>' + esc(r.name) + '</td>';
-            html += '<td style="font-size:12px;color:var(--text-secondary);font-family:monospace;">' + esc(r.resId) + '</td>';
-            html += '<td><span class="ant-tag ant-tag-' + esc(r.typeColor || 'default') + '">' + esc(r.type) + '</span></td>';
-            html += '<td><select class="ant-select res-perm-select" data-res-idx="' + idx + '" style="width:90px;">';
-            ['reporter', 'developer', 'master'].forEach(function (p) {
-              html += '<option value="' + p + '"' + (r.perm === p ? ' selected' : '') + '>' + permLabels[p] + '</option>';
-            });
-            html += '</select></td>';
-            html += '<td><a class="ant-btn-link res-remove-btn" data-res-idx="' + idx + '" style="color:#ff4d4f;">移除</a></td></tr>';
+    function renderEditBody() {
+      var permLabels = { master: '管理员', developer: '开发者', reporter: '只读' };
+      var alreadyAddedIds = (pkg.resources || []).map(function (r) { return r.resId; });
+      var availableRes = MockData.resources.filter(function (r) {
+        return alreadyAddedIds.indexOf(r.resId) === -1;
+      });
+      var html = '';
+      // 基本信息
+      html += '<div style="padding-bottom:20px;margin-bottom:20px;border-bottom:1px solid #f0f0f0;">';
+      html += '<div style="font-weight:500;font-size:14px;margin-bottom:14px;color:#1890ff;">基本信息</div>';
+      html += '<div style="display:flex;gap:24px;flex-wrap:wrap;">';
+      html += '<div class="ant-form-item" style="flex:1;min-width:200px;"><div class="ant-form-label"><span class="required">*</span>资源包名称</div>';
+      html += '<div class="ant-form-control"><input class="ant-input" id="res-pkg-edit-name" value="' + esc(pkg.name) + '" style="width:100%;"></div></div>';
+      html += '<div class="ant-form-item" style="flex:2;min-width:280px;"><div class="ant-form-label">描述</div>';
+      html += '<div class="ant-form-control"><input class="ant-input" id="res-pkg-edit-desc" value="' + esc(pkg.description || '') + '" placeholder="请输入描述" style="width:100%;"></div></div>';
+      html += '</div>';
+      html += '<div style="display:flex;gap:24px;flex-wrap:wrap;margin-top:12px;">';
+      html += '<div class="ant-form-item" style="flex:1;min-width:200px;"><div class="ant-form-label">可见范围</div>';
+      html += '<div class="ant-form-control"><select class="ant-select" id="res-pkg-edit-visibility" style="width:100%;">';
+      [['all','全员可见'],['dept','本部门可见'],['admin','仅管理员']].forEach(function(v) {
+        html += '<option value="' + v[0] + '"' + (pkg.visibility === v[0] ? ' selected' : '') + '>' + v[1] + '</option>';
+      });
+      html += '</select></div></div>';
+      html += '<div style="flex:2;min-width:280px;display:flex;align-items:flex-end;padding-bottom:4px;font-size:12px;color:var(--text-secondary);">';
+      html += '创建人：<b>' + esc(pkg.creator || '--') + '</b>&nbsp;&nbsp;创建时间：' + esc(pkg.createTime || '--');
+      html += '</div>';
+      html += '</div></div>';
+      // 资源管理
+      html += '<div>';
+      html += '<div style="font-weight:500;font-size:14px;margin-bottom:12px;color:#1890ff;">资源管理</div>';
+      html += '<div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;background:#fafafa;border:1px solid #f0f0f0;border-radius:6px;padding:12px;">';
+      html += '<select class="ant-select" id="res-search-select" style="flex:1;"><option value="">— 从有权限资源中选择 —</option>';
+      availableRes.forEach(function (r) {
+        html += '<option value="' + esc(r.resId) + '" data-name="' + esc(r.name) + '" data-type="' + esc(r.type) + '" data-typecolor="' + esc(r.typeColor || 'default') + '">' + esc(r.name) + ' (' + esc(r.type) + ')</option>';
+      });
+      html += '</select>';
+      html += '<select class="ant-select" id="res-add-perm" style="width:100px;"><option value="reporter">只读</option><option value="developer">开发者</option><option value="master">管理员</option></select>';
+      html += '<button class="ant-btn ant-btn-primary" id="res-add-confirm-btn" style="flex-shrink:0;">+ 添加</button>';
+      html += '</div>';
+      if (!pkg.resources || pkg.resources.length === 0) {
+        html += '<div style="text-align:center;color:var(--text-secondary);padding:24px;border:1px dashed #d9d9d9;border-radius:6px;">暂无资源，请添加</div>';
+      } else {
+        html += '<table class="ant-table"><thead><tr><th>资源名称</th><th>资源ID</th><th>类型</th><th>权限</th><th>操作</th></tr></thead><tbody>';
+        pkg.resources.forEach(function (r, idx) {
+          html += '<tr><td>' + esc(r.name) + '</td>';
+          html += '<td style="font-size:12px;color:var(--text-secondary);font-family:monospace;">' + esc(r.resId) + '</td>';
+          html += '<td><span class="ant-tag ant-tag-' + esc(r.typeColor || 'default') + '">' + esc(r.type) + '</span></td>';
+          html += '<td><select class="ant-select res-perm-select" data-res-idx="' + idx + '" style="width:100px;">';
+          ['reporter', 'developer', 'master'].forEach(function (p) {
+            html += '<option value="' + p + '"' + (r.perm === p ? ' selected' : '') + '>' + permLabels[p] + '</option>';
           });
-          html += '</tbody></table>';
-        }
-        return html;
-      }
-      if (tab === 2) {
-        var addedUsernames = (pkg.users || []).map(function (u) { return u.username; });
-        var availableMembers = MockData.members.filter(function (m) { return addedUsernames.indexOf(m.username) === -1; });
-        var html = '<div style="background:#fafafa;border:1px solid #f0f0f0;border-radius:6px;padding:12px;margin-bottom:16px;">';
-        html += '<div style="font-weight:500;margin-bottom:8px;">添加用户</div>';
-        html += '<div style="display:flex;gap:8px;align-items:flex-end;">';
-        html += '<div style="flex:1;"><select class="ant-select" id="user-add-select" style="width:100%;">';
-        html += '<option value="">— 请选择成员 —</option>';
-        availableMembers.forEach(function (m) {
-          html += '<option value="' + esc(m.username) + '" data-name="' + esc(m.name) + '" data-dept="' + esc(m.orgName) + '">' + esc(m.name) + '（' + esc(m.orgName) + '）</option>';
+          html += '</select></td>';
+          html += '<td><a class="ant-btn-link res-remove-btn" data-res-idx="' + idx + '" style="color:#ff4d4f;">移除</a></td></tr>';
         });
-        html += '</select></div>';
-        html += '<button class="ant-btn ant-btn-primary ant-btn-sm" id="user-add-confirm-btn" style="flex-shrink:0;">添加</button>';
-        html += '</div></div>';
-        var users = pkg.users || [];
-        if (users.length === 0) {
-          html += '<div style="text-align:center;color:var(--text-secondary);padding:24px;">暂无授权用户，请添加</div>';
-        } else {
-          html += '<table class="ant-table"><thead><tr><th>姓名</th><th>账号</th><th>部门</th><th>操作</th></tr></thead><tbody>';
-          users.forEach(function (u, idx) {
-            html += '<tr><td>' + esc(u.name) + '</td>';
-            html += '<td style="font-size:12px;color:var(--text-secondary);">' + esc(u.username + '@sohu-inc.com') + '</td>';
-            html += '<td>' + esc(u.dept || '') + '</td>';
-            html += '<td><a class="ant-btn-link user-remove-btn" data-user-idx="' + idx + '" style="color:#ff4d4f;">移除</a></td></tr>';
-          });
-          html += '</tbody></table>';
-        }
-        return html;
+        html += '</tbody></table>';
       }
-      return '';
+      html += '</div>';
+      return html;
     }
 
-    function bindTabEvents(tab) {
+    function bindEditEvents() {
       var body = document.getElementById('res-pkg-edit-body');
       if (!body) return;
-      if (tab === 0) {
-        var saveBtn = document.getElementById('res-pkg-save-basic');
-        if (saveBtn) {
-          saveBtn.onclick = function () {
-            var name = (document.getElementById('res-pkg-edit-name').value || '').trim();
-            if (!name) { showMessage('请输入资源包名称', 'error'); return; }
-            pkg.name = name;
-            pkg.description = (document.getElementById('res-pkg-edit-desc').value || '').trim();
-            showMessage('基本信息已保存', 'success');
-            renderResPackages(getKeyword());
-          };
-        }
-      }
-      if (tab === 1) {
-        body.querySelectorAll('.res-perm-select').forEach(function (sel) {
-          sel.onchange = function () {
-            var idx = parseInt(sel.getAttribute('data-res-idx'));
-            if (pkg.resources[idx]) pkg.resources[idx].perm = sel.value;
-          };
-        });
-        body.querySelectorAll('.res-remove-btn').forEach(function (btn) {
-          btn.onclick = function () {
-            pkg.resources.splice(parseInt(btn.getAttribute('data-res-idx')), 1);
-            body.innerHTML = renderTabContent(1);
-            bindTabEvents(1);
-            renderResPackages(getKeyword());
-            showMessage('资源已移除', 'success');
-          };
-        });
-        var addConfirmBtn = document.getElementById('res-add-confirm-btn');
-        if (addConfirmBtn) {
-          addConfirmBtn.onclick = function () {
-            var resName = (document.getElementById('res-add-name').value || '').trim();
-            var resId = (document.getElementById('res-add-id').value || '').trim();
-            var resType = (document.getElementById('res-add-type').value || '').trim();
-            var resPerm = document.getElementById('res-add-perm').value;
-            if (!resName || !resId || !resType) { showMessage('请填写资源名称、ID 和类型', 'error'); return; }
-            var typeColorMap = { 'ECS': 'blue', 'RDS': 'orange', 'SLB': 'cyan', 'OSS': 'lime', 'Redis': 'red', 'K8S': 'purple', 'Elasticsearch': 'gold', 'Flink': 'geekblue' };
-            var typeColor = 'default';
-            for (var k in typeColorMap) { if (resType.indexOf(k) !== -1) { typeColor = typeColorMap[k]; break; } }
-            if (!pkg.resources) pkg.resources = [];
-            pkg.resources.push({ resId: resId, name: resName, type: resType, typeColor: typeColor, perm: resPerm });
-            body.innerHTML = renderTabContent(1);
-            bindTabEvents(1);
-            renderResPackages(getKeyword());
-            showMessage('资源已添加', 'success');
-          };
-        }
-      }
-      if (tab === 2) {
-        body.querySelectorAll('.user-remove-btn').forEach(function (btn) {
-          btn.onclick = function () {
-            pkg.users.splice(parseInt(btn.getAttribute('data-user-idx')), 1);
-            body.innerHTML = renderTabContent(2);
-            bindTabEvents(2);
-            renderResPackages(getKeyword());
-            showMessage('用户已移除', 'success');
-          };
-        });
-        var addUserBtn = document.getElementById('user-add-confirm-btn');
-        if (addUserBtn) {
-          addUserBtn.onclick = function () {
-            var sel = document.getElementById('user-add-select');
-            if (!sel || !sel.value) { showMessage('请选择成员', 'error'); return; }
-            var opt = sel.options[sel.selectedIndex];
-            if (!pkg.users) pkg.users = [];
-            pkg.users.push({ name: opt.getAttribute('data-name'), username: sel.value, dept: opt.getAttribute('data-dept') });
-            body.innerHTML = renderTabContent(2);
-            bindTabEvents(2);
-            renderResPackages(getKeyword());
-            showMessage('用户已添加', 'success');
-          };
-        }
+      body.querySelectorAll('.res-perm-select').forEach(function (sel) {
+        sel.onchange = function () {
+          var idx = parseInt(sel.getAttribute('data-res-idx'));
+          if (pkg.resources[idx]) pkg.resources[idx].perm = sel.value;
+        };
+      });
+      body.querySelectorAll('.res-remove-btn').forEach(function (btn) {
+        btn.onclick = function () {
+          pkg.resources.splice(parseInt(btn.getAttribute('data-res-idx')), 1);
+          body.innerHTML = renderEditBody();
+          bindEditEvents();
+          renderResPackages(getKeyword());
+          showMessage('资源已移除', 'success');
+        };
+      });
+      var addBtn = document.getElementById('res-add-confirm-btn');
+      if (addBtn) {
+        addBtn.onclick = function () {
+          var sel = document.getElementById('res-search-select');
+          if (!sel || !sel.value) { showMessage('请选择要添加的资源', 'error'); return; }
+          var opt = sel.options[sel.selectedIndex];
+          var perm = document.getElementById('res-add-perm').value;
+          if (!pkg.resources) pkg.resources = [];
+          pkg.resources.push({ resId: sel.value, name: opt.getAttribute('data-name'), type: opt.getAttribute('data-type'), typeColor: opt.getAttribute('data-typecolor') || 'default', perm: perm });
+          body.innerHTML = renderEditBody();
+          bindEditEvents();
+          renderResPackages(getKeyword());
+          showMessage('资源已添加', 'success');
+        };
       }
     }
 
-    function renderModal() {
-      var tabNames = ['基本信息', '资源管理', '用户管理'];
-      var html = '<div class="ant-modal-overlay" style="display:flex;">';
-      html += '<div class="ant-modal" style="width:720px;max-height:85vh;overflow-y:auto;">';
-      html += '<div class="ant-modal-header">编辑资源包 - ' + esc(pkg.name) + ' <button class="ant-modal-close" onclick="hideModal()">&times;</button></div>';
-      html += '<div style="border-bottom:1px solid #f0f0f0;padding:0 24px;display:flex;">';
-      tabNames.forEach(function (t, i) {
-        var active = i === activeTab;
-        html += '<div class="res-pkg-tab-btn" data-tab="' + i + '" style="padding:10px 16px;cursor:pointer;border-bottom:2px solid ' + (active ? '#1890ff' : 'transparent') + ';color:' + (active ? '#1890ff' : 'inherit') + ';font-weight:' + (active ? '500' : 'normal') + ';">' + t + '</div>';
-      });
-      html += '</div>';
-      html += '<div class="ant-modal-body" id="res-pkg-edit-body">' + renderTabContent(activeTab) + '</div>';
-      html += '<div class="ant-modal-footer">';
-      if (activeTab === 0) html += '<button class="ant-btn ant-btn-primary" id="res-pkg-save-basic">保存基本信息</button>';
-      html += '<button class="ant-btn" onclick="hideModal()">关闭</button>';
-      html += '</div></div></div>';
-      var mc = document.getElementById('modal-container');
-      mc.innerHTML = html;
-      var overlay = mc.querySelector('.ant-modal-overlay');
-      if (overlay) overlay.onclick = function (e) { if (e.target === overlay) hideModal(); };
-      mc.querySelectorAll('.res-pkg-tab-btn').forEach(function (tab) {
-        tab.onclick = function () { activeTab = parseInt(tab.getAttribute('data-tab')); renderModal(); };
-      });
-      bindTabEvents(activeTab);
-    }
-
-    renderModal();
+    var html = '<div class="ant-drawer-overlay" style="display:flex;">';
+    html += '<div class="ant-drawer" style="width:900px;">';
+    html += '<div class="ant-drawer-header">编辑资源包 - ' + esc(pkg.name) + ' <button class="ant-drawer-close" onclick="hideModal()">&times;</button></div>';
+    html += '<div class="ant-drawer-body" id="res-pkg-edit-body">' + renderEditBody() + '</div>';
+    html += '<div class="ant-drawer-footer">';
+    html += '<button class="ant-btn ant-btn-primary" id="res-pkg-save-btn">保存</button>';
+    html += '<button class="ant-btn" onclick="hideModal()">关闭</button>';
+    html += '</div></div></div>';
+    var mc = document.getElementById('modal-container');
+    mc.innerHTML = html;
+    var overlay = mc.querySelector('.ant-drawer-overlay');
+    if (overlay) overlay.onclick = function (e) { if (e.target === overlay) hideModal(); };
+    bindEditEvents();
+    document.getElementById('res-pkg-save-btn').onclick = function () {
+      var name = (document.getElementById('res-pkg-edit-name').value || '').trim();
+      if (!name) { showMessage('请输入资源包名称', 'error'); return; }
+      pkg.name = name;
+      pkg.description = (document.getElementById('res-pkg-edit-desc').value || '').trim();
+      pkg.visibility = document.getElementById('res-pkg-edit-visibility').value;
+      showMessage('资源包已保存', 'success');
+      renderResPackages(getKeyword());
+    };
   }
 
   // ===== 初始化 =====
