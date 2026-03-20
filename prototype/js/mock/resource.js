@@ -14,22 +14,13 @@ MockData.resources = [
   { name: 'ecs-prod-web-01', resId: 'i-bp1a2b3c4d5e6f', type: 'ECS', typeColor: 'blue', shape: '实例型', group: '容器平台组', groupId: 'grp-container', project: '核心基础设施', perm: 'master', permColor: 'green', status: '运行中', statusClass: 'success', applicant: '王浩然', authorizations: [
     { user: '张明远', perm: 'developer', time: '2025/10/12 14:30' },
     { user: '李思涵', perm: 'reporter', time: '2025/11/05 09:15' }
-  ], children: [
-    { name: 'disk-prod-web-01-sys', resId: 'd-bp1a2b3c4d', type: '云硬盘', typeColor: 'blue', shape: '子资源', parentRes: 'ecs-prod-web-01', status: '使用中', statusClass: 'success' },
-    { name: 'eip-prod-web-01', resId: 'eip-bp1x2y3z4w', type: '弹性IP', typeColor: 'blue', shape: '子资源', parentRes: 'ecs-prod-web-01', status: '已绑定', statusClass: 'success' }
   ] },
   { name: 'rds-prod-mysql-01', resId: 'rm-bp1x2y3z4w5v', type: 'RDS', typeColor: 'orange', shape: '实例型', group: '容器平台组', groupId: 'grp-container', project: '核心基础设施', perm: 'master', permColor: 'green', status: '运行中', statusClass: 'success', applicant: '王浩然', authorizations: [
     { user: '赵天宇', perm: 'developer', time: '2025/10/20 16:00' }
-  ], children: [
-    { name: 'db_production', resId: 'db-prod-01', type: '数据库', typeColor: 'orange', shape: '子资源', parentRes: 'rds-prod-mysql-01', status: '正常', statusClass: 'success' },
-    { name: 'rds_admin', resId: 'acc-rds-admin', type: '账号', typeColor: 'orange', shape: '子资源', parentRes: 'rds-prod-mysql-01', status: '正常', statusClass: 'success' }
   ] },
   { name: 'redis-prod-cache-01', resId: 'r-bp6a7b8c9d0e', type: 'Redis', typeColor: 'red', shape: '实例型', group: '容器平台组', groupId: 'grp-container', project: '核心基础设施', perm: 'developer', permColor: 'cyan', status: '运行中', statusClass: 'success' },
   { name: 'slb-prod-api-gw', resId: 'lb-bp1m2n3o4p5q', type: 'SLB', typeColor: 'cyan', shape: '实例型', group: '网络组', groupId: 'grp-network', project: '网络基础设施', perm: 'reporter', permColor: 'default', status: '运行中', statusClass: 'success' },
-  { name: 'kafka-prod-msg-01', resId: 'alikafka_post-cn-v0h1a2b3', type: 'Kafka', typeColor: 'purple', shape: '实例型', group: '容器平台组', groupId: 'grp-container', project: '核心基础设施', perm: 'developer', permColor: 'cyan', status: '运行中', statusClass: 'success', children: [
-    { name: 'topic-order-events', resId: 'topic-order-evt', type: 'Topic', typeColor: 'purple', shape: '子资源', parentRes: 'kafka-prod-msg-01', status: '正常', statusClass: 'success' },
-    { name: 'topic-user-logs', resId: 'topic-user-log', type: 'Topic', typeColor: 'purple', shape: '子资源', parentRes: 'kafka-prod-msg-01', status: '正常', statusClass: 'success' }
-  ] },
+  { name: 'kafka-prod-msg-01', resId: 'alikafka_post-cn-v0h1a2b3', type: 'Kafka', typeColor: 'purple', shape: '实例型', group: '容器平台组', groupId: 'grp-container', project: '核心基础设施', perm: 'developer', permColor: 'cyan', status: '运行中', statusClass: 'success' },
   { name: 'es-prod-log-cluster', resId: 'es-cn-x1y2z3a4b5', type: 'ES', typeColor: 'green', shape: '集群型', group: '存储组', groupId: 'grp-storage', project: '核心基础设施', perm: 'developer', permColor: 'cyan', status: '运行中', statusClass: 'success' },
   { name: 'oss-prod-static', resId: 'infra-static-assets', type: 'OSS', typeColor: 'default', shape: '实例型', group: '容器平台组', groupId: 'grp-container', project: '核心基础设施', perm: 'master', permColor: 'green', status: '正常', statusClass: 'success' },
   { name: 'ecs-staging-app-01', resId: 'i-bp9x8y7z6w5v', type: 'ECS', typeColor: 'blue', shape: '实例型', group: '容器平台组', groupId: 'grp-container', project: '核心基础设施', perm: 'developer', permColor: 'cyan', status: '变配中', statusClass: 'processing' },
@@ -58,58 +49,41 @@ MockData.resources = [
 
 MockData.resCatalog = [
   { name: '计算类', color: '#1890ff', types: [
-    { name: 'ECS 云服务器', vendor: '阿里云', queryApi: 'DescribeInstances', operations: ['申请', '变配', '扩容', '重启', '销毁'], approvalOps: ['申请', '变配', '扩容', '销毁'], allowApply: true, allowDisplay: true, children: [
-      { name: '云硬盘', queryApi: 'DescribeDisks', operations: ['申请', '扩容'], approvalOps: ['申请', '扩容'], allowApply: true, allowDisplay: true },
-      { name: '弹性IP', queryApi: 'DescribeEipAddresses', operations: ['申请', '销毁'], approvalOps: ['申请', '销毁'], allowApply: true, allowDisplay: true }
-    ]},
-    { name: 'K8S 集群', vendor: '阿里云', queryApi: 'DescribeClusters', operations: ['同步', '申请', '扩容', '缩容', '销毁'], approvalOps: ['申请', '扩容', '缩容', '销毁'], allowApply: true, allowDisplay: true, children: [
-      { name: 'Namespace', queryApi: 'DescribeNamespaces', operations: ['申请', '销毁'], approvalOps: ['申请'], allowApply: true, allowDisplay: true }
-    ]}
+    { name: 'ECS 云服务器', code: 'ECS', vendor: '阿里云', queryApi: 'DescribeInstances', operations: ['申请', '变配', '扩容', '重启', '销毁'], approvalOps: ['申请', '变配', '扩容', '销毁'], allowApply: true, allowDisplay: true },
+    { name: 'K8S 集群', code: 'K8S', vendor: '阿里云', queryApi: 'DescribeClusters', operations: ['同步', '申请', '扩容', '缩容', '销毁'], approvalOps: ['申请', '扩容', '缩容', '销毁'], allowApply: true, allowDisplay: true }
   ]},
   { name: '数据库类', color: '#1890ff', types: [
-    { name: 'RDS 云数据库', vendor: '阿里云', queryApi: 'DescribeDBInstances', operations: ['申请', '变配', '销毁'], approvalOps: ['申请', '变配', '销毁'], allowApply: true, allowDisplay: true, children: [
-      { name: '数据库', queryApi: 'DescribeDatabases', operations: ['申请', '销毁'], approvalOps: ['申请'], allowApply: true, allowDisplay: true },
-      { name: '账号', queryApi: 'DescribeAccounts', operations: ['申请', '销毁'], approvalOps: ['申请'], allowApply: true, allowDisplay: true }
-    ]},
-    { name: 'PolarDB PostgreSQL', vendor: '阿里云', queryApi: 'DescribeDBClusters', operations: ['申请', '变配', '销毁'], approvalOps: ['申请', '变配', '销毁'], allowApply: true, allowDisplay: true, children: [
-      { name: '数据库', queryApi: 'DescribeDatabases', operations: ['申请', '销毁'], approvalOps: ['申请'], allowApply: true, allowDisplay: true },
-      { name: '账号', queryApi: 'DescribeAccounts', operations: ['申请', '销毁'], approvalOps: ['申请'], allowApply: true, allowDisplay: true }
-    ]},
-    { name: 'MongoDB', vendor: '阿里云', queryApi: 'DescribeDBInstances', operations: ['申请', '变配', '销毁'], approvalOps: ['申请', '变配', '销毁'], allowApply: true, allowDisplay: true, children: [
-      { name: '数据库', queryApi: 'DescribeDatabases', operations: ['申请', '销毁'], approvalOps: ['申请'], allowApply: true, allowDisplay: true }
-    ]},
-    { name: 'Redis 缓存', vendor: '阿里云', queryApi: 'DescribeInstances', operations: ['申请', '变配', '销毁'], approvalOps: ['申请', '变配', '销毁'], allowApply: true, allowDisplay: true, children: [] }
+    { name: 'RDS 云数据库', code: 'RDS', vendor: '阿里云', queryApi: 'DescribeDBInstances', operations: ['申请', '变配', '销毁'], approvalOps: ['申请', '变配', '销毁'], allowApply: true, allowDisplay: true },
+    { name: 'PolarDB PostgreSQL', code: 'POLARDB_PG', vendor: '阿里云', queryApi: 'DescribeDBClusters', operations: ['申请', '变配', '销毁'], approvalOps: ['申请', '变配', '销毁'], allowApply: true, allowDisplay: true },
+    { name: 'MongoDB', code: 'MONGODB', vendor: '阿里云', queryApi: 'DescribeDBInstances', operations: ['申请', '变配', '销毁'], approvalOps: ['申请', '变配', '销毁'], allowApply: true, allowDisplay: true },
+    { name: 'Redis 缓存', code: 'REDIS', vendor: '阿里云', queryApi: 'DescribeInstances', operations: ['申请', '变配', '销毁'], approvalOps: ['申请', '变配', '销毁'], allowApply: true, allowDisplay: true }
   ]},
   { name: '网络与负载均衡类', color: '#1890ff', types: [
-    { name: 'SLB 负载均衡', vendor: '阿里云', queryApi: 'DescribeLoadBalancers', operations: ['申请', '变配', '销毁'], approvalOps: ['申请', '变配', '销毁'], allowApply: true, allowDisplay: true, children: [] },
-    { name: 'ALB 应用负载均衡', vendor: '阿里云', queryApi: 'DescribeLoadBalancers', operations: ['申请', '变配', '销毁'], approvalOps: ['申请', '变配', '销毁'], allowApply: true, allowDisplay: true, children: [] },
-    { name: 'NLB 网络负载均衡', vendor: '阿里云', queryApi: 'DescribeLoadBalancers', operations: ['申请', '变配', '销毁'], approvalOps: ['申请', '变配', '销毁'], allowApply: true, allowDisplay: true, children: [] },
-    { name: '云原生网关', vendor: '阿里云', queryApi: 'DescribeGateways', operations: ['申请', '变配', '销毁'], approvalOps: ['申请', '变配', '销毁'], allowApply: true, allowDisplay: true, children: [] }
+    { name: 'SLB 负载均衡', code: 'SLB', vendor: '阿里云', queryApi: 'DescribeLoadBalancers', operations: ['申请', '变配', '销毁'], approvalOps: ['申请', '变配', '销毁'], allowApply: true, allowDisplay: true },
+    { name: 'ALB 应用负载均衡', code: 'ALB', vendor: '阿里云', queryApi: 'DescribeLoadBalancers', operations: ['申请', '变配', '销毁'], approvalOps: ['申请', '变配', '销毁'], allowApply: true, allowDisplay: true },
+    { name: 'NLB 网络负载均衡', code: 'NLB', vendor: '阿里云', queryApi: 'DescribeLoadBalancers', operations: ['申请', '变配', '销毁'], approvalOps: ['申请', '变配', '销毁'], allowApply: true, allowDisplay: true },
+    { name: '云原生网关', code: 'CNG', vendor: '阿里云', queryApi: 'DescribeGateways', operations: ['申请', '变配', '销毁'], approvalOps: ['申请', '变配', '销毁'], allowApply: true, allowDisplay: true }
   ]},
   { name: '中间件类', color: '#1890ff', types: [
-    { name: 'Kafka 消息队列', vendor: '阿里云', queryApi: 'GetInstanceList', operations: ['申请', '变配', '销毁'], approvalOps: ['申请', '变配', '销毁'], allowApply: true, allowDisplay: true, children: [
-      { name: 'Topic', queryApi: 'GetTopicList', operations: ['申请', '销毁'], approvalOps: ['申请'], allowApply: true, allowDisplay: true }
-    ]}
+    { name: 'Kafka 消息队列', code: 'KAFKA', vendor: '阿里云', queryApi: 'GetInstanceList', operations: ['申请', '变配', '销毁'], approvalOps: ['申请', '变配', '销毁'], allowApply: true, allowDisplay: true }
   ]},
   { name: '大数据与搜索分析类', color: '#1890ff', types: [
-    { name: 'Elasticsearch', vendor: '阿里云', queryApi: 'ListInstance', operations: ['申请', '扩容', '缩容', '销毁'], approvalOps: ['申请', '扩容', '缩容', '销毁'], allowApply: true, allowDisplay: true, children: [
-      { name: '索引', queryApi: 'ListSearchIndex', operations: ['申请', '销毁'], approvalOps: ['申请'], allowApply: true, allowDisplay: true }
-    ]},
-    { name: 'MaxCompute', vendor: '阿里云', queryApi: 'ListProjects', operations: ['申请', '续费'], approvalOps: ['申请', '续费'], allowApply: true, allowDisplay: true, children: [] },
-    { name: 'Flink 实时计算', vendor: '阿里云', queryApi: 'ListWorkspaces', operations: ['申请', '变配', '销毁'], approvalOps: ['申请', '变配', '销毁'], allowApply: true, allowDisplay: true, children: [] },
-    { name: '实时数仓 Hologres', vendor: '阿里云', queryApi: 'ListInstances', operations: ['申请', '变配', '销毁'], approvalOps: ['申请', '变配', '销毁'], allowApply: true, allowDisplay: true, children: [] }
+    { name: 'Elasticsearch', code: 'ES', vendor: '阿里云', queryApi: 'ListInstance', operations: ['申请', '扩容', '缩容', '销毁'], approvalOps: ['申请', '扩容', '缩容', '销毁'], allowApply: true, allowDisplay: true },
+    { name: 'MaxCompute', code: 'MAXCOMPUTE', vendor: '阿里云', queryApi: 'ListProjects', operations: ['申请', '续费'], approvalOps: ['申请', '续费'], allowApply: true, allowDisplay: true },
+    { name: 'Flink 实时计算', code: 'FLINK', vendor: '阿里云', queryApi: 'ListWorkspaces', operations: ['申请', '变配', '销毁'], approvalOps: ['申请', '变配', '销毁'], allowApply: true, allowDisplay: true },
+    { name: '实时数仓 Hologres', code: 'HOLOGRES', vendor: '阿里云', queryApi: 'ListInstances', operations: ['申请', '变配', '销毁'], approvalOps: ['申请', '变配', '销毁'], allowApply: true, allowDisplay: true }
   ]},
   { name: '存储类', color: '#1890ff', types: [
-    { name: 'OSS 对象存储', vendor: '阿里云', queryApi: 'ListBuckets', operations: ['申请', '销毁'], approvalOps: ['申请', '销毁'], allowApply: true, allowDisplay: true, children: [] },
-    { name: '块存储 ESSD', vendor: '阿里云', queryApi: 'DescribeDisks', operations: ['申请', '扩容', '销毁'], approvalOps: ['申请', '扩容', '销毁'], allowApply: true, allowDisplay: true, children: [] },
-    { name: '文件存储 NAS', vendor: '阿里云', queryApi: 'DescribeFileSystems', operations: ['申请', '扩容', '销毁'], approvalOps: ['申请', '扩容', '销毁'], allowApply: true, allowDisplay: true, children: [] },
-    { name: 'CDN 流量包', vendor: '阿里云', queryApi: 'DescribeUserDomains', operations: ['申请', '续费'], approvalOps: ['申请', '续费'], allowApply: true, allowDisplay: true, children: [] }
+    { name: 'OSS 对象存储', code: 'OSS', vendor: '阿里云', queryApi: 'ListBuckets', operations: ['申请', '销毁'], approvalOps: ['申请', '销毁'], allowApply: true, allowDisplay: true },
+    { name: '块存储 ESSD', code: 'ESSD', vendor: '阿里云', queryApi: 'DescribeDisks', operations: ['申请', '扩容', '销毁'], approvalOps: ['申请', '扩容', '销毁'], allowApply: true, allowDisplay: true },
+    { name: '文件存储 NAS', code: 'NAS', vendor: '阿里云', queryApi: 'DescribeFileSystems', operations: ['申请', '扩容', '销毁'], approvalOps: ['申请', '扩容', '销毁'], allowApply: true, allowDisplay: true },
+    { name: 'CDN 流量包', code: 'CDN', vendor: '阿里云', queryApi: 'DescribeUserDomains', operations: ['申请', '续费'], approvalOps: ['申请', '续费'], allowApply: true, allowDisplay: true }
   ]},
   { name: '网络基础类', color: '#faad14', types: [
-    { name: 'VPC 专有网络', vendor: '阿里云', queryApi: 'DescribeVpcs', operations: ['同步'], approvalOps: [], allowApply: false, allowDisplay: true, children: [] },
-    { name: 'NAT 网关', vendor: '阿里云', queryApi: 'DescribeNatGateways', operations: ['同步'], approvalOps: [], allowApply: false, allowDisplay: true, children: [] },
-    { name: '交换机 VSwitch', vendor: '阿里云', queryApi: 'DescribeVSwitches', operations: ['同步'], approvalOps: [], allowApply: false, allowDisplay: true, children: [] },
-    { name: '安全组', vendor: '阿里云', queryApi: 'DescribeSecurityGroups', operations: ['同步'], approvalOps: [], allowApply: false, allowDisplay: true, children: [] }
+    { name: 'VPC 专有网络', code: 'VPC', vendor: '阿里云', queryApi: 'DescribeVpcs', operations: ['同步'], approvalOps: [], allowApply: false, allowDisplay: true },
+    { name: 'NAT 网关', code: 'NAT', vendor: '阿里云', queryApi: 'DescribeNatGateways', operations: ['同步'], approvalOps: [], allowApply: false, allowDisplay: true },
+    { name: '交换机 VSwitch', code: 'VSWITCH', vendor: '阿里云', queryApi: 'DescribeVSwitches', operations: ['同步'], approvalOps: [], allowApply: false, allowDisplay: true },
+    { name: '安全组', code: 'SG', vendor: '阿里云', queryApi: 'DescribeSecurityGroups', operations: ['同步'], approvalOps: [], allowApply: false, allowDisplay: true }
   ]}
 ];
 

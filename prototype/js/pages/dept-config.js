@@ -132,9 +132,8 @@ function renderDeptTemplates(container, cfg) {
     html += '<table class="ant-table" style="table-layout:fixed;"><thead><tr><th style="width:28%;">资源类型</th><th style="width:20%;">操作类型</th><th style="width:18%;">状态</th><th style="width:34%;">操作</th></tr></thead><tbody>';
     items.forEach(function (tpl) {
       var globalIdx = cfg.templates.indexOf(tpl);
-      var resLabel = tpl.subRes ? '<span style="color:var(--text-secondary);padding-left:20px;">└─ ' + esc(tpl.subRes) + '</span>' : esc(tpl.resType);
       html += '<tr>';
-      html += '<td style="padding-left:28px;">' + resLabel + '</td>';
+      html += '<td style="padding-left:28px;">' + esc(tpl.resType) + '</td>';
       html += '<td>' + esc(tpl.opType) + '</td>';
       html += '<td>';
       if (tpl.customized) {
@@ -813,7 +812,7 @@ function renderDeptApproval(container, cfg, deptId) {
     }
     return null;
   }
-  // 构建树状数据：按大类 → 资源类型 → 操作（含子资源）
+  // 构建树状数据：按大类 → 资源类型 → 操作
   var treeItems = [];
   MockData.resCatalog.forEach(function (cat) {
     cat.types.forEach(function (t) {
@@ -826,19 +825,6 @@ function renderDeptApproval(container, cfg, deptId) {
           admin1: df ? (df.admin1 || '') : '', admin2: df ? (df.admin2 || '') : '',
           configured: !!df,
           deptFlow: df
-        });
-      });
-      (t.children || []).forEach(function (child) {
-        var childOps = child.approvalOps || [];
-        childOps.forEach(function (op) {
-          var df = findDeptFlow(t.name, op, child.name);
-          treeItems.push({
-            category: cat.name, resType: t.name, opType: op, subRes: child.name,
-            flowTemplate: df ? (df.flowTemplate || '') : '',
-            admin1: df ? (df.admin1 || '') : '', admin2: df ? (df.admin2 || '') : '',
-            configured: !!df,
-            deptFlow: df
-          });
         });
       });
     });
@@ -869,12 +855,8 @@ function renderDeptApproval(container, cfg, deptId) {
     html += '<th style="width:14%;">操作</th>';
     html += '</tr></thead><tbody>';
     items.forEach(function (item, idx) {
-      var isChild = !!item.subRes;
       html += '<tr>';
-      html += '<td style="padding-left:' + (isChild ? '44px' : '28px') + ';">';
-      if (isChild) html += '<span style="color:#ccc;margin-right:4px;">└─</span>';
-      html += esc(isChild ? item.subRes : item.resType);
-      html += '</td>';
+      html += '<td style="padding-left:28px;">' + esc(item.resType) + '</td>';
       html += '<td>' + esc(item.opType) + '</td>';
       html += '<td style="font-size:12px;">';
       if (item.flowTemplate) {
@@ -893,9 +875,9 @@ function renderDeptApproval(container, cfg, deptId) {
       }
       html += '</td>';
       html += '<td>';
-      html += '<a class="ant-btn-link dept-approval-edit-btn" data-res="' + esc(item.resType) + '" data-op="' + esc(item.opType) + '" data-sub="' + esc(item.subRes) + '" data-flow="' + esc(item.flowTemplate) + '" data-cat="' + esc(item.category) + '">配置</a>';
+      html += '<a class="ant-btn-link dept-approval-edit-btn" data-res="' + esc(item.resType) + '" data-op="' + esc(item.opType) + '" data-flow="' + esc(item.flowTemplate) + '" data-cat="' + esc(item.category) + '">配置</a>';
       if (item.configured) {
-        html += ' <a class="ant-btn-link dept-approval-restore-btn" data-res="' + esc(item.resType) + '" data-op="' + esc(item.opType) + '" data-sub="' + esc(item.subRes) + '" style="margin-left:6px;color:#faad14;">清除配置</a>';
+        html += ' <a class="ant-btn-link dept-approval-restore-btn" data-res="' + esc(item.resType) + '" data-op="' + esc(item.opType) + '" style="margin-left:6px;color:#faad14;">清除配置</a>';
       }
       if (item.flowTemplate) {
         html += ' <a class="ant-btn-link dept-approval-preview-btn" data-flow="' + esc(item.flowTemplate) + '" data-admin1="' + esc(item.admin1) + '" data-admin2="' + esc(item.admin2) + '" style="margin-left:6px;">预览</a>';
@@ -933,12 +915,11 @@ function renderDeptApproval(container, cfg, deptId) {
     btn.onclick = function () {
       var resType = btn.getAttribute('data-res');
       var opType = btn.getAttribute('data-op');
-      var subRes = btn.getAttribute('data-sub');
       var flowTemplate = btn.getAttribute('data-flow');
       var category = btn.getAttribute('data-cat');
-      var df = findDeptFlow(resType, opType, subRes);
+      var df = findDeptFlow(resType, opType, '');
       showDeptFlowEditModal({
-        resType: resType, opType: opType, subRes: subRes, category: category,
+        resType: resType, opType: opType, subRes: '', category: category,
         flowTemplate: flowTemplate,
         admin1: df ? df.admin1 : '', admin2: df ? df.admin2 : '',
         customized: df ? df.customized : false,
@@ -954,14 +935,13 @@ function renderDeptApproval(container, cfg, deptId) {
     btn.onclick = function () {
       var resType = btn.getAttribute('data-res');
       var opType = btn.getAttribute('data-op');
-      var subRes = btn.getAttribute('data-sub');
       var idx = -1;
       for (var i = 0; i < cfg.approvalFlows.length; i++) {
         var f = cfg.approvalFlows[i];
-        if (f.resType === resType && f.opType === opType && (f.subRes || '') === (subRes || '')) { idx = i; break; }
+        if (f.resType === resType && f.opType === opType && (f.subRes || '') === '') { idx = i; break; }
       }
       if (idx !== -1) cfg.approvalFlows.splice(idx, 1);
-      showMessage(resType + (subRes ? ' / ' + subRes : '') + ' ' + opType + ' 审批配置已清除', 'success');
+      showMessage(resType + ' ' + opType + ' 审批配置已清除', 'success');
       renderDeptApproval(container, cfg, deptId);
     };
   });

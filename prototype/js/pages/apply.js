@@ -25,15 +25,30 @@ function initApplyResourcePage() {
     });
   }
 
-  // 填充资源类型下拉（仅申请操作，去重）
-  var seen = {};
+  // 填充资源类型下拉（按大类分组）
+  var groupedTemplates = {};
   MockData.platformTemplates.filter(function (t) { return t.opType === '申请'; }).forEach(function (tpl) {
-    if (!seen[tpl.resType]) {
-      seen[tpl.resType] = tpl;
-      var opt = document.createElement('option');
-      opt.value = tpl.id;
-      opt.textContent = tpl.resType + '（' + tpl.category + '）';
-      sel.appendChild(opt);
+    if (!groupedTemplates[tpl.category]) {
+      groupedTemplates[tpl.category] = [];
+    }
+    groupedTemplates[tpl.category].push(tpl);
+  });
+  
+  // 按大类顺序排序
+  var categoryOrder = ['计算类', '数据库类', '网络与负载均衡类', '中间件类', '大数据与搜索分析类', '存储类'];
+  
+  categoryOrder.forEach(function (category) {
+    if (groupedTemplates[category]) {
+      var optgroup = document.createElement('optgroup');
+      optgroup.label = category;
+      sel.appendChild(optgroup);
+      
+      groupedTemplates[category].forEach(function (tpl) {
+        var opt = document.createElement('option');
+        opt.value = tpl.id;
+        opt.textContent = tpl.resType;
+        optgroup.appendChild(opt);
+      });
     }
   });
 
@@ -197,19 +212,30 @@ function initApplyResourceModal() {
     });
   }
 
-  // 筛选有已配置申请操作模板的资源
-  var applyTemplates = MockData.platformTemplates.filter(function (tpl) {
-    return tpl.opType === '申请';
+  // 填充资源类型下拉（按大类分组）
+  var groupedTemplates = {};
+  MockData.platformTemplates.filter(function (t) { return t.opType === '申请'; }).forEach(function (tpl) {
+    if (!groupedTemplates[tpl.category]) {
+      groupedTemplates[tpl.category] = [];
+    }
+    groupedTemplates[tpl.category].push(tpl);
   });
-  // 去重资源类型
-  var seen = {};
-  applyTemplates.forEach(function (tpl) {
-    if (!seen[tpl.resType]) {
-      seen[tpl.resType] = tpl;
-      var opt = document.createElement('option');
-      opt.value = tpl.id;
-      opt.textContent = tpl.resType + '（' + tpl.category + '）';
-      sel.appendChild(opt);
+  
+  // 按大类顺序排序
+  var categoryOrder = ['计算类', '数据库类', '网络与负载均衡类', '中间件类', '大数据与搜索分析类', '存储类'];
+  
+  categoryOrder.forEach(function (category) {
+    if (groupedTemplates[category]) {
+      var optgroup = document.createElement('optgroup');
+      optgroup.label = category;
+      sel.appendChild(optgroup);
+      
+      groupedTemplates[category].forEach(function (tpl) {
+        var opt = document.createElement('option');
+        opt.value = tpl.id;
+        opt.textContent = tpl.resType;
+        optgroup.appendChild(opt);
+      });
     }
   });
 

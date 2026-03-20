@@ -1,11 +1,22 @@
 <div class="page-header-wrapper">
   <div class="page-header">
     <h3 class="page-title">资源列表</h3>
-    <button class="ant-btn ant-btn-primary" id="btn-apply-resource">+ 申请资源</button>
+    <div class="btn-group">
+      <button class="ant-btn ant-btn-primary" id="btn-apply-resource">+ 申请资源</button>
+    </div>
+  </div>
+  <div class="ant-tabs" id="resource-tabs">
+    <div class="ant-tabs-nav">
+      <div class="ant-tabs-tab active" data-type="ECS">计算资源</div>
+      <div class="ant-tabs-tab" data-type="RDS">数据库</div>
+      <div class="ant-tabs-tab" data-type="SLB">网络</div>
+      <div class="ant-tabs-tab" data-type="Kafka">中间件</div>
+      <div class="ant-tabs-tab" data-type="MaxCompute">大数据</div>
+      <div class="ant-tabs-tab" data-type="OSS">存储</div>
+    </div>
   </div>
 </div>
 <div class="page-content-transparent">
-  <div class="stat-row" id="resource-stats"></div>
   <div class="ant-card">
     <div class="ant-card-body">
       <div class="ant-alert ant-alert-info" style="margin-bottom:12px;background:#e6f7ff;border:1px solid #91d5ff;border-radius:4px;padding:8px 12px;color:#1890ff;font-size:13px;">

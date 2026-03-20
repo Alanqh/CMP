@@ -42,39 +42,27 @@ function renderResCatalog() {
     html += '</div>';
     html += '<div class="catalog-category-body' + (isExpanded ? '' : ' collapsed') + '" data-cat-body="' + catIdx + '">';
     html += '<table class="ant-table" style="table-layout:fixed;"><thead><tr>';
-    html += '<th style="width:22%;">资源类型</th>';
+    html += '<th style="width:15%;">资源编码</th>';
+    html += '<th style="width:20%;">资源类型</th>';
     html += '<th style="width:10%;">云厂商</th>';
-    html += '<th style="width:20%;">云上查询接口</th>';
-    html += '<th style="width:24%;">需要审批的操作</th>';
-    html += '<th style="width:24%;">不需要审批的操作</th>';
+    html += '<th style="width:18%;">标识</th>';
+    html += '<th style="width:20%;">需要审批的操作</th>';
+    html += '<th style="width:17%;">不需要审批的操作</th>';
     html += '</tr></thead><tbody>';
     if (cat.types.length === 0) {
-      html += '<tr><td colspan="5" style="text-align:center;color:var(--text-secondary);padding:20px;">该大类下暂无资源类型</td></tr>';
+      html += '<tr><td colspan="6" style="text-align:center;color:var(--text-secondary);padding:20px;">该大类下暂无资源类型</td></tr>';
     }
     cat.types.forEach(function (t) {
       var aOps = t.approvalOps || [];
       var nOps = (t.operations || []).filter(function (op) { return aOps.indexOf(op) === -1; });
       html += '<tr>';
+      html += '<td><code style="font-size:12px;color:#595959;">' + esc(t.code || '') + '</code></td>';
       html += '<td><strong>' + esc(t.name) + '</strong></td>';
       html += '<td><span class="ant-tag ant-tag-blue">' + esc(t.vendor) + '</span></td>';
       html += '<td><code style="font-size:12px;color:#1890ff;">' + esc(t.queryApi || '') + '</code></td>';
       html += '<td>' + (aOps.length ? aOps.map(function (op) { return '<span class="ant-tag ant-tag-orange">' + esc(op) + '</span>'; }).join(' ') : '<span style="color:var(--text-secondary);">无</span>') + '</td>';
       html += '<td>' + (nOps.length ? nOps.map(function (op) { return '<span class="ant-tag ant-tag-default">' + esc(op) + '</span>'; }).join(' ') : '<span style="color:var(--text-secondary);">无</span>') + '</td>';
       html += '</tr>';
-      // 子资源行
-      var children = t.children || [];
-      children.forEach(function (child, childIdx) {
-        var connector = childIdx === children.length - 1 ? '└─' : '├─';
-        var cAOps = child.approvalOps || [];
-        var cNOps = (child.operations || []).filter(function (op) { return cAOps.indexOf(op) === -1; });
-        html += '<tr class="catalog-child-row">';
-        html += '<td style="padding-left:32px;color:var(--text-secondary);">' + connector + ' ' + esc(child.name) + '</td>';
-        html += '<td></td>';
-        html += '<td><code style="font-size:11px;color:#1890ff;">' + esc(child.queryApi || '') + '</code></td>';
-        html += '<td>' + (cAOps.length ? cAOps.map(function (op) { return '<span class="ant-tag ant-tag-orange" style="font-size:11px;">' + esc(op) + '</span>'; }).join(' ') : '<span style="color:var(--text-secondary);">无</span>') + '</td>';
-        html += '<td>' + (cNOps.length ? cNOps.map(function (op) { return '<span class="ant-tag ant-tag-default" style="font-size:11px;">' + esc(op) + '</span>'; }).join(' ') : '<span style="color:var(--text-secondary);">无</span>') + '</td>';
-        html += '</tr>';
-      });
     });
     html += '</tbody></table>';
     html += '</div></div>';

@@ -4,18 +4,107 @@
 // =============================================
 // 资源管理页
 // =============================================
+function updateTypeFilterOptions() {
+  var typeFilter = document.getElementById('resource-type-filter');
+  if (!typeFilter) return;
+  
+  var currentTab = state.resource.currentTab;
+  var options = [];
+  
+  switch (currentTab) {
+    case 'ECS':
+      options = [
+        { value: '', label: '全部计算资源' },
+        { value: 'ECS', label: 'ECS 云服务器' },
+        { value: 'K8S', label: 'K8S 集群' }
+      ];
+      break;
+    case 'RDS':
+      options = [
+        { value: '', label: '全部数据库' },
+        { value: 'RDS', label: 'RDS 云数据库' },
+        { value: 'PG', label: 'PolarDB PostgreSQL' },
+        { value: 'MongoDB', label: 'MongoDB' },
+        { value: 'Redis', label: 'Redis 缓存' }
+      ];
+      break;
+    case 'SLB':
+      options = [
+        { value: '', label: '全部网络资源' },
+        { value: 'SLB', label: 'SLB 负载均衡' },
+        { value: 'ALB', label: 'ALB 应用负载均衡' },
+        { value: 'NLB', label: 'NLB 网络负载均衡' }
+      ];
+      break;
+    case 'Kafka':
+      options = [
+        { value: '', label: '全部中间件' },
+        { value: 'Kafka', label: 'Kafka 消息队列' },
+        { value: 'ES', label: 'Elasticsearch' }
+      ];
+      break;
+    case 'MaxCompute':
+      options = [
+        { value: '', label: '全部大数据' },
+        { value: 'MaxCompute', label: 'MaxCompute' },
+        { value: 'Flink', label: 'Flink' }
+      ];
+      break;
+    case 'OSS':
+      options = [
+        { value: '', label: '全部存储' },
+        { value: 'OSS', label: 'OSS 对象存储' },
+        { value: 'CDN', label: 'CDN 流量包' }
+      ];
+      break;
+  }
+  
+  typeFilter.innerHTML = '';
+  options.forEach(function (opt) {
+    var option = document.createElement('option');
+    option.value = opt.value;
+    option.textContent = opt.label;
+    typeFilter.appendChild(option);
+  });
+}
+
 function initResourcePage() {
+  if (!state.resource) state.resource = {};
+  if (!state.resource.currentTab) state.resource.currentTab = 'ECS';
+  if (!state.resource.viewMode) state.resource.viewMode = 'table';
+  
+  updateTypeFilterOptions();
   renderResources();
+  
   var applyBtn = document.getElementById('btn-apply-resource');
   if (applyBtn) applyBtn.onclick = function () { pageCache['apply-resource'] = null; loadPage('apply-resource'); };
+  
   var searchInput = document.getElementById('resource-search');
   if (searchInput) searchInput.oninput = function () { state.resource.keyword = searchInput.value; state.resource.page = 1; renderResources(); };
+  
   var typeFilter = document.getElementById('resource-type-filter');
   if (typeFilter) typeFilter.onchange = function () { state.resource.typeFilter = typeFilter.value; state.resource.page = 1; renderResources(); };
+  
   var groupFilter = document.getElementById('resource-group-filter');
   if (groupFilter) groupFilter.onchange = function () { state.resource.groupFilter = groupFilter.value; state.resource.page = 1; renderResources(); };
+  
   var projectFilter = document.getElementById('resource-project-filter');
   if (projectFilter) projectFilter.onchange = function () { state.resource.projectFilter = projectFilter.value; state.resource.page = 1; renderResources(); };
+  
+  var tabs = document.querySelectorAll('#resource-tabs .ant-tabs-tab');
+  tabs.forEach(function (tab) {
+    tab.onclick = function () {
+      tabs.forEach(function (t) { t.classList.remove('active'); });
+      tab.classList.add('active');
+      state.resource.currentTab = tab.getAttribute('data-type');
+      state.resource.page = 1;
+      state.resource.typeFilter = '';
+      updateTypeFilterOptions();
+      renderResources();
+    };
+  });
+  
+  // 仅保留表格视图
 }
 
 function renderAuthorizeList(res) {
@@ -45,6 +134,34 @@ function renderAuthorizeList(res) {
   });
 }
 
+function getResourceGroup(type) {
+  switch (type) {
+    case 'ECS':
+    case 'K8S':
+      return '计算资源';
+    case 'RDS':
+    case 'PG':
+    case 'MongoDB':
+    case 'Redis':
+      return '数据库';
+    case 'SLB':
+    case 'ALB':
+    case 'NLB':
+      return '网络';
+    case 'Kafka':
+    case 'ES':
+      return '中间件';
+    case 'MaxCompute':
+    case 'Flink':
+      return '大数据';
+    case 'OSS':
+    case 'CDN':
+      return '存储';
+    default:
+      return '其他';
+  }
+}
+
 function renderResources() {
   var s = state.resource;
   var data = MockData.resources.filter(function (r) {
@@ -55,30 +172,22 @@ function renderResources() {
     if (s.typeFilter && r.type !== s.typeFilter) return false;
     if (s.groupFilter && r.group !== s.groupFilter) return false;
     if (s.projectFilter && r.project !== s.projectFilter) return false;
+    
+    if (s.currentTab !== 'all') {
+      var group = getResourceGroup(r.type);
+      switch (s.currentTab) {
+        case 'ECS': if (group !== '计算资源') return false; break;
+        case 'RDS': if (group !== '数据库') return false; break;
+        case 'SLB': if (group !== '网络') return false; break;
+        case 'Kafka': if (group !== '中间件') return false; break;
+        case 'MaxCompute': if (group !== '大数据') return false; break;
+        case 'OSS': if (group !== '存储') return false; break;
+      }
+    }
     return true;
   });
 
-  // Stats
-  var statsContainer = document.getElementById('resource-stats');
-  if (statsContainer) {
-    var ecsCount = 0, dbCount = 0, ungroupedCount = 0;
-    data.forEach(function (r) {
-      if (r.type === 'ECS') ecsCount++;
-      else if (r.type === 'RDS' || r.type === 'Redis') dbCount++;
-    });
-    ungroupedCount = (MockData.ungroupedResources || []).length;
-    statsContainer.innerHTML =
-      '<div class="stat-card"><div class="stat-value">' + data.length + '</div><div class="stat-label">资源总数</div></div>' +
-      '<div class="stat-card"><div class="stat-value">' + ecsCount + '</div><div class="stat-label">ECS 云服务器</div></div>' +
-      '<div class="stat-card"><div class="stat-value">' + dbCount + '</div><div class="stat-label">数据库 / 缓存</div></div>' +
-      '<div class="stat-card" id="stat-ungrouped" style="cursor:pointer;"><div class="stat-value" style="color:#1890ff;">' + ungroupedCount + '</div><div class="stat-label">未分组资源</div></div>';
-    var ungroupedCard = document.getElementById('stat-ungrouped');
-    if (ungroupedCard) {
-      ungroupedCard.onclick = function () {
-        switchPage('orphan', null);
-      };
-    }
-  }
+
 
   var total = data.length;
   var start = (s.page - 1) * PAGE_SIZE;
@@ -132,54 +241,42 @@ function renderResources() {
   }
 
   var tableContainer = document.getElementById('resource-table-container');
-  if (!tableContainer) return;
-  var html = '<table class="ant-table"><thead><tr><th class="check-col"><input type="checkbox" id="resource-select-all" /></th><th>资源名称</th><th>资源类型</th><th>所属组</th><th>所属资源组</th><th>申请人</th><th>我的权限</th><th>状态</th><th>操作</th></tr></thead><tbody>';
-  if (pageData.length === 0) {
-    html += '<tr><td colspan="9" style="text-align:center;color:var(--text-secondary);padding:32px;">暂无数据</td></tr>';
-  }
-  var rowIdx = 0;
-  pageData.forEach(function (r) {
-    html += '<tr><td class="check-col"><input type="checkbox" class="resource-row-check" /></td>';
-    html += '<td><a class="link">' + esc(r.name) + '</a><div style="font-size:12px;color:var(--text-secondary);">' + esc(r.resId) + '</div></td>';
-    html += '<td><span class="ant-tag ant-tag-' + r.typeColor + '">' + esc(r.type) + '</span></td>';
-    html += '<td>' + esc(r.group) + '</td><td>' + esc(r.project) + '</td>';
-    html += '<td>' + (r.applicant ? esc(r.applicant) : '--') + '</td>';
-    html += '<td><span class="ant-tag ant-tag-' + r.permColor + '"' +
-      (r.perm === 'master' && (r.type === 'RDS' || r.type === 'Redis' || r.type === 'Kafka' || r.type === 'ES' || r.type === 'PG' || r.type === 'MongoDB') ? ' title="数据库/中间件 master 权限仅组长和部门负责人可持有" style="cursor:help;"' : '') +
-      '>' + esc(r.perm) + '</span></td>';
-    html += '<td><span class="ant-badge-status-dot ant-badge-status-' + r.statusClass + '"></span>' + esc(r.status) + '</td>';
-    html += '<td>' + renderOpsCell(r, rowIdx) + '</td></tr>';
-    rowIdx++;
-    // 子资源行
-    if (r.children && r.children.length) {
-      r.children.forEach(function (child, childIdx) {
-        var connector = childIdx === r.children.length - 1 ? '└─' : '├─';
-        html += '<tr style="background:#fafafa;"><td class="check-col"></td>';
-        html += '<td style="padding-left:28px;"><span style="color:var(--text-secondary);">' + connector + '</span> <a class="link">' + esc(child.name) + '</a><div style="font-size:12px;color:var(--text-secondary);padding-left:22px;">' + esc(child.resId) + '</div></td>';
-        html += '<td><span class="ant-tag ant-tag-' + child.typeColor + '" style="font-size:11px;">' + esc(child.type) + '</span></td>';
-        html += '<td style="color:var(--text-secondary);font-size:12px;">--</td>';
-        html += '<td style="color:var(--text-secondary);font-size:12px;">--</td>';
-        html += '<td style="color:var(--text-secondary);font-size:12px;">--</td>';
-        html += '<td style="color:var(--text-secondary);font-size:12px;">--</td>';
-        html += '<td><span class="ant-badge-status-dot ant-badge-status-' + child.statusClass + '"></span>' + esc(child.status) + '</td>';
-        html += '<td><a class="ant-btn-link resource-detail-btn" data-res="' + esc(child.name) + '">详情</a></td></tr>';
-        rowIdx++;
-      });
+  
+  if (tableContainer) {
+    var html = '<table class="ant-table"><thead><tr><th class="check-col"><input type="checkbox" id="resource-select-all" /></th><th>资源名称</th><th>资源类型</th><th>所属组</th><th>所属资源组</th><th>申请人</th><th>我的权限</th><th>状态</th><th>操作</th></tr></thead><tbody>';
+    if (pageData.length === 0) {
+      html += '<tr><td colspan="9" style="text-align:center;color:var(--text-secondary);padding:32px;">暂无数据</td></tr>';
     }
-  });
-  html += '</tbody></table><div id="resource-pagination"></div>';
-  tableContainer.innerHTML = html;
+    var rowIdx = 0;
+    pageData.forEach(function (r) {
+      html += '<tr><td class="check-col"><input type="checkbox" class="resource-row-check" /></td>';
+      html += '<td><a class="link">' + esc(r.name) + '</a><div style="font-size:12px;color:var(--text-secondary);">' + esc(r.resId) + '</div></td>';
+      html += '<td><span class="ant-tag ant-tag-' + r.typeColor + '">' + esc(r.type) + '</span></td>';
+      html += '<td>' + esc(r.group) + '</td><td>' + esc(r.project) + '</td>';
+      html += '<td>' + (r.applicant ? esc(r.applicant) : '--') + '</td>';
+      html += '<td><span class="ant-tag ant-tag-' + r.permColor + '"' +
+        (r.perm === 'master' && (r.type === 'RDS' || r.type === 'Redis' || r.type === 'Kafka' || r.type === 'ES' || r.type === 'PG' || r.type === 'MongoDB') ? ' title="数据库/中间件 master 权限仅组长和部门负责人可持有" style="cursor:help;"' : '') +
+        '>' + esc(r.perm) + '</span></td>';
+      html += '<td><span class="ant-badge-status-dot ant-badge-status-' + r.statusClass + '"></span>' + esc(r.status) + '</td>';
+      html += '<td>' + renderOpsCell(r, rowIdx) + '</td></tr>';
+      rowIdx++;
+    });
+    html += '</tbody></table><div id="resource-pagination"></div>';
+    tableContainer.innerHTML = html;
+  }
 
   // Select all checkbox
   var selectAll = document.getElementById('resource-select-all');
   if (selectAll) {
     selectAll.onchange = function () {
-      tableContainer.querySelectorAll('.resource-row-check').forEach(function (cb) { cb.checked = selectAll.checked; });
+      var checkboxes = document.querySelectorAll('.resource-row-check');
+      checkboxes.forEach(function (cb) { cb.checked = selectAll.checked; });
     };
   }
 
   // 绑定资源详情按钮
-  tableContainer.querySelectorAll('.resource-detail-btn').forEach(function (btn) {
+  var detailBtns = document.querySelectorAll('.resource-detail-btn');
+  detailBtns.forEach(function (btn) {
     btn.onclick = function () {
       var resName = btn.getAttribute('data-res');
       var res = null;
@@ -204,7 +301,8 @@ function renderResources() {
   });
 
   // 绑定资源操作按钮
-  tableContainer.querySelectorAll('.resource-action-btn').forEach(function (btn) {
+  var actionBtns = document.querySelectorAll('.resource-action-btn');
+  actionBtns.forEach(function (btn) {
     btn.onclick = function () {
       var resName = btn.getAttribute('data-res');
       var action = btn.getAttribute('data-action');
@@ -244,21 +342,22 @@ function renderResources() {
   });
 
   // 绑定"更多"下拉菜单
-  tableContainer.querySelectorAll('.res-more-btn').forEach(function (btn) {
+  var moreBtns = document.querySelectorAll('.res-more-btn');
+  moreBtns.forEach(function (btn) {
     btn.onclick = function (e) {
       e.stopPropagation();
       var rowId = btn.getAttribute('data-row');
-      var dropdown = tableContainer.querySelector('.res-more-dropdown[data-row="' + rowId + '"]');
+      var dropdown = document.querySelector('.res-more-dropdown[data-row="' + rowId + '"]');
       if (!dropdown) return;
       var isVisible = dropdown.style.display !== 'none';
       // 先关闭所有
-      tableContainer.querySelectorAll('.res-more-dropdown').forEach(function (d) { d.style.display = 'none'; });
+      document.querySelectorAll('.res-more-dropdown').forEach(function (d) { d.style.display = 'none'; });
       if (!isVisible) dropdown.style.display = 'block';
     };
   });
   // 点击页面其他地方关闭下拉
   document.addEventListener('click', function () {
-    tableContainer.querySelectorAll('.res-more-dropdown').forEach(function (d) { d.style.display = 'none'; });
+    document.querySelectorAll('.res-more-dropdown').forEach(function (d) { d.style.display = 'none'; });
   });
 
   // Pagination
