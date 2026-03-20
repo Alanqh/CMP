@@ -511,19 +511,14 @@ function showDeptFieldSettingsModal(platformField, platformGroup, key, override,
   if (otherSelects.length === 0) {
     html += '<div class="ant-alert ant-alert-info" style="margin:0;">当前分组中没有其他 select 字段，请先添加父字段</div>';
   } else {
-    html += '<select class="ant-select" id="dfset-cascade-from" style="width:100%;">';
-    html += '<option value="">请选择父字段（必须是 select 类型）...</option>';
-    otherSelects.forEach(function (pf) {
-      html += '<option value="' + esc(pf.param) + '"' + (override.cascadeFrom === pf.param ? ' selected' : '') + '>' + esc(pf.name || pf.param) + ' &lt;' + esc(pf.param) + '&gt;</option>';
-    });
-    html += '</select>';
-    html += '<div class="ant-form-extra">父字段值变化时，自动筛选本字段的可用选项</div>';
+    html += '<div id="dfset-cascade-from-wrap"></div>';
+    html += '<div class="ant-form-extra" style="margin-top:4px;">父字段值变化时，自动筛选本字段的可用选项</div>';
   }
   html += '</div></div>';
   html += '<div class="ant-form-item"><div class="ant-form-label">级联规则</div><div class="ant-form-control">';
   html += '<div id="dfset-cascade-rules-list" style="margin-bottom:6px;"></div>';
   html += '<button type="button" class="ant-btn ant-btn-dashed" id="dfset-add-rule" style="display:flex;width:100%;border-style:dashed;justify-content:center;">+ 添加规则</button>';
-  html += '<div class="ant-form-extra" style="margin-top:4px;">每条规则：父字段的某个值 → 本字段对应的子选项列表</div>';
+  html += '<div class="ant-form-extra" style="margin-top:4px;">每条规则：从父字段选项中选取一个或多个值（可多选）→ 对应本字段的子选项；同一父字段值不可用于多条规则。</div>';
   html += '</div></div>';
   html += '</div>';
 
@@ -536,10 +531,127 @@ function showDeptFieldSettingsModal(platformField, platformGroup, key, override,
   var overlay = mc.querySelector('.ant-modal-overlay');
   if (overlay) overlay.onclick = function (e) { if (e.target === overlay) hideModal(); };
 
-  // 工具函数：创建选项行
+  // ---- 自定义下拉工具 ----
+  function closeAllDropdowns() {
+    mc.querySelectorAll('[data-csd-panel]').forEach(function (p) { p.style.display = 'none'; });
+  }
+  mc.addEventListener('click', function () { closeAllDropdowns(); });
+
+  // 自定义单选下拉
+  function makeCSD(opts, selectedVal, placeholder, onChange) {
+    var currentVal = selectedVal || '';
+    var wrap = document.createElement('div'); wrap.style.cssText = 'position:relative;width:100%;user-select:none;';
+    var trigger = document.createElement('div');
+    trigger.style.cssText = 'display:flex;align-items:center;height:32px;padding:0 10px;border:1px solid #d9d9d9;border-radius:4px;background:#fff;cursor:pointer;font-size:14px;transition:border-color .2s;gap:6px;';
+    var trigLabel = document.createElement('span'); trigLabel.style.cssText = 'flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
+    var arrow = document.createElement('span'); arrow.innerHTML = '&#9660;'; arrow.style.cssText = 'font-size:10px;color:#bfbfbf;flex-shrink:0;transition:transform .2s;';
+    trigger.appendChild(trigLabel); trigger.appendChild(arrow);
+    var panel = document.createElement('div'); panel.setAttribute('data-csd-panel', '1');
+    panel.style.cssText = 'display:none;position:absolute;top:calc(100% + 2px);left:0;right:0;z-index:2000;background:#fff;border:1px solid #d9d9d9;border-radius:4px;box-shadow:0 4px 12px rgba(0,0,0,.12);max-height:220px;overflow-y:auto;';
+    function updateDisplay() {
+      var found = null; for (var i = 0; i < opts.length; i++) { if (opts[i].value === currentVal) { found = opts[i]; break; } }
+      trigLabel.textContent = found ? found.label : (placeholder || '请选择...');
+      trigLabel.style.color = found ? 'var(--text-color)' : '#bfbfbf';
+      wrap.dataset.value = currentVal;
+      panel.querySelectorAll('[data-v]').forEach(function (item) {
+        item.style.background = item.getAttribute('data-v') === currentVal ? '#e6f7ff' : '';
+        item.style.color = item.getAttribute('data-v') === currentVal ? '#1890ff' : '';
+      });
+    }
+    opts.forEach(function (opt) {
+      var item = document.createElement('div'); item.setAttribute('data-v', opt.value);
+      item.style.cssText = 'padding:7px 12px;cursor:pointer;font-size:14px;' + (opt.value === currentVal ? 'background:#e6f7ff;color:#1890ff;' : '');
+      item.textContent = opt.label;
+      item.onmouseenter = function () { if (opt.value !== currentVal) item.style.background = '#f5f5f5'; };
+      item.onmouseleave = function () { item.style.background = (opt.value === currentVal) ? '#e6f7ff' : ''; item.style.color = (opt.value === currentVal) ? '#1890ff' : ''; };
+      item.onclick = function (e) {
+        e.stopPropagation(); currentVal = opt.value; updateDisplay();
+        panel.style.display = 'none'; arrow.style.transform = ''; trigger.style.borderColor = '#d9d9d9';
+        if (onChange) onChange(currentVal);
+      };
+      panel.appendChild(item);
+    });
+    trigger.onclick = function (e) {
+      e.stopPropagation(); var isOpen = panel.style.display !== 'none'; closeAllDropdowns();
+      if (!isOpen) { panel.style.display = 'block'; trigger.style.borderColor = 'var(--primary-color)'; arrow.style.transform = 'rotate(180deg)'; }
+      else { trigger.style.borderColor = '#d9d9d9'; arrow.style.transform = ''; }
+    };
+    trigger.onmouseenter = function () { trigger.style.borderColor = 'var(--primary-color)'; };
+    trigger.onmouseleave = function () { if (panel.style.display === 'none') trigger.style.borderColor = '#d9d9d9'; };
+    wrap.appendChild(trigger); wrap.appendChild(panel); updateDisplay();
+    return wrap;
+  }
+
+  // 自定义多选下拉（复选框 + 选后标签平铺）
+  function makeCSDMulti(initialOpts, initialSel, placeholder) {
+    var sel = (initialSel || []).slice();
+    var currentOpts = (initialOpts || []).slice();
+    var wrap = document.createElement('div'); wrap.className = 'dfset-rule-parent-wrap'; wrap.style.cssText = 'position:relative;width:100%;user-select:none;';
+    var trigger = document.createElement('div');
+    trigger.style.cssText = 'min-height:32px;padding:3px 8px 3px 6px;border:1px solid #d9d9d9;border-radius:4px;background:#fff;cursor:pointer;display:flex;flex-wrap:wrap;gap:4px;align-items:center;transition:border-color .2s;';
+    var panel = document.createElement('div'); panel.setAttribute('data-csd-panel', '1');
+    panel.style.cssText = 'display:none;position:absolute;top:calc(100% + 2px);left:0;right:0;z-index:2000;background:#fff;border:1px solid #d9d9d9;border-radius:4px;box-shadow:0 4px 12px rgba(0,0,0,.12);max-height:220px;overflow-y:auto;';
+    function getOptByVal(v) { for (var i = 0; i < currentOpts.length; i++) { if (currentOpts[i].value === v) return currentOpts[i]; } return null; }
+    function renderTags() {
+      trigger.innerHTML = '';
+      if (sel.length === 0) {
+        var ph = document.createElement('span'); ph.textContent = placeholder || '请选择（可多选）...'; ph.style.cssText = 'color:#bfbfbf;font-size:13px;line-height:22px;flex:1;'; trigger.appendChild(ph);
+      } else {
+        sel.forEach(function (v) {
+          var opt = getOptByVal(v);
+          var tag = document.createElement('span');
+          tag.style.cssText = 'display:inline-flex;align-items:center;gap:2px;background:#e6f7ff;border:1px solid #91d5ff;border-radius:3px;padding:0 4px 0 7px;height:22px;font-size:12px;color:#096dd9;max-width:140px;';
+          var tagText = document.createElement('span'); tagText.textContent = opt ? opt.label : v; tagText.style.cssText = 'overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
+          var x = document.createElement('span'); x.innerHTML = '&times;'; x.style.cssText = 'cursor:pointer;margin-left:3px;font-size:14px;line-height:1;color:#4096ff;flex-shrink:0;';
+          x.onclick = function (e) { e.stopPropagation(); sel = sel.filter(function (s) { return s !== v; }); renderTags(); rebuildPanel(); };
+          tag.appendChild(tagText); tag.appendChild(x); trigger.appendChild(tag);
+        });
+      }
+      var arr = document.createElement('span'); arr.innerHTML = '&#9660;'; arr.style.cssText = 'font-size:10px;color:#bfbfbf;margin-left:auto;flex-shrink:0;padding-left:4px;'; trigger.appendChild(arr);
+    }
+    function rebuildPanel() {
+      panel.innerHTML = '';
+      if (currentOpts.length === 0) {
+        var empty = document.createElement('div'); empty.style.cssText = 'padding:12px;text-align:center;color:#bfbfbf;font-size:13px;'; empty.textContent = '请先选择父字段'; panel.appendChild(empty); return;
+      }
+      currentOpts.forEach(function (opt) {
+        var checked = sel.indexOf(opt.value) >= 0;
+        var item = document.createElement('div');
+        item.style.cssText = 'display:flex;align-items:center;gap:8px;padding:7px 12px;cursor:pointer;font-size:13px;' + (checked ? 'background:#e6f7ff;' : '');
+        var cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = checked;
+        cb.style.cssText = 'flex-shrink:0;width:14px;height:14px;accent-color:var(--primary-color);pointer-events:none;';
+        var lbl = document.createElement('span'); lbl.textContent = opt.label;
+        item.appendChild(cb); item.appendChild(lbl);
+        item.onmouseenter = function () { item.style.background = '#f0f5ff'; };
+        item.onmouseleave = function () { item.style.background = sel.indexOf(opt.value) >= 0 ? '#e6f7ff' : ''; };
+        item.onclick = function (e) {
+          e.stopPropagation(); var idx = sel.indexOf(opt.value);
+          if (idx >= 0) sel.splice(idx, 1); else sel.push(opt.value);
+          renderTags(); rebuildPanel();
+        };
+        panel.appendChild(item);
+      });
+    }
+    trigger.onclick = function (e) {
+      e.stopPropagation(); var isOpen = panel.style.display !== 'none'; closeAllDropdowns();
+      if (!isOpen) { panel.style.display = 'block'; trigger.style.borderColor = 'var(--primary-color)'; }
+    };
+    trigger.onmouseenter = function () { trigger.style.borderColor = 'var(--primary-color)'; };
+    trigger.onmouseleave = function () { if (panel.style.display === 'none') trigger.style.borderColor = '#d9d9d9'; };
+    wrap._getSelected = function () { return sel.slice(); };
+    wrap._refreshOpts = function (newOpts) {
+      currentOpts = (newOpts || []).slice();
+      sel = sel.filter(function (v) { return currentOpts.some(function (o) { return o.value === v; }); });
+      renderTags(); rebuildPanel();
+    };
+    wrap.appendChild(trigger); wrap.appendChild(panel);
+    rebuildPanel(); renderTags();
+    return wrap;
+  }
+
+  // ---- 工具函数 ----
   function makeOptRow(lbl, val, parentList) {
-    var row = document.createElement('div');
-    row.style.cssText = 'display:flex;align-items:center;gap:8px;margin-bottom:6px;';
+    var row = document.createElement('div'); row.style.cssText = 'display:flex;align-items:center;gap:8px;margin-bottom:6px;';
     var lIn = document.createElement('input'); lIn.className = 'ant-input dfset-opt-label'; lIn.value = lbl; lIn.placeholder = '展示名'; lIn.style.cssText = 'flex:1;min-width:0;max-width:none;';
     var eq = document.createElement('span'); eq.textContent = '='; eq.style.cssText = 'color:#bbb;flex-shrink:0;';
     var vIn = document.createElement('input'); vIn.className = 'ant-input dfset-opt-value'; vIn.value = val; vIn.placeholder = '实际值'; vIn.style.cssText = 'flex:1;min-width:0;max-width:none;';
@@ -549,7 +661,6 @@ function showDeptFieldSettingsModal(platformField, platformGroup, key, override,
     return row;
   }
 
-  // 工具函数：创建子选项行
   function makeChildRow(cLbl, cVal, parentDiv) {
     var row = document.createElement('div'); row.style.cssText = 'display:flex;align-items:center;gap:6px;margin-bottom:4px;';
     var lIn = document.createElement('input'); lIn.className = 'ant-input dfset-child-label'; lIn.value = cLbl; lIn.placeholder = '子展示名'; lIn.style.cssText = 'flex:1;min-width:0;max-width:none;height:28px;font-size:12px;';
@@ -561,25 +672,58 @@ function showDeptFieldSettingsModal(platformField, platformGroup, key, override,
     return row;
   }
 
-  // 工具函数：创建级联规则行
-  function makeRuleRow(pVal, children, rulesList) {
+  function getParentFieldOpts() {
+    var cfw = document.getElementById('dfset-cascade-from-wrap');
+    var val = cfw ? (cfw.dataset.value || '') : '';
+    if (!val) return [];
+    var pf = null; for (var i = 0; i < otherSelects.length; i++) { if (otherSelects[i].param === val) { pf = otherSelects[i]; break; } }
+    if (!pf) return [];
+    return (pf.referenceOptions || '').split(',').map(function (o) {
+      o = o.trim(); var eq = o.indexOf('=');
+      return eq > 0 ? { label: o.slice(0, eq).trim(), value: o.slice(eq + 1).trim() } : { label: o, value: o };
+    }).filter(function (o) { return o.label; });
+  }
+
+  function refreshRuleParentSelects(rulesListEl) {
+    var opts = getParentFieldOpts();
+    rulesListEl.querySelectorAll('.dfset-rule-parent-wrap').forEach(function (w) { w._refreshOpts(opts); });
+  }
+
+  function makeRuleRow(pVals, children, rulesList) {
     var ruleDiv = document.createElement('div'); ruleDiv.style.cssText = 'border:1px solid #e8e8e8;border-radius:4px;padding:10px 12px;margin-bottom:8px;background:#fafafa;';
-    var headerRow = document.createElement('div'); headerRow.style.cssText = 'display:flex;align-items:center;gap:8px;margin-bottom:8px;';
-    var pLbl = document.createElement('span'); pLbl.textContent = '父字段值'; pLbl.style.cssText = 'font-size:12px;color:#888;flex-shrink:0;width:52px;';
-    var pIn = document.createElement('input'); pIn.className = 'ant-input dfset-rule-parent'; pIn.value = pVal; pIn.placeholder = '父字段的实际传参值'; pIn.style.cssText = 'flex:1;min-width:0;max-width:none;height:28px;font-size:12px;';
-    var delBtn = document.createElement('button'); delBtn.type = 'button'; delBtn.textContent = '删除规则'; delBtn.style.cssText = 'flex-shrink:0;padding:0 8px;height:24px;border:1px solid #ffccc7;border-radius:3px;background:#fff2f0;color:#ff4d4f;cursor:pointer;font-size:12px;';
+    var headerRow = document.createElement('div'); headerRow.style.cssText = 'display:flex;align-items:flex-start;gap:8px;margin-bottom:8px;';
+    var pLblWrap = document.createElement('div'); pLblWrap.style.cssText = 'flex-shrink:0;width:56px;padding-top:7px;';
+    var pLbl = document.createElement('div'); pLbl.textContent = '父字段值'; pLbl.style.cssText = 'font-size:12px;color:#888;';
+    pLblWrap.appendChild(pLbl);
+    var pMultiWrap = makeCSDMulti(getParentFieldOpts(), pVals, '请选择父字段值（可多选）...');
+    pMultiWrap.style.flex = '1'; pMultiWrap.style.minWidth = '0';
+    var delBtn = document.createElement('button'); delBtn.type = 'button'; delBtn.textContent = '删除规则';
+    delBtn.style.cssText = 'flex-shrink:0;padding:0 8px;height:28px;border:1px solid #ffccc7;border-radius:3px;background:#fff2f0;color:#ff4d4f;cursor:pointer;font-size:12px;margin-top:2px;';
     delBtn.onclick = function () { rulesList.removeChild(ruleDiv); };
-    headerRow.appendChild(pLbl); headerRow.appendChild(pIn); headerRow.appendChild(delBtn);
+    headerRow.appendChild(pLblWrap); headerRow.appendChild(pMultiWrap); headerRow.appendChild(delBtn);
     var childLbl = document.createElement('div'); childLbl.textContent = '↳ 子选项'; childLbl.style.cssText = 'font-size:12px;color:#888;margin-bottom:4px;';
     var childrenDiv = document.createElement('div'); childrenDiv.className = 'dfset-rule-children'; childrenDiv.style.cssText = 'padding-left:8px;';
-    var addChildBtn = document.createElement('button'); addChildBtn.type = 'button'; addChildBtn.textContent = '+ 添加子选项'; addChildBtn.style.cssText = 'display:flex;justify-content:center;margin-top:4px;padding:0 8px;height:24px;font-size:12px;border:1px dashed #d9d9d9;border-radius:3px;background:#fff;cursor:pointer;width:100%;';
+    var addChildBtn = document.createElement('button'); addChildBtn.type = 'button'; addChildBtn.textContent = '+ 添加子选项';
+    addChildBtn.style.cssText = 'display:flex;justify-content:center;margin-top:4px;padding:0 8px;height:24px;font-size:12px;border:1px dashed #d9d9d9;border-radius:3px;background:#fff;cursor:pointer;width:100%;';
     addChildBtn.onclick = function () { childrenDiv.appendChild(makeChildRow('', '', childrenDiv)); };
     (children || []).forEach(function (c) { childrenDiv.appendChild(makeChildRow(c.label, c.value, childrenDiv)); });
     ruleDiv.appendChild(headerRow); ruleDiv.appendChild(childLbl); ruleDiv.appendChild(childrenDiv); ruleDiv.appendChild(addChildBtn);
     return ruleDiv;
   }
 
-  // 填充选项
+  // ---- 初始化父字段自定义单选 ----
+  var cascFromWrap = document.getElementById('dfset-cascade-from-wrap');
+  if (cascFromWrap) {
+    cascFromWrap.dataset.value = override.cascadeFrom || '';
+    var cascFromOpts = otherSelects.map(function (pf) { return { label: pf.name || pf.param, value: pf.param }; });
+    cascFromWrap.appendChild(makeCSD(cascFromOpts, override.cascadeFrom || '', '请选择父字段（必须是 select 类型）...', function (val) {
+      cascFromWrap.dataset.value = val;
+      var rl = document.getElementById('dfset-cascade-rules-list');
+      if (rl) refreshRuleParentSelects(rl);
+    }));
+  }
+
+  // ---- 填充选项 ----
   var optsList = document.getElementById('dfset-options-list');
   (override.options || '').split(',').map(function (s) { return s.trim(); }).filter(Boolean).forEach(function (opt) {
     var eq = opt.indexOf('=');
@@ -587,23 +731,24 @@ function showDeptFieldSettingsModal(platformField, platformGroup, key, override,
   });
   document.getElementById('dfset-add-option').onclick = function () { optsList.appendChild(makeOptRow('', '', optsList)); };
 
-  // 填充级联规则
+  // ---- 填充级联规则 ----
   var rulesList = document.getElementById('dfset-cascade-rules-list');
   if (rulesList) {
     (override.cascadeData || '').split('\n').filter(Boolean).forEach(function (line) {
       var ci = line.indexOf(':');
-      var pVal = ci >= 0 ? line.slice(0, ci).trim() : line.trim();
+      var pValsStr = ci >= 0 ? line.slice(0, ci).trim() : line.trim();
+      var pVals = pValsStr.split('|').map(function (s) { return s.trim(); }).filter(Boolean);
       var children = (ci >= 0 ? line.slice(ci + 1) : '').split(',').map(function (s) {
         s = s.trim(); var eq = s.indexOf('=');
         return eq > 0 ? { label: s.slice(0, eq).trim(), value: s.slice(eq + 1).trim() } : { label: s, value: s };
       }).filter(function (c) { return c.label || c.value; });
-      rulesList.appendChild(makeRuleRow(pVal, children, rulesList));
+      rulesList.appendChild(makeRuleRow(pVals, children, rulesList));
     });
     var addRuleBtn = document.getElementById('dfset-add-rule');
-    if (addRuleBtn) addRuleBtn.onclick = function () { rulesList.appendChild(makeRuleRow('', [], rulesList)); };
+    if (addRuleBtn) addRuleBtn.onclick = function () { rulesList.appendChild(makeRuleRow([], [], rulesList)); };
   }
 
-  // 级联开关联动
+  // ---- 级联开关联动 ----
   var cascadeChk = document.getElementById('dfset-cascade-enable');
   var optSec = document.getElementById('dfset-options-section');
   var cascSec = document.getElementById('dfset-cascade-section');
@@ -615,23 +760,31 @@ function showDeptFieldSettingsModal(platformField, platformGroup, key, override,
     };
   }
 
-  // 保存
+  // ---- 保存 ----
   document.getElementById('dfset-save-btn').onclick = function () {
     if (cascadeChk && cascadeChk.checked) {
-      override.cascadeFrom = ((document.getElementById('dfset-cascade-from') || {}).value || '').trim();
+      var cfwEl = document.getElementById('dfset-cascade-from-wrap');
+      override.cascadeFrom = cfwEl ? (cfwEl.dataset.value || '').trim() : '';
       var rules = [];
+      var usedVals = {};
+      var dupError = null;
       Array.prototype.forEach.call(rulesList.children, function (ruleDiv) {
-        var pIn = ruleDiv.querySelector('.dfset-rule-parent');
+        var pWrap = ruleDiv.querySelector('.dfset-rule-parent-wrap');
         var childrenDiv = ruleDiv.querySelector('.dfset-rule-children');
-        if (!pIn) return;
-        var pVal = pIn.value.trim();
+        if (!pWrap) return;
+        var pVals = pWrap._getSelected();
+        pVals.forEach(function (v) {
+          if (usedVals[v]) dupError = dupError || ('父字段值「' + v + '」在多条规则中重复，每个值只能用于一条规则');
+          usedVals[v] = true;
+        });
         var childParts = [];
         Array.prototype.forEach.call(childrenDiv.children, function (childRow) {
           var cl = childRow.querySelector('.dfset-child-label'), cv = childRow.querySelector('.dfset-child-value');
           if (cl && cv) { var cL = cl.value.trim(), cV = cv.value.trim(); if (cL || cV) childParts.push((cL || cV) + '=' + (cV || cL)); }
         });
-        if (pVal) rules.push(pVal + ':' + childParts.join(','));
+        if (pVals.length) rules.push(pVals.join('|') + ':' + childParts.join(','));
       });
+      if (dupError) { showMessage(dupError, 'error'); return; }
       override.cascadeData = rules.join('\n');
       override.options = '';
     } else {

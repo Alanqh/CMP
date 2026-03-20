@@ -226,7 +226,7 @@ function renderResConfigTemplateEdit(container, tpl) {
   html += '</div>';
   html += '<div class="ant-card"><div class="ant-card-head"><span>编辑操作模板 - ' + esc(tpl.resType) + ' / ' + esc(tpl.opType) + '</span></div>';
   html += '<div class="ant-card-body">';
-  html += '<div class="ant-alert ant-alert-info" style="margin-bottom:16px;"><b>字段约束说明：</b>① 必填（required）字段若设为不可见（visible=false），则只能是 <code>fixed</code> 类型；② <code>fixed</code> 类型字段必须在"字段设置"中填写固定值。</div>';
+  html += '<div class="ant-alert ant-alert-info" style="margin-bottom:16px;"><b>字段约束说明</b><ul style="margin:6px 0 0;padding-left:20px;line-height:1.8;"><li>必填（required）字段若设为不可见，则只能使用 <code>fixed</code> 类型</li><li><code>fixed</code> 类型字段必须在「字段设置」中填写固定值</li></ul></div>';
   // 基本信息
   html += '<div style="display:flex;gap:32px;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid #f0f0f0;flex-wrap:wrap;">';
   html += '<div class="ant-form-item" style="flex:1;min-width:200px;margin-bottom:0;"><div class="ant-form-label">模板名称</div><div class="ant-form-control"><input class="ant-input tpl-template-name" value="' + esc(tpl.templateName || '') + '" placeholder="请输入模板名称" style="height:32px;" /></div></div>';
@@ -671,7 +671,7 @@ function renderTemplateFormFields(tpl, options) {
         }
         html += '</select>' + cascadeHint;
       } else if (field.type === 'textarea') {
-        html += '<textarea class="ant-textarea"' + (disabled ? ' disabled' : '') + ' placeholder="请输入' + esc(field.name) + '">' + esc(field.defaultValue || '') + '</textarea>';
+        html += '<textarea class="ant-textarea" rows="4"' + (disabled ? ' disabled' : '') + ' placeholder="请输入' + esc(field.name) + '" style="min-height:100px;">' + esc(field.defaultValue || '') + '</textarea>';
       } else if (field.type === 'number') {
         html += '<input class="ant-input" type="number"' + (disabled ? ' disabled' : '') + ' value="' + esc(field.defaultValue || '') + '" placeholder="请输入' + esc(field.name) + '"';
         if (field.min != null) html += ' min="' + field.min + '"';
@@ -683,7 +683,7 @@ function renderTemplateFormFields(tpl, options) {
         if (field.decimals != null) hints.push('小数位: ' + field.decimals);
         if (hints.length) html += '<div class="ant-form-extra" style="font-size:11px;color:#999;">' + hints.join(' | ') + '</div>';
       } else {
-        html += '<input class="ant-input"' + (disabled ? ' disabled' : '') + ' value="' + esc(field.defaultValue || '') + '" placeholder="请输入' + esc(field.name) + '" style="max-width:360px;" />';
+        html += '<input class="ant-input"' + (disabled ? ' disabled' : '') + ' value="' + esc(field.defaultValue || '') + '" placeholder="请输入' + esc(field.name) + '" style="max-width:480px;height:36px;" />';
         if (field.regex) {
           html += '<div class="ant-form-extra" style="font-size:11px;color:#999;">格式: ' + esc(field.regex) + '</div>';
         }
@@ -706,9 +706,12 @@ function initCascadeFields(container) {
       if (!line) return;
       var colonIdx = line.indexOf(':');
       if (colonIdx < 0) return;
-      var parentVal = line.substring(0, colonIdx).trim();
+      var parentValsStr = line.substring(0, colonIdx).trim();
       var childOptsStr = line.substring(colonIdx + 1).trim();
-      cascadeMap[parentVal] = childOptsStr;
+      parentValsStr.split('|').forEach(function (pv) {
+        pv = pv.trim();
+        if (pv) cascadeMap[pv] = childOptsStr;
+      });
     });
     var parentSel = container.querySelector('select[data-param="' + parentParam + '"]');
     if (!parentSel) return;
