@@ -123,9 +123,9 @@ function bindPageEvents(id) {
   else if (id === 'role') initRolePage();
   else if (id === 'audit') initAuditPage();
   else if (id === 'ticket') initTicketPage();
+  else if (id === 'create-ticket') initCreateTicketPage();
   else if (id === 'user') initUserPage();
   else if (id === 'dept-config') initDeptConfigPage();
-  else if (id === 'res-config') initResConfigPage();
   else if (id === 'apply-records') initApplyRecordsPage();
   else if (id === 'review-records') initReviewRecordsPage();
   else if (id === 'res-packages') initResPackagesPage();

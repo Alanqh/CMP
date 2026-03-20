@@ -1125,29 +1125,35 @@ function showDeptFlowEditModal(item, cfg, deptId, onSave) {
 // 部门配置 — 工单处理配置
 // =============================================
 function renderDeptTicketHandlers(container, cfg, deptId) {
+  var SYSTEM_CAT_IDS = ['cat-auth', 'cat-resource', 'cat-network', 'cat-security'];
   if (!cfg.ticketHandlers) {
     cfg.ticketHandlers = MockData.ticketCategories.map(function (cat) {
       var dept = MockData.findOrg(deptId);
       return { categoryId: cat.id, categoryName: cat.name, handler: dept ? dept.leader.name : '--', isDefault: true };
     });
   }
-  var html = '<div class="ant-card"><div class="ant-card-head"><span>工单处理配置</span></div><div class="ant-card-body">';
-  html += '<div class="ant-alert ant-alert-info" style="margin-bottom:16px;">每类工单默认由部门负责人处理，可为不同问题类别指定其他处理人。</div>';
-  html += '<table class="ant-table"><thead><tr><th>问题类别</th><th>当前处理人</th><th>状态</th><th>操作</th></tr></thead><tbody>';
+  var html = '<div class="ant-card"><div class="ant-card-head" style="display:flex;align-items:center;justify-content:space-between;"><span>工单处理配置</span><button class="ant-btn ant-btn-primary" id="ticket-category-add-btn">+ 新增工单类别</button></div><div class="ant-card-body">';
+  html += '<div class="ant-alert ant-alert-info" style="margin-bottom:16px;">每类工单默认由部门负责人处理，可为不同问题类别指定处理人。支持新增部门自定义工单类别，自定义类别可删除。</div>';
+  html += '<table class="ant-table"><thead><tr><th>问题类别</th><th>类别类型</th><th>当前处理人</th><th>处理人设置</th><th>操作</th></tr></thead><tbody>';
   cfg.ticketHandlers.forEach(function (th, idx) {
+    var isSystem = SYSTEM_CAT_IDS.indexOf(th.categoryId) !== -1;
     html += '<tr>';
     html += '<td>' + esc(th.categoryName) + '</td>';
+    html += '<td>' + (isSystem ? '<span class="ant-tag">系统内置</span>' : '<span class="ant-tag ant-tag-purple">部门自定义</span>') + '</td>';
     html += '<td>' + esc(th.handler) + '</td>';
     html += '<td>';
     if (th.isDefault) {
       html += '<span class="ant-tag ant-tag-blue">默认</span>';
     } else {
-      html += '<span class="ant-tag ant-tag-orange">自定义</span>';
+      html += '<span class="ant-tag ant-tag-orange">已自定义</span>';
     }
     html += '</td>';
-    html += '<td><a class="ant-btn-link ticket-handler-edit-btn" data-idx="' + idx + '">编辑</a>';
+    html += '<td><a class="ant-btn-link ticket-handler-edit-btn" data-idx="' + idx + '">编辑处理人</a>';
     if (!th.isDefault) {
       html += ' <a class="ant-btn-link ticket-handler-restore-btn" data-idx="' + idx + '" style="margin-left:8px;color:#faad14;">恢复默认</a>';
+    }
+    if (!isSystem) {
+      html += ' <a class="ant-btn-link ticket-handler-delete-btn" data-idx="' + idx + '" style="margin-left:8px;color:#ff4d4f;">删除</a>';
     }
     html += '</td>';
     html += '</tr>';
@@ -1155,6 +1161,55 @@ function renderDeptTicketHandlers(container, cfg, deptId) {
   html += '</tbody></table></div></div>';
   container.innerHTML = html;
 
+  // 新增工单类别
+  var addBtn = document.getElementById('ticket-category-add-btn');
+  if (addBtn) {
+    addBtn.onclick = function () {
+      var deptOrg = MockData.findOrg(deptId);
+      var memberIds = deptOrg ? MockData.getOrgAndChildIds(deptId) : [];
+      var members = MockData.members.filter(function (m) { return memberIds.indexOf(m.orgId) !== -1; });
+      var defaultHandler = deptOrg && deptOrg.leader ? deptOrg.leader.name : '';
+      var modalHtml = '<div class="ant-modal-overlay" style="display:flex;">';
+      modalHtml += '<div class="ant-modal" style="width:480px;">';
+      modalHtml += '<div class="ant-modal-header">新增工单类别 <button class="ant-modal-close" onclick="hideModal()">&times;</button></div>';
+      modalHtml += '<div class="ant-modal-body">';
+      modalHtml += '<div class="ant-form-item"><div class="ant-form-label"><span class="required">*</span>类别名称</div>';
+      modalHtml += '<div class="ant-form-control"><input class="ant-input" id="new-cat-name" placeholder="请输入工单类别名称，如：数据访问类" /></div></div>';
+      modalHtml += '<div class="ant-form-item"><div class="ant-form-label"><span class="required">*</span>默认处理人</div>';
+      modalHtml += '<div class="ant-form-control"><select class="ant-select" id="new-cat-handler" style="width:100%;">';
+      members.forEach(function (m) {
+        modalHtml += '<option value="' + esc(m.name) + '"' + (m.name === defaultHandler ? ' selected' : '') + '>' + esc(m.name) + '（' + esc(m.orgName) + '）</option>';
+      });
+      modalHtml += '</select></div></div>';
+      modalHtml += '</div>';
+      modalHtml += '<div class="ant-modal-footer"><button class="ant-btn" onclick="hideModal()">取消</button><button class="ant-btn ant-btn-primary" id="new-cat-save-btn">保存</button></div>';
+      modalHtml += '</div></div>';
+      var mc = document.getElementById('modal-container');
+      mc.innerHTML = modalHtml;
+      var overlay = mc.querySelector('.ant-modal-overlay');
+      if (overlay) overlay.onclick = function (e) { if (e.target === overlay) hideModal(); };
+      document.getElementById('new-cat-save-btn').onclick = function () {
+        var catName = (document.getElementById('new-cat-name').value || '').trim();
+        var handler = document.getElementById('new-cat-handler').value;
+        if (!catName) { showMessage('请输入类别名称', 'error'); return; }
+        for (var i = 0; i < cfg.ticketHandlers.length; i++) {
+          if (cfg.ticketHandlers[i].categoryName === catName) { showMessage('已存在同名类别，请更换名称', 'error'); return; }
+        }
+        var dept = MockData.findOrg(deptId);
+        cfg.ticketHandlers.push({
+          categoryId: 'cat-custom-' + Date.now(),
+          categoryName: catName,
+          handler: handler,
+          isDefault: !!(dept && dept.leader && dept.leader.name === handler)
+        });
+        hideModal();
+        showMessage('工单类别「' + catName + '」已添加', 'success');
+        renderDeptTicketHandlers(container, cfg, deptId);
+      };
+    };
+  }
+
+  // 恢复默认处理人
   container.querySelectorAll('.ticket-handler-restore-btn').forEach(function (btn) {
     btn.onclick = function () {
       var idx = parseInt(btn.getAttribute('data-idx'));
@@ -1168,15 +1223,14 @@ function renderDeptTicketHandlers(container, cfg, deptId) {
     };
   });
 
+  // 编辑处理人
   container.querySelectorAll('.ticket-handler-edit-btn').forEach(function (btn) {
     btn.onclick = function () {
       var idx = parseInt(btn.getAttribute('data-idx'));
       var th = cfg.ticketHandlers[idx];
-      // 获取部门成员列表
       var deptOrg = MockData.findOrg(deptId);
       var memberIds = deptOrg ? MockData.getOrgAndChildIds(deptId) : [];
       var members = MockData.members.filter(function (m) { return memberIds.indexOf(m.orgId) !== -1; });
-
       var modalHtml = '<div class="ant-modal-overlay" style="display:flex;">';
       modalHtml += '<div class="ant-modal" style="width:480px;">';
       modalHtml += '<div class="ant-modal-header">编辑处理人 - ' + esc(th.categoryName) + ' <button class="ant-modal-close" onclick="hideModal()">&times;</button></div>';
@@ -1190,21 +1244,42 @@ function renderDeptTicketHandlers(container, cfg, deptId) {
       modalHtml += '</div>';
       modalHtml += '<div class="ant-modal-footer"><button class="ant-btn" onclick="hideModal()">取消</button><button class="ant-btn ant-btn-primary" id="ticket-handler-save-btn">保存</button></div>';
       modalHtml += '</div></div>';
-
       var modalContainer = document.getElementById('modal-container');
       modalContainer.innerHTML = modalHtml;
       var overlay = modalContainer.querySelector('.ant-modal-overlay');
       if (overlay) overlay.onclick = function (e) { if (e.target === overlay) hideModal(); };
-
       document.getElementById('ticket-handler-save-btn').onclick = function () {
         var sel = document.getElementById('ticket-handler-select');
         var newHandler = sel.value;
         th.handler = newHandler;
-        // 判断是否为部门负责人（默认）
         var dept = MockData.findOrg(deptId);
         th.isDefault = dept && dept.leader && dept.leader.name === newHandler;
         hideModal();
         showMessage(th.categoryName + ' 处理人已更新为「' + newHandler + '」', 'success');
+        renderDeptTicketHandlers(container, cfg, deptId);
+      };
+    };
+  });
+
+  // 删除自定义类别
+  container.querySelectorAll('.ticket-handler-delete-btn').forEach(function (btn) {
+    btn.onclick = function () {
+      var idx = parseInt(btn.getAttribute('data-idx'));
+      var th = cfg.ticketHandlers[idx];
+      var mc = document.getElementById('modal-container');
+      var confirmHtml = '<div class="ant-modal-overlay" style="display:flex;">';
+      confirmHtml += '<div class="ant-modal" style="width:400px;">';
+      confirmHtml += '<div class="ant-modal-header">确认删除 <button class="ant-modal-close" onclick="hideModal()">&times;</button></div>';
+      confirmHtml += '<div class="ant-modal-body"><p>确认删除工单类别「<b>' + esc(th.categoryName) + '</b>」？删除后该类别将不可用。</p></div>';
+      confirmHtml += '<div class="ant-modal-footer"><button class="ant-btn" onclick="hideModal()">取消</button><button class="ant-btn" id="confirm-delete-cat-btn" style="background:#ff4d4f;color:#fff;border-color:#ff4d4f;">确认删除</button></div>';
+      confirmHtml += '</div></div>';
+      mc.innerHTML = confirmHtml;
+      var overlay = mc.querySelector('.ant-modal-overlay');
+      if (overlay) overlay.onclick = function (e) { if (e.target === overlay) hideModal(); };
+      document.getElementById('confirm-delete-cat-btn').onclick = function () {
+        cfg.ticketHandlers.splice(idx, 1);
+        hideModal();
+        showMessage('工单类别「' + th.categoryName + '」已删除', 'success');
         renderDeptTicketHandlers(container, cfg, deptId);
       };
     };

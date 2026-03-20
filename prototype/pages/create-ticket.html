@@ -1,0 +1,65 @@
+<div class="page-header-wrapper">
+  <div class="page-header">
+    <h3 class="page-title">
+      <a id="btn-back-to-ticket" title="返回工单列表" style="cursor:pointer;color:var(--text-secondary);margin-right:8px;font-weight:400;text-decoration:none;transition:color .2s;" onmouseover="this.style.color='#1890ff'" onmouseout="this.style.color='var(--text-secondary)'">&larr;</a>创建工单
+    </h3>
+  </div>
+</div>
+<div class="page-content">
+  <div class="page-content-inner">
+
+    <!-- 问题类别 -->
+    <div class="ant-card">
+      <div class="ant-card-head">
+        <span>问题类别 <span style="color:#ff4d4f;font-weight:400;font-size:13px;margin-left:2px;">*</span></span>
+      </div>
+      <div class="ant-card-body">
+        <div id="create-ticket-cat-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;"></div>
+        <div id="create-ticket-handler-row" style="margin-top:12px;padding:8px 12px;background:#f0f9ff;border-left:3px solid #1890ff;font-size:13px;display:none;">
+          默认处理人：<b id="create-ticket-handler-display">--</b>
+          <span style="color:var(--text-secondary);margin-left:8px;font-size:12px;">提交后自动分配，可在处理过程中转移</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 工单信息 -->
+    <div class="ant-card">
+      <div class="ant-card-head">工单信息</div>
+      <div class="ant-card-body">
+
+        <div class="ant-form-item">
+          <div class="ant-form-label"><span class="required">*</span>工单标题</div>
+          <div class="ant-form-control">
+            <input class="ant-input" id="create-ticket-title" style="max-width:100%;" placeholder="请简要描述问题，如：申请 dev-user 账号读写权限" />
+          </div>
+        </div>
+
+        <div class="ant-form-item">
+          <div class="ant-form-label"><span class="required">*</span>问题描述</div>
+          <div class="ant-form-control">
+            <textarea class="ant-textarea" id="create-ticket-desc" rows="6" style="width:100%;max-width:100%;resize:vertical;" placeholder="请详细描述问题背景、影响范围及期望处理结果…"></textarea>
+          </div>
+        </div>
+
+        <div class="ant-form-item" style="margin-bottom:0;">
+          <div class="ant-form-label">附件</div>
+          <div class="ant-form-control">
+            <div id="create-ticket-attach-area" style="border:1px dashed #d9d9d9;padding:20px 16px;text-align:center;cursor:pointer;color:var(--text-secondary);font-size:13px;transition:border-color .2s;">
+              &#128206;&ensp;点击或拖拽文件到此处上传（支持图片、文档，最大 10 MB）
+            </div>
+            <div id="create-ticket-attach-list" style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px;"></div>
+            <input type="file" id="create-ticket-file-input" multiple style="display:none;" />
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- 操作区 -->
+    <div style="display:flex;justify-content:flex-end;gap:8px;padding-bottom:8px;">
+      <button class="ant-btn" id="btn-cancel-create-ticket">取消</button>
+      <button class="ant-btn ant-btn-primary" id="btn-submit-create-ticket">提交工单</button>
+    </div>
+
+  </div>
+</div>

@@ -288,8 +288,7 @@ MockData.deptConfig = {
       { categoryId: 'cat-auth', categoryName: '账号权限类', handler: '张明远', isDefault: true },
       { categoryId: 'cat-resource', categoryName: '资源问题类', handler: '张明远', isDefault: true },
       { categoryId: 'cat-network', categoryName: '网络问题类', handler: '赵雪晴', isDefault: false },
-      { categoryId: 'cat-security', categoryName: '安全合规类', handler: '张明远', isDefault: true },
-      { categoryId: 'cat-other', categoryName: '其他', handler: '张明远', isDefault: true }
+      { categoryId: 'cat-security', categoryName: '安全合规类', handler: '张明远', isDefault: true }
     ],
     approvalFlows: [
       { id: 'flow-1', resType: 'ECS 云服务器', opType: '申请', category: '计算类', flowTemplate: 'leader+l5+admin1', admin1: '张明远', admin2: '' },
@@ -325,8 +324,7 @@ MockData.deptConfig = {
       { categoryId: 'cat-auth', categoryName: '账号权限类', handler: '刘佳琪', isDefault: true },
       { categoryId: 'cat-resource', categoryName: '资源问题类', handler: '刘佳琪', isDefault: true },
       { categoryId: 'cat-network', categoryName: '网络问题类', handler: '刘佳琪', isDefault: true },
-      { categoryId: 'cat-security', categoryName: '安全合规类', handler: '刘佳琪', isDefault: true },
-      { categoryId: 'cat-other', categoryName: '其他', handler: '刘佳琪', isDefault: true }
+      { categoryId: 'cat-security', categoryName: '安全合规类', handler: '刘佳琪', isDefault: true }
     ],
     approvalFlows: [
       { id: 'flow-10', resType: 'ECS 云服务器', opType: '申请', category: '计算类', flowTemplate: 'leader+l5+admin1', admin1: '刘佳琪', admin2: '' },
@@ -351,8 +349,7 @@ MockData.deptConfig = {
       { categoryId: 'cat-auth', categoryName: '账号权限类', handler: '周文博', isDefault: true },
       { categoryId: 'cat-resource', categoryName: '资源问题类', handler: '吴海波', isDefault: false },
       { categoryId: 'cat-network', categoryName: '网络问题类', handler: '周文博', isDefault: true },
-      { categoryId: 'cat-security', categoryName: '安全合规类', handler: '周文博', isDefault: true },
-      { categoryId: 'cat-other', categoryName: '其他', handler: '周文博', isDefault: true }
+      { categoryId: 'cat-security', categoryName: '安全合规类', handler: '周文博', isDefault: true }
     ],
     approvalFlows: [
       { id: 'flow-20', resType: 'Elasticsearch', opType: '申请', category: '大数据与搜索分析类', flowTemplate: 'leader+l5', admin1: '', admin2: '' },

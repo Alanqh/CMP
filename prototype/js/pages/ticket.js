@@ -56,34 +56,28 @@ function initTicketPage() {
   var searchEl = document.getElementById('ticket-search');
   if (searchEl) searchEl.oninput = function () { state.ticket.keyword = searchEl.value; state.ticket.page = 1; renderTickets(); };
   var typeFilter = document.getElementById('ticket-type-filter');
-  if (typeFilter) typeFilter.onchange = function () { state.ticket.typeFilter = typeFilter.value; state.ticket.page = 1; renderTickets(); };
+  if (typeFilter) {
+    var allCats = {};
+    Object.keys(MockData.deptConfig).forEach(function (deptId) {
+      var cfg = MockData.deptConfig[deptId];
+      if (cfg && cfg.ticketHandlers) {
+        cfg.ticketHandlers.forEach(function (th) { allCats[th.categoryName] = true; });
+      }
+    });
+    Object.keys(allCats).forEach(function (catName) {
+      typeFilter.innerHTML += '<option value="' + esc(catName) + '">' + esc(catName) + '</option>';
+    });
+    typeFilter.onchange = function () { state.ticket.typeFilter = typeFilter.value; state.ticket.page = 1; renderTickets(); };
+  }
   var statusFilter = document.getElementById('ticket-status-filter');
   if (statusFilter) statusFilter.onchange = function () { state.ticket.statusFilter = statusFilter.value; state.ticket.page = 1; renderTickets(); };
   if (deptFilter) deptFilter.onchange = function () { state.ticket.deptFilter = deptFilter.value; state.ticket.page = 1; renderTickets(); };
 
-  // 创建工单按钮
+  // 创建工单按钮 → 跳转到创建页
   var createBtn = document.getElementById('btn-create-ticket');
   if (createBtn) createBtn.onclick = function () {
-    loadAndShowModal('ticket/create-ticket', function () {
-      var categorySelect = document.getElementById('create-ticket-category');
-      var handlerHint = document.getElementById('create-ticket-handler-hint');
-      if (categorySelect && handlerHint) {
-        categorySelect.onchange = function () {
-          var cat = categorySelect.value;
-          if (!cat) { handlerHint.textContent = '请先选择问题类别'; return; }
-          // 查找当前用户所在部门的工单处理配置
-          var deptId = 'dept-infra'; // 默认 admin 所在部门
-          var cfg = MockData.deptConfig[deptId];
-          var handler = '--';
-          if (cfg && cfg.ticketHandlers) {
-            for (var i = 0; i < cfg.ticketHandlers.length; i++) {
-              if (cfg.ticketHandlers[i].categoryName === cat) { handler = cfg.ticketHandlers[i].handler; break; }
-            }
-          }
-          handlerHint.textContent = handler;
-        };
-      }
-    });
+    pageCache['create-ticket'] = null;
+    loadPage('create-ticket');
   };
 
   renderTickets();
@@ -108,7 +102,7 @@ function renderTickets() {
   var start = (s.page - 1) * PAGE_SIZE;
   var pageData = filtered.slice(start, start + PAGE_SIZE);
   var statusColors = { '待处理': 'warning', '处理中': 'processing', '已完结': 'success' };
-  var categoryColors = { '账号权限类': 'orange', '资源问题类': 'blue', '网络问题类': 'cyan', '安全合规类': 'red', '其他': 'default' };
+  var categoryColors = { '账号权限类': 'orange', '资源问题类': 'blue', '网络问题类': 'cyan', '安全合规类': 'red' };
 
   var tableContainer = document.getElementById('ticket-table-container');
   if (!tableContainer) return;
@@ -351,4 +345,117 @@ function showTicketTransferModal(ticket, onComplete) {
       if (onComplete) onComplete();
     };
   }
+}
+
+// =============================================
+// 创建工单页
+// =============================================
+function initCreateTicketPage() {
+  var selectedCat = null;
+  var attachFiles = [];
+  var deptId = 'dept-infra';
+  var cfg = MockData.deptConfig[deptId];
+
+  // 返回 / 取消
+  var backBtn = document.getElementById('btn-back-to-ticket');
+  if (backBtn) backBtn.onclick = function () { loadPage('ticket'); };
+  var cancelBtn = document.getElementById('btn-cancel-create-ticket');
+  if (cancelBtn) cancelBtn.onclick = function () { loadPage('ticket'); };
+
+  // 类别卡片
+  var catGrid = document.getElementById('create-ticket-cat-grid');
+  if (catGrid && cfg && cfg.ticketHandlers) {
+    cfg.ticketHandlers.forEach(function (th) {
+      var card = document.createElement('div');
+      card.setAttribute('data-cat-name', th.categoryName);
+      card.style.cssText = 'border:1px solid #d9d9d9;padding:12px 16px;cursor:pointer;transition:border-color .15s,background .15s;user-select:none;';
+      card.innerHTML =
+        '<div style="font-weight:500;font-size:14px;line-height:1.5;">' + esc(th.categoryName) + '</div>' +
+        '<div style="font-size:12px;color:var(--text-secondary);margin-top:6px;">处理人：' + esc(th.handler) + '</div>';
+      card.onmouseover = function () { if (selectedCat !== th.categoryName) card.style.borderColor = '#40a9ff'; };
+      card.onmouseout = function () { if (selectedCat !== th.categoryName) card.style.borderColor = '#d9d9d9'; };
+      card.onclick = function () {
+        catGrid.querySelectorAll('[data-cat-name]').forEach(function (c) {
+          c.style.borderColor = '#d9d9d9';
+          c.style.background = '';
+        });
+        card.style.borderColor = '#1890ff';
+        card.style.background = '#e6f7ff';
+        selectedCat = th.categoryName;
+        var handlerRow = document.getElementById('create-ticket-handler-row');
+        var handlerDisplay = document.getElementById('create-ticket-handler-display');
+        if (handlerRow) handlerRow.style.display = '';
+        if (handlerDisplay) handlerDisplay.textContent = th.handler;
+      };
+      catGrid.appendChild(card);
+    });
+  }
+
+  // 附件上传
+  var attachArea = document.getElementById('create-ticket-attach-area');
+  var fileInput = document.getElementById('create-ticket-file-input');
+  if (attachArea && fileInput) {
+    attachArea.onclick = function () { fileInput.click(); };
+    attachArea.onmouseover = function () { attachArea.style.borderColor = '#1890ff'; attachArea.style.color = '#1890ff'; };
+    attachArea.onmouseout = function () { attachArea.style.borderColor = '#d9d9d9'; attachArea.style.color = 'var(--text-secondary)'; };
+    attachArea.ondragover = function (e) { e.preventDefault(); attachArea.style.borderColor = '#1890ff'; };
+    attachArea.ondragleave = function () { attachArea.style.borderColor = '#d9d9d9'; attachArea.style.color = 'var(--text-secondary)'; };
+    attachArea.ondrop = function (e) {
+      e.preventDefault();
+      attachArea.style.borderColor = '#d9d9d9';
+      addFiles(Array.from(e.dataTransfer.files));
+    };
+    fileInput.onchange = function () { addFiles(Array.from(fileInput.files)); fileInput.value = ''; };
+  }
+
+  function addFiles(files) {
+    var list = document.getElementById('create-ticket-attach-list');
+    files.forEach(function (f) {
+      if (f.size > 10 * 1024 * 1024) { showMessage(f.name + ' 超过 10MB 限制', 'error'); return; }
+      attachFiles.push(f.name);
+      if (list) {
+        var tag = document.createElement('span');
+        tag.style.cssText = 'display:inline-flex;align-items:center;background:#f5f5f5;border:1px solid #d9d9d9;border-radius:4px;padding:2px 8px;font-size:12px;gap:4px;';
+        tag.innerHTML = '&#128206; ' + esc(f.name) + ' <span style="cursor:pointer;color:#aaa;font-size:14px;">&times;</span>';
+        tag.querySelector('span').onclick = function (e) {
+          e.stopPropagation();
+          attachFiles = attachFiles.filter(function (n) { return n !== f.name; });
+          list.removeChild(tag);
+        };
+        list.appendChild(tag);
+      }
+    });
+  }
+
+  // 提交
+  var submitBtn = document.getElementById('btn-submit-create-ticket');
+  if (submitBtn) submitBtn.onclick = function () {
+    if (!selectedCat) { showMessage('请选择问题类别', 'error'); return; }
+    var title = (document.getElementById('create-ticket-title').value || '').trim();
+    var desc = (document.getElementById('create-ticket-desc').value || '').trim();
+    if (!title) { showMessage('请填写工单标题', 'error'); return; }
+    if (!desc) { showMessage('请填写问题描述', 'error'); return; }
+    var handler = '--';
+    if (cfg && cfg.ticketHandlers) {
+      for (var i = 0; i < cfg.ticketHandlers.length; i++) {
+        if (cfg.ticketHandlers[i].categoryName === selectedCat) { handler = cfg.ticketHandlers[i].handler; break; }
+      }
+    }
+    var now = new Date();
+    var dateStr = now.getFullYear() + String(now.getMonth() + 1).padStart(2, '0') + String(now.getDate()).padStart(2, '0');
+    var newId = 'TK-' + dateStr + '-' + String(MockData.tickets.length + 1).padStart(3, '0');
+    var timeStr = now.getFullYear() + '/' + String(now.getMonth() + 1).padStart(2, '0') + '/' + String(now.getDate()).padStart(2, '0') + ' ' + String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0') + ':' + String(now.getSeconds()).padStart(2, '0');
+    MockData.tickets.unshift({
+      id: newId, title: title, category: selectedCat,
+      status: '待处理', statusClass: 'warning',
+      applicant: '王浩然', applicantDept: '基础架构部',
+      handler: handler, createTime: timeStr, updateTime: timeStr,
+      relatedResource: '--', desc: desc, attachments: attachFiles.slice(),
+      timeline: [{ time: timeStr, action: '创建工单', operator: '王浩然', detail: '提交 ' + selectedCat + ' 工单' }]
+    });
+    MockData.auditLogs.unshift({ time: timeStr, operator: '王浩然', dept: '基础架构部', opType: '工单操作', opTypeColor: 'purple', target: newId, desc: '创建工单: ' + title, ip: '10.128.0.55' });
+    pageCache['ticket'] = null;
+    showMessage('工单 ' + newId + ' 已创建', 'success');
+    loadPage('ticket');
+  };
 }

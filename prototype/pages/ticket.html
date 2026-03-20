@@ -6,8 +6,8 @@
   <div class="ant-tabs" id="ticket-tabs">
     <div class="ant-tabs-nav">
       <span class="ant-tabs-tab active" data-ticket-tab="all">总览</span>
-      <span class="ant-tabs-tab" data-ticket-tab="mine">我创建的</span>
       <span class="ant-tabs-tab" data-ticket-tab="handle">我处理的 <span style="font-size:12px;color:var(--text-secondary);">(仅工单处理人/部门管理员可见)</span></span>
+      <span class="ant-tabs-tab" data-ticket-tab="mine">我创建的</span>
     </div>
   </div>
 </div>
@@ -19,11 +19,6 @@
         <div class="ant-input-search"><input id="ticket-search" placeholder="搜索工单号/标题..." /><button class="ant-input-search-button">&#128269;</button></div>
         <select class="ant-select" id="ticket-type-filter" style="min-width:120px;">
           <option value="">全部类别</option>
-          <option value="账号权限类">账号权限类</option>
-          <option value="资源问题类">资源问题类</option>
-          <option value="网络问题类">网络问题类</option>
-          <option value="安全合规类">安全合规类</option>
-          <option value="其他">其他</option>
         </select>
         <select class="ant-select" id="ticket-status-filter" style="min-width:120px;">
           <option value="">全部状态</option>
