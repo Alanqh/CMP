@@ -11,7 +11,9 @@
       "Bash(gh auth:*)",
       "Bash(npx puppeteer:*)",
       "Bash(npm list:*)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(gh repo:*)",
+      "Bash(gh api:*)"
     ]
   }
 }
