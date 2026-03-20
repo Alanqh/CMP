@@ -105,8 +105,6 @@ function bindPageEvents(id) {
         loadAndShowModal(modalName, function () { renderPermPkgList(); });
       } else if (modalName === 'project/add-project') {
         loadAndShowModal(modalName, function () { renderAddProjectModal(); });
-      } else if (modalName === 'resource/apply-resource') {
-        loadAndShowModal(modalName, function () { initApplyResourceModal(); });
       } else {
         loadAndShowModal(modalName);
       }
@@ -127,6 +125,7 @@ function bindPageEvents(id) {
   else if (id === 'user') initUserPage();
   else if (id === 'dept-config') initDeptConfigPage();
   else if (id === 'apply-records') initApplyRecordsPage();
+  else if (id === 'apply-resource') initApplyResourcePage();
   else if (id === 'review-records') initReviewRecordsPage();
   else if (id === 'res-packages') initResPackagesPage();
 }

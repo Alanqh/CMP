@@ -6,6 +6,8 @@
 // =============================================
 function initResourcePage() {
   renderResources();
+  var applyBtn = document.getElementById('btn-apply-resource');
+  if (applyBtn) applyBtn.onclick = function () { pageCache['apply-resource'] = null; loadPage('apply-resource'); };
   var searchInput = document.getElementById('resource-search');
   if (searchInput) searchInput.oninput = function () { state.resource.keyword = searchInput.value; state.resource.page = 1; renderResources(); };
   var typeFilter = document.getElementById('resource-type-filter');

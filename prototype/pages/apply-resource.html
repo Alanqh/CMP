@@ -1,0 +1,109 @@
+<div class="page-header-wrapper">
+  <div class="page-header">
+    <h3 class="page-title">
+      <a id="btn-back-to-resource" title="返回资源列表" style="cursor:pointer;color:var(--text-secondary);margin-right:8px;font-weight:400;text-decoration:none;transition:color .2s;" onmouseover="this.style.color='#1890ff'" onmouseout="this.style.color='var(--text-secondary)'">&larr;</a>申请资源
+    </h3>
+  </div>
+</div>
+<div class="page-content">
+  <div class="page-content-inner">
+    <div class="ant-steps" style="margin-bottom:20px;">
+      <div class="ant-step active" id="apply-step-1"><div class="ant-step-icon">1</div><div class="ant-step-title">选择类型</div></div>
+      <div class="ant-step-tail" id="apply-tail-1"></div>
+      <div class="ant-step" id="apply-step-2"><div class="ant-step-icon">2</div><div class="ant-step-title">填写参数</div></div>
+      <div class="ant-step-tail" id="apply-tail-2"></div>
+      <div class="ant-step" id="apply-step-3"><div class="ant-step-icon">3</div><div class="ant-step-title">提交审批</div></div>
+    </div>
+
+    <!-- 基本信息 -->
+    <div class="ant-card">
+      <div class="ant-card-head">基本信息</div>
+      <div class="ant-card-body">
+        <div class="ant-form-item">
+          <div class="ant-form-label"><span class="required">*</span>资源类型</div>
+          <div class="ant-form-control">
+            <select class="ant-select" id="page-apply-res-type" style="width:320px;">
+              <option value="">请选择资源类型...</option>
+            </select>
+          </div>
+        </div>
+        <div class="ant-form-item" style="margin-bottom:0;">
+          <div class="ant-form-label"><span class="required">*</span>所属资源组</div>
+          <div class="ant-form-control">
+            <select class="ant-select" id="page-apply-res-group" style="width:320px;">
+              <option value="">请选择资源组...</option>
+            </select>
+            <div class="ant-form-extra">资源组是资源的逻辑容器，用于组织管理和批量授权</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 动态表单（选择类型后展示） -->
+    <div id="page-apply-dynamic-card" style="display:none;">
+      <div class="ant-card">
+        <div class="ant-card-head" id="page-apply-dynamic-title">资源参数</div>
+        <div class="ant-card-body">
+          <div id="page-apply-dynamic-form"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 计费配置（选择类型后展示） -->
+    <div id="page-apply-pricing" style="display:none;">
+      <div class="ant-card">
+        <div class="ant-card-head">计费配置</div>
+        <div class="ant-card-body">
+          <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end;margin-bottom:16px;">
+            <div class="ant-form-item" style="flex:0 0 auto;margin-bottom:0;">
+              <div class="ant-form-label"><span class="required">*</span>实例个数</div>
+              <div class="ant-form-control">
+                <input class="ant-input" type="number" id="page-apply-quantity" value="1" min="1" max="100" style="width:100px;" />
+              </div>
+            </div>
+            <div class="ant-form-item" style="flex:0 0 auto;margin-bottom:0;">
+              <div class="ant-form-label"><span class="required">*</span>付费类型</div>
+              <div class="ant-form-control">
+                <select class="ant-select" id="page-apply-pay-type" style="width:130px;">
+                  <option value="prepaid">包年包月</option>
+                  <option value="postpaid">按量付费</option>
+                </select>
+              </div>
+            </div>
+            <div class="ant-form-item" id="page-apply-period-item" style="flex:0 0 auto;margin-bottom:0;">
+              <div class="ant-form-label"><span class="required">*</span>付费周期</div>
+              <div class="ant-form-control">
+                <select class="ant-select" id="page-apply-period" style="width:130px;">
+                  <option value="1m">1 个月</option>
+                  <option value="3m">3 个月</option>
+                  <option value="6m">6 个月</option>
+                  <option value="1y">1 年</option>
+                  <option value="2y">2 年</option>
+                  <option value="3y">3 年</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div style="padding:10px 16px;background:#f6ffed;border:1px solid #b7eb8f;display:flex;gap:32px;align-items:baseline;">
+            <div>
+              <div style="font-size:12px;color:var(--text-secondary);">单价（参考）</div>
+              <div style="font-size:18px;font-weight:600;color:#52c41a;" id="page-apply-unit-price">--</div>
+            </div>
+            <div>
+              <div style="font-size:12px;color:var(--text-secondary);">总价（参考）</div>
+              <div style="font-size:20px;font-weight:700;color:#fa8c16;" id="page-apply-total-price">--</div>
+            </div>
+            <div style="font-size:11px;color:#999;align-self:flex-end;">* 仅供预算参考，以实际账单为准</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 操作区 -->
+    <div style="display:flex;justify-content:flex-end;gap:8px;padding-bottom:8px;">
+      <button class="ant-btn" id="btn-cancel-apply-res">取消</button>
+      <button class="ant-btn ant-btn-primary" id="btn-submit-apply-res">提交申请</button>
+    </div>
+
+  </div>
+</div>
