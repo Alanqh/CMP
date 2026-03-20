@@ -13,7 +13,10 @@
       "Bash(npm list:*)",
       "Bash(npm install:*)",
       "Bash(gh repo:*)",
-      "Bash(gh api:*)"
+      "Bash(gh api:*)",
+      "Bash(gh run:*)",
+      "Bash(where gh:*)",
+      "Bash(winget list:*)"
     ]
   }
 }
