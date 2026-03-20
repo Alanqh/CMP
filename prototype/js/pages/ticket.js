@@ -1,0 +1,354 @@
+'use strict';
+// CMP 原型 - 工单管理页
+
+// =============================================
+// 工单管理页
+// =============================================
+function initTicketPage() {
+  // 统计卡片
+  var statsEl = document.getElementById('ticket-stats');
+  if (statsEl) {
+    var pending = 0, processing = 0, done = 0;
+    MockData.tickets.forEach(function (t) {
+      if (t.status === '待处理') pending++;
+      else if (t.status === '处理中') processing++;
+      else if (t.status === '已完结') done++;
+    });
+    statsEl.innerHTML =
+      '<div class="stat-card"><div class="stat-value" style="color:#faad14;">' + pending + '</div><div class="stat-label">待处理</div></div>' +
+      '<div class="stat-card"><div class="stat-value" style="color:#1890ff;">' + processing + '</div><div class="stat-label">处理中</div></div>' +
+      '<div class="stat-card"><div class="stat-value" style="color:#52c41a;">' + done + '</div><div class="stat-label">已完结</div></div>' +
+      '<div class="stat-card"><div class="stat-value">' + MockData.tickets.length + '</div><div class="stat-label">总工单</div></div>';
+    // 状态流程说明（避免重复插入）
+    if (!document.getElementById('ticket-status-note')) {
+      var flowNote = document.createElement('div');
+      flowNote.id = 'ticket-status-note';
+      flowNote.className = 'ant-alert ant-alert-info';
+      flowNote.style.cssText = 'margin:8px 0;font-size:12px;';
+      flowNote.innerHTML = '<b>状态说明：</b>【待处理】工单已提交，处理人尚未接单；【处理中】处理人已接单，正在处理；【已完结】问题已解决。工单转移操作会记录在处理记录中。';
+      statsEl.parentNode.insertBefore(flowNote, statsEl.nextSibling);
+    }
+  }
+
+  // 部门筛选下拉
+  var deptFilter = document.getElementById('ticket-dept-filter');
+  if (deptFilter && deptFilter.options.length <= 1) {
+    MockData.getAllDepts().forEach(function (d) {
+      deptFilter.innerHTML += '<option value="' + esc(d) + '">' + esc(d) + '</option>';
+    });
+  }
+
+  // Tab切换
+  document.querySelectorAll('#ticket-tabs .ant-tabs-tab').forEach(function (tab) {
+    tab.onclick = function () {
+      document.querySelectorAll('#ticket-tabs .ant-tabs-tab').forEach(function (t) { t.classList.remove('active'); });
+      tab.classList.add('active');
+      state.ticket.activeTab = tab.getAttribute('data-ticket-tab');
+      state.ticket.page = 1;
+      // 统计卡片仅"总览"时显示
+      var statsEl = document.getElementById('ticket-stats');
+      if (statsEl) statsEl.style.display = state.ticket.activeTab === 'all' ? '' : 'none';
+      renderTickets();
+    };
+  });
+
+  // 搜索绑定
+  var searchEl = document.getElementById('ticket-search');
+  if (searchEl) searchEl.oninput = function () { state.ticket.keyword = searchEl.value; state.ticket.page = 1; renderTickets(); };
+  var typeFilter = document.getElementById('ticket-type-filter');
+  if (typeFilter) typeFilter.onchange = function () { state.ticket.typeFilter = typeFilter.value; state.ticket.page = 1; renderTickets(); };
+  var statusFilter = document.getElementById('ticket-status-filter');
+  if (statusFilter) statusFilter.onchange = function () { state.ticket.statusFilter = statusFilter.value; state.ticket.page = 1; renderTickets(); };
+  if (deptFilter) deptFilter.onchange = function () { state.ticket.deptFilter = deptFilter.value; state.ticket.page = 1; renderTickets(); };
+
+  // 创建工单按钮
+  var createBtn = document.getElementById('btn-create-ticket');
+  if (createBtn) createBtn.onclick = function () {
+    loadAndShowModal('ticket/create-ticket', function () {
+      var categorySelect = document.getElementById('create-ticket-category');
+      var handlerHint = document.getElementById('create-ticket-handler-hint');
+      if (categorySelect && handlerHint) {
+        categorySelect.onchange = function () {
+          var cat = categorySelect.value;
+          if (!cat) { handlerHint.textContent = '请先选择问题类别'; return; }
+          // 查找当前用户所在部门的工单处理配置
+          var deptId = 'dept-infra'; // 默认 admin 所在部门
+          var cfg = MockData.deptConfig[deptId];
+          var handler = '--';
+          if (cfg && cfg.ticketHandlers) {
+            for (var i = 0; i < cfg.ticketHandlers.length; i++) {
+              if (cfg.ticketHandlers[i].categoryName === cat) { handler = cfg.ticketHandlers[i].handler; break; }
+            }
+          }
+          handlerHint.textContent = handler;
+        };
+      }
+    });
+  };
+
+  renderTickets();
+}
+
+function renderTickets() {
+  var s = state.ticket;
+  var filtered = MockData.tickets.filter(function (t) {
+    // Tab过滤
+    if (s.activeTab === 'mine' && t.applicant !== '王浩然') return false;
+    if (s.activeTab === 'handle' && t.handler !== '张明远') return false;
+    if (s.keyword) {
+      var kw = s.keyword.toLowerCase();
+      if (t.id.toLowerCase().indexOf(kw) === -1 && t.title.toLowerCase().indexOf(kw) === -1) return false;
+    }
+    if (s.typeFilter && t.category !== s.typeFilter) return false;
+    if (s.statusFilter && t.status !== s.statusFilter) return false;
+    if (s.deptFilter && t.applicantDept !== s.deptFilter) return false;
+    return true;
+  });
+  var total = filtered.length;
+  var start = (s.page - 1) * PAGE_SIZE;
+  var pageData = filtered.slice(start, start + PAGE_SIZE);
+  var statusColors = { '待处理': 'warning', '处理中': 'processing', '已完结': 'success' };
+  var categoryColors = { '账号权限类': 'orange', '资源问题类': 'blue', '网络问题类': 'cyan', '安全合规类': 'red', '其他': 'default' };
+
+  var tableContainer = document.getElementById('ticket-table-container');
+  if (!tableContainer) return;
+  var html = '<table class="ant-table"><thead><tr><th>工单号</th><th>标题</th><th>问题类别</th><th>状态</th><th>申请人</th><th>处理人</th><th>创建时间</th><th>操作</th></tr></thead><tbody>';
+  if (pageData.length === 0) {
+    html += '<tr><td colspan="8" style="text-align:center;color:var(--text-secondary);padding:32px;">暂无数据</td></tr>';
+  }
+  pageData.forEach(function (t) {
+    html += '<tr><td style="white-space:nowrap;font-family:monospace;font-size:12px;">' + esc(t.id) + '</td>';
+    html += '<td>' + esc(t.title) + '</td>';
+    html += '<td><span class="ant-tag ant-tag-' + (categoryColors[t.category] || 'default') + '">' + esc(t.category) + '</span></td>';
+    html += '<td><span class="ant-badge-status-dot ant-badge-status-' + (statusColors[t.status] || 'default') + '"></span>' + esc(t.status) + '</td>';
+    html += '<td>' + esc(t.applicant) + '</td>';
+    html += '<td>' + esc(t.handler) + '</td>';
+    html += '<td style="white-space:nowrap;">' + esc(t.createTime) + '</td>';
+    html += '<td><a class="ant-btn-link ticket-view-btn" data-ticket-id="' + esc(t.id) + '">查看</a>';
+    if (t.status === '待处理') html += ' <a class="ant-btn-link ticket-handle-btn" data-ticket-id="' + esc(t.id) + '">接单处理</a>';
+    if (t.status === '处理中') html += ' <a class="ant-btn-link ticket-close-btn" data-ticket-id="' + esc(t.id) + '">完结</a>';
+    if (t.status !== '已完结') html += ' <a class="ant-btn-link ticket-transfer-btn" data-ticket-id="' + esc(t.id) + '">转移</a>';
+    html += '</td></tr>';
+  });
+  html += '</tbody></table><div id="ticket-pagination"></div>';
+  tableContainer.innerHTML = html;
+
+  var pagEl = document.getElementById('ticket-pagination');
+  if (pagEl) renderPagination(pagEl, total, s.page, PAGE_SIZE, function (p) { s.page = p; renderTickets(); });
+
+  // 绑定查看按钮
+  tableContainer.querySelectorAll('.ticket-view-btn').forEach(function (btn) {
+    btn.onclick = function () {
+      var ticketId = btn.getAttribute('data-ticket-id');
+      var ticket = null;
+      for (var i = 0; i < MockData.tickets.length; i++) {
+        if (MockData.tickets[i].id === ticketId) { ticket = MockData.tickets[i]; break; }
+      }
+      if (!ticket) return;
+      loadAndShowModal('ticket/view-ticket', function () {
+        document.getElementById('view-ticket-title').textContent = '工单详情 - ' + ticket.id;
+        document.getElementById('view-ticket-id').textContent = ticket.id;
+        document.getElementById('view-ticket-type').innerHTML = '<span class="ant-tag ant-tag-' + (categoryColors[ticket.category] || 'default') + '">' + esc(ticket.category) + '</span>';
+        document.getElementById('view-ticket-status').textContent = ticket.status;
+        document.getElementById('view-ticket-applicant').textContent = ticket.applicant + '（' + ticket.applicantDept + '）';
+        document.getElementById('view-ticket-handler').textContent = ticket.handler;
+        document.getElementById('view-ticket-resource').textContent = ticket.relatedResource || '--';
+        document.getElementById('view-ticket-desc').textContent = ticket.desc;
+        // 时间线
+        var tlEl = document.getElementById('view-ticket-timeline');
+        if (tlEl && ticket.timeline) {
+          var tlHtml = '';
+          ticket.timeline.forEach(function (step) {
+            tlHtml += '<div style="padding:8px 0 8px 16px;position:relative;">';
+            tlHtml += '<div style="position:absolute;left:-8px;top:12px;width:12px;height:12px;border-radius:50%;background:#1890ff;border:2px solid #fff;"></div>';
+            tlHtml += '<div style="font-weight:500;">' + esc(step.action) + '</div>';
+            tlHtml += '<div style="font-size:12px;color:var(--text-secondary);">' + esc(step.time) + ' | ' + esc(step.operator) + '</div>';
+            tlHtml += '<div style="font-size:13px;margin-top:2px;">' + esc(step.detail) + '</div>';
+            tlHtml += '</div>';
+          });
+          tlEl.innerHTML = tlHtml;
+        }
+        // 转移/完结按钮（非已完结时显示）
+        var drawerFooter = document.querySelector('#modal-container .ant-drawer-footer');
+        if (drawerFooter && ticket.status !== '已完结') {
+          var transferBtn = document.createElement('button');
+          transferBtn.className = 'ant-btn ant-btn-primary';
+          transferBtn.style.marginRight = '8px';
+          transferBtn.textContent = '转移工单';
+          drawerFooter.insertBefore(transferBtn, drawerFooter.firstChild);
+          // 完结按钮（仅处理中）
+          if (ticket.status === '处理中') {
+            var closeBtn = document.createElement('button');
+            closeBtn.className = 'ant-btn';
+            closeBtn.style.cssText = 'margin-right:8px;background:#52c41a;color:#fff;border-color:#52c41a;';
+            closeBtn.textContent = '完结工单';
+            drawerFooter.insertBefore(closeBtn, drawerFooter.firstChild);
+            closeBtn.onclick = function () {
+              showTicketCloseDrawer(ticket, function () {
+                document.getElementById('view-ticket-status') && (document.getElementById('view-ticket-status').textContent = ticket.status);
+                renderTickets();
+              });
+            };
+          }
+          transferBtn.onclick = function () {
+            showTicketTransferModal(ticket, function () {
+              // 刷新处理人显示
+              document.getElementById('view-ticket-handler').textContent = ticket.handler;
+              document.getElementById('view-ticket-status').textContent = ticket.status;
+              // 刷新时间线
+              var tlEl2 = document.getElementById('view-ticket-timeline');
+              if (tlEl2 && ticket.timeline) {
+                var tlHtml2 = '';
+                ticket.timeline.forEach(function (step) {
+                  tlHtml2 += '<div style="padding:8px 0 8px 16px;position:relative;">';
+                  tlHtml2 += '<div style="position:absolute;left:-8px;top:12px;width:12px;height:12px;border-radius:50%;background:#1890ff;border:2px solid #fff;"></div>';
+                  tlHtml2 += '<div style="font-weight:500;">' + esc(step.action) + '</div>';
+                  tlHtml2 += '<div style="font-size:12px;color:var(--text-secondary);">' + esc(step.time) + ' | ' + esc(step.operator) + '</div>';
+                  tlHtml2 += '<div style="font-size:13px;margin-top:2px;">' + esc(step.detail) + '</div>';
+                  tlHtml2 += '</div>';
+                });
+                tlEl2.innerHTML = tlHtml2;
+              }
+              renderTickets();
+            });
+          };
+        }
+      });
+    };
+  });
+
+  // 绑定处理按钮
+  tableContainer.querySelectorAll('.ticket-handle-btn').forEach(function (btn) {
+    btn.onclick = function () {
+      var ticketId = btn.getAttribute('data-ticket-id');
+      var ticket = null;
+      for (var i = 0; i < MockData.tickets.length; i++) {
+        if (MockData.tickets[i].id === ticketId) { ticket = MockData.tickets[i]; break; }
+      }
+      if (!ticket) return;
+      window._ticketHandleData = ticket;
+      loadAndShowModal('ticket/handle-ticket', function () {
+        var idEl = document.getElementById('ticket-handle-id');
+        if (idEl) idEl.textContent = ticket.id;
+        var nameEl = document.getElementById('ticket-handle-name');
+        if (nameEl) nameEl.textContent = ticket.title;
+      });
+    };
+  });
+
+  // 绑定转移按钮
+  tableContainer.querySelectorAll('.ticket-transfer-btn').forEach(function (btn) {
+    btn.onclick = function () {
+      var ticketId = btn.getAttribute('data-ticket-id');
+      var ticket = null;
+      for (var i = 0; i < MockData.tickets.length; i++) {
+        if (MockData.tickets[i].id === ticketId) { ticket = MockData.tickets[i]; break; }
+      }
+      if (!ticket) return;
+      showTicketTransferModal(ticket, function () { renderTickets(); });
+    };
+  });
+
+  // 绑定完结按钮
+  tableContainer.querySelectorAll('.ticket-close-btn').forEach(function (btn) {
+    btn.onclick = function () {
+      var ticketId = btn.getAttribute('data-ticket-id');
+      var ticket = null;
+      for (var i = 0; i < MockData.tickets.length; i++) {
+        if (MockData.tickets[i].id === ticketId) { ticket = MockData.tickets[i]; break; }
+      }
+      if (!ticket) return;
+      // 用侧边抽屉确认完结
+      showTicketCloseDrawer(ticket, function () { renderTickets(); });
+    };
+  });
+}
+
+// 完结工单 - 使用侧边抽屉
+function showTicketCloseDrawer(ticket, onComplete) {
+  var html = '<div class="ant-drawer-overlay" style="display:flex;">';
+  html += '<div class="ant-drawer" style="width:520px;">';
+  html += '<div class="ant-drawer-header">完结工单 <button class="ant-drawer-close" onclick="hideModal()">&times;</button></div>';
+  html += '<div class="ant-drawer-body">';
+  html += '<div class="ant-alert ant-alert-info" style="margin-bottom:16px;">工单完结后状态将变为「已完结」，不可再转移或处理。</div>';
+  html += '<div style="margin-bottom:12px;color:var(--text-secondary);">工单：<b>' + esc(ticket.id) + '</b> - ' + esc(ticket.title) + '</div>';
+  html += '<div class="ant-form-item"><div class="ant-form-label">解决方案 / 处理结果 <span style="color:red;">*</span></div>';
+  html += '<div class="ant-form-control"><textarea class="ant-input" id="close-ticket-remark" rows="4" style="width:100%;resize:vertical;" placeholder="请填写解决方案或处理结果..."></textarea></div></div>';
+  html += '</div>';
+  html += '<div class="ant-drawer-footer">';
+  html += '<button class="ant-btn" onclick="hideModal()">取消</button>';
+  html += '<button class="ant-btn ant-btn-primary" id="close-ticket-confirm-btn" style="background:#52c41a;border-color:#52c41a;">确认完结</button>';
+  html += '</div></div></div>';
+  var mc = document.getElementById('modal-container');
+  mc.innerHTML = html;
+  var overlay = mc.querySelector('.ant-drawer-overlay');
+  if (overlay) overlay.onclick = function (e) { if (e.target === overlay) hideModal(); };
+  document.getElementById('close-ticket-confirm-btn').onclick = function () {
+    var remark = (document.getElementById('close-ticket-remark').value || '').trim();
+    if (!remark) { showMessage('请填写处理结果', 'error'); return; }
+    var now = new Date();
+    var timeStr = now.getFullYear() + '/' + String(now.getMonth() + 1).padStart(2, '0') + '/' + String(now.getDate()).padStart(2, '0') + ' ' + String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0') + ':' + String(now.getSeconds()).padStart(2, '0');
+    ticket.status = '已完结';
+    ticket.statusClass = 'success';
+    ticket.updateTime = timeStr;
+    if (!ticket.timeline) ticket.timeline = [];
+    ticket.timeline.push({ time: timeStr, action: '已解决', operator: '当前用户', detail: remark });
+    hideModal();
+    showMessage('工单 ' + ticket.id + ' 已完结', 'success');
+    if (onComplete) onComplete();
+  };
+}
+
+function showTicketTransferModal(ticket, onComplete) {
+  var members = MockData.members.filter(function (m) { return m.name !== ticket.handler; });
+  var memberOpts = members.map(function (m) {
+    return '<option value="' + esc(m.name) + '">' + esc(m.name) + '（' + esc(m.orgName) + ' · ' + esc(m.role) + '）</option>';
+  }).join('');
+
+  var html = '<div class="ant-drawer-overlay" style="display:flex;">';
+  html += '<div class="ant-drawer" style="width:540px;">';
+  html += '<div class="ant-drawer-header">转移工单 <button class="ant-drawer-close" onclick="hideModal()">&times;</button></div>';
+  html += '<div class="ant-drawer-body">';
+  html += '<div style="margin-bottom:12px;color:var(--text-secondary);font-size:13px;">当前工单：<b>' + esc(ticket.id) + '</b> - ' + esc(ticket.title) + '</div>';
+  html += '<div style="margin-bottom:16px;color:var(--text-secondary);font-size:12px;">当前处理人：' + esc(ticket.handler) + ' &nbsp;|&nbsp; 状态：' + esc(ticket.status) + '</div>';
+  html += '<div class="ant-alert ant-alert-warning" style="margin-bottom:16px;font-size:12px;">转移后工单状态保持不变，转移记录将追加到处理记录中。</div>';
+  html += '<div class="ant-form-item"><div class="ant-form-label" style="font-weight:500;">转移给 <span style="color:red;">*</span></div>';
+  html += '<div class="ant-form-control"><select class="ant-select" id="transfer-target-member" style="width:100%;"><option value="">— 请选择新处理人 —</option>' + memberOpts + '</select></div></div>';
+  html += '<div class="ant-form-item"><div class="ant-form-label" style="font-weight:500;">转移原因 <span style="color:red;">*</span></div>';
+  html += '<div class="ant-form-control"><textarea class="ant-input" id="transfer-reason" rows="4" style="width:100%;resize:vertical;" placeholder="请说明转移原因…"></textarea></div></div>';
+  html += '</div>';
+  html += '<div class="ant-drawer-footer">';
+  html += '<button class="ant-btn" onclick="hideModal()">取消</button>';
+  html += '<button class="ant-btn ant-btn-primary" id="transfer-confirm-btn">确认转移</button>';
+  html += '</div></div></div>';
+
+  var modalContainer = document.getElementById('modal-container');
+  modalContainer.innerHTML = html;
+  var overlay = modalContainer.querySelector('.ant-drawer-overlay');
+  if (overlay) overlay.onclick = function (e) { if (e.target === overlay) hideModal(); };
+
+  var confirmBtn = document.getElementById('transfer-confirm-btn');
+  if (confirmBtn) {
+    confirmBtn.onclick = function () {
+      var targetName = document.getElementById('transfer-target-member').value;
+      var reason = (document.getElementById('transfer-reason').value || '').trim();
+      if (!targetName) { showMessage('请选择新处理人', 'error'); return; }
+      if (!reason) { showMessage('请填写转移原因', 'error'); return; }
+      var now = new Date();
+      var timeStr = now.getFullYear() + '/' +
+        String(now.getMonth() + 1).padStart(2, '0') + '/' +
+        String(now.getDate()).padStart(2, '0') + ' ' +
+        String(now.getHours()).padStart(2, '0') + ':' +
+        String(now.getMinutes()).padStart(2, '0') + ':' +
+        String(now.getSeconds()).padStart(2, '0');
+      var prevHandler = ticket.handler;
+      ticket.handler = targetName;
+      ticket.updateTime = timeStr;
+      if (!ticket.timeline) ticket.timeline = [];
+      ticket.timeline.push({ action: '工单转移', time: timeStr, operator: '张明远', detail: '由 ' + prevHandler + ' 转移给 ' + targetName + '，原因：' + reason });
+      hideModal();
+      showMessage('工单已转移给 ' + targetName, 'success');
+      if (onComplete) onComplete();
+    };
+  }
+}
