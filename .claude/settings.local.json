@@ -1,5 +1,4 @@
 {
-  
   "permissions": {
     "allow": [
       "Bash(grep:*)",
@@ -17,7 +16,8 @@
       "Bash(gh api:*)",
       "Bash(gh run:*)",
       "Bash(where gh:*)",
-      "Bash(winget list:*)"
+      "Bash(winget list:*)",
+      "Bash(python:*)"
     ]
   }
 }

@@ -1,12 +1,12 @@
 <div class="page-header-wrapper">
   <div class="page-header">
     <h3 class="page-title">资源目录</h3>
-    <button class="ant-btn ant-btn-primary" id="catalog-add-category-btn">+ 新增大类</button>
+    <button class="ant-btn" id="catalog-sync-btn">同步刷新</button>
   </div>
 </div>
 <div class="page-content">
   <div class="page-content-inner">
-    <div class="ant-alert ant-alert-info" style="margin-bottom:16px;">资源目录由平台运维统一配置，定义平台支持的阿里云资源类型及其元数据结构。可新增大类和资源类型，并控制每类资源是否支持申请。</div>
+    <div class="ant-alert ant-alert-info" style="margin-bottom:16px;">资源目录从后端接口同步，展示平台支持的阿里云资源类型及其元数据结构（分类、支持操作、审批操作等由后端统一维护）。</div>
     <div id="catalog-container"></div>
   </div>
 </div>

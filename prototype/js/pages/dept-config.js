@@ -803,16 +803,8 @@ function showDeptFieldSettingsModal(platformField, platformGroup, key, override,
 }
 
 function renderDeptApproval(container, cfg, deptId) {
-  // 从资源目录 + 平台流程构建树状审批流程列表
+  // 从资源目录构建树状审批流程列表（部门自行配置审批模板）
   var categoryOrder = getCatalogCategoryOrder();
-  // 查找平台流程配置
-  function findPlatformFlow(resType, opType, subRes) {
-    for (var i = 0; i < MockData.platformFlows.length; i++) {
-      var f = MockData.platformFlows[i];
-      if (f.resType === resType && f.opType === opType && (f.subRes || '') === (subRes || '')) return f;
-    }
-    return null;
-  }
   // 查找部门配置
   function findDeptFlow(resType, opType, subRes) {
     for (var i = 0; i < cfg.approvalFlows.length; i++) {
@@ -827,26 +819,24 @@ function renderDeptApproval(container, cfg, deptId) {
     cat.types.forEach(function (t) {
       var ops = t.approvalOps || [];
       ops.forEach(function (op) {
-        var pf = findPlatformFlow(t.name, op, '');
         var df = findDeptFlow(t.name, op, '');
         treeItems.push({
           category: cat.name, resType: t.name, opType: op, subRes: '',
-          flowTemplate: pf ? pf.flowTemplate : '',
-          admin1: df ? df.admin1 : '', admin2: df ? df.admin2 : '',
-          customized: df ? df.customized : false,
+          flowTemplate: df ? (df.flowTemplate || '') : '',
+          admin1: df ? (df.admin1 || '') : '', admin2: df ? (df.admin2 || '') : '',
+          configured: !!df,
           deptFlow: df
         });
       });
       (t.children || []).forEach(function (child) {
         var childOps = child.approvalOps || [];
         childOps.forEach(function (op) {
-          var pf = findPlatformFlow(t.name, op, child.name);
           var df = findDeptFlow(t.name, op, child.name);
           treeItems.push({
             category: cat.name, resType: t.name, opType: op, subRes: child.name,
-            flowTemplate: pf ? pf.flowTemplate : '',
-            admin1: df ? df.admin1 : '', admin2: df ? df.admin2 : '',
-            customized: df ? df.customized : false,
+            flowTemplate: df ? (df.flowTemplate || '') : '',
+            admin1: df ? (df.admin1 || '') : '', admin2: df ? (df.admin2 || '') : '',
+            configured: !!df,
             deptFlow: df
           });
         });
@@ -856,7 +846,7 @@ function renderDeptApproval(container, cfg, deptId) {
 
   var result = groupByCategory(treeItems, categoryOrder);
   var html = '<div class="ant-card"><div class="ant-card-head"><span>资源审批配置</span></div><div class="ant-card-body" style="padding:0;">';
-  html += '<div class="ant-alert ant-alert-info" style="margin:16px 16px 0;">部门只能修改审批流程中的"指定审批人"节点，审批流程模板由平台统一配置。</div>';
+  html += '<div class="ant-alert ant-alert-info" style="margin:16px 16px 0;">各部门可为每类资源操作独立配置审批流程模板，并指定节点审批人。未配置时提交申请将使用"无审批"流程。</div>';
 
   result.sortedKeys.forEach(function (catName, catIdx) {
     var items = result.groups[catName];
@@ -896,23 +886,19 @@ function renderDeptApproval(container, cfg, deptId) {
       html += '<td>' + (item.admin1 ? esc(item.admin1) : '<span style="color:var(--text-secondary);">--</span>') + '</td>';
       html += '<td>' + (item.admin2 ? esc(item.admin2) : '<span style="color:var(--text-secondary);">--</span>') + '</td>';
       html += '<td>';
-      if (item.customized) {
-        html += '<span class="ant-tag ant-tag-orange">自定义</span>';
+      if (item.configured) {
+        html += '<span class="ant-tag ant-tag-orange">已配置</span>';
       } else {
-        html += '<span class="ant-tag ant-tag-blue">系统默认</span>';
+        html += '<span class="ant-tag">未配置</span>';
       }
       html += '</td>';
       html += '<td>';
-      if (item.flowTemplate) {
-        html += '<a class="ant-btn-link dept-approval-preview-btn" data-flow="' + esc(item.flowTemplate) + '" data-admin1="' + esc(item.admin1) + '" data-admin2="' + esc(item.admin2) + '">预览</a>';
+      html += '<a class="ant-btn-link dept-approval-edit-btn" data-res="' + esc(item.resType) + '" data-op="' + esc(item.opType) + '" data-sub="' + esc(item.subRes) + '" data-flow="' + esc(item.flowTemplate) + '" data-cat="' + esc(item.category) + '">配置</a>';
+      if (item.configured) {
+        html += ' <a class="ant-btn-link dept-approval-restore-btn" data-res="' + esc(item.resType) + '" data-op="' + esc(item.opType) + '" data-sub="' + esc(item.subRes) + '" style="margin-left:6px;color:#faad14;">清除配置</a>';
       }
-      if (item.flowTemplate && (item.flowTemplate.indexOf('admin1') !== -1 || item.flowTemplate.indexOf('admin2') !== -1)) {
-        html += ' <a class="ant-btn-link dept-approval-edit-btn" data-res="' + esc(item.resType) + '" data-op="' + esc(item.opType) + '" data-sub="' + esc(item.subRes) + '" data-flow="' + esc(item.flowTemplate) + '" data-cat="' + esc(item.category) + '" style="margin-left:6px;">编辑</a>';
-        if (item.customized) {
-          html += ' <a class="ant-btn-link dept-approval-restore-btn" data-res="' + esc(item.resType) + '" data-op="' + esc(item.opType) + '" data-sub="' + esc(item.subRes) + '" style="margin-left:6px;color:#faad14;">恢复默认</a>';
-        }
-      } else if (!item.flowTemplate) {
-        html += '<span style="color:var(--text-secondary);">--</span>';
+      if (item.flowTemplate) {
+        html += ' <a class="ant-btn-link dept-approval-preview-btn" data-flow="' + esc(item.flowTemplate) + '" data-admin1="' + esc(item.admin1) + '" data-admin2="' + esc(item.admin2) + '" style="margin-left:6px;">预览</a>';
       }
       html += '</td>';
       html += '</tr>';
@@ -963,25 +949,19 @@ function renderDeptApproval(container, cfg, deptId) {
     };
   });
 
-  // 恢复默认按钮
+  // 清除配置按钮
   container.querySelectorAll('.dept-approval-restore-btn').forEach(function (btn) {
     btn.onclick = function () {
       var resType = btn.getAttribute('data-res');
       var opType = btn.getAttribute('data-op');
       var subRes = btn.getAttribute('data-sub');
-      var df = findDeptFlow(resType, opType, subRes);
-      if (df) {
-        // 找部门负责人作为默认
-        var deptLeader = '';
-        var deptName = cfg.deptName || '';
-        MockData.members.forEach(function (m) {
-          if (m.role === '部门负责人' && m.orgName === deptName) deptLeader = m.name;
-        });
-        df.admin1 = deptLeader;
-        df.admin2 = '';
-        df.customized = false;
+      var idx = -1;
+      for (var i = 0; i < cfg.approvalFlows.length; i++) {
+        var f = cfg.approvalFlows[i];
+        if (f.resType === resType && f.opType === opType && (f.subRes || '') === (subRes || '')) { idx = i; break; }
       }
-      showMessage(resType + (subRes ? ' / ' + subRes : '') + ' ' + opType + ' 审批流程已恢复为系统默认', 'success');
+      if (idx !== -1) cfg.approvalFlows.splice(idx, 1);
+      showMessage(resType + (subRes ? ' / ' + subRes : '') + ' ' + opType + ' 审批配置已清除', 'success');
       renderDeptApproval(container, cfg, deptId);
     };
   });
@@ -1015,7 +995,7 @@ function renderDeptApproval(container, cfg, deptId) {
 
 function showDeptFlowEditModal(item, cfg, deptId, onSave) {
   var resLabel = item.subRes ? item.resType + ' / ' + item.subRes : item.resType;
-  var flowTemplate = item.flowTemplate || '';
+  var flowTemplate = item.flowTemplate || 'leader+l5';
   var curAdmin1 = item.admin1 || '';
   var curAdmin2 = item.admin2 || '';
   // 找部门负责人
@@ -1024,7 +1004,6 @@ function showDeptFlowEditModal(item, cfg, deptId, onSave) {
   MockData.members.forEach(function (m) {
     if (m.role === '部门负责人' && m.orgName === deptName) deptLeader = m.name;
   });
-  if (!curAdmin1) curAdmin1 = deptLeader;
   // 筛选可选人员：部门负责人 + 组长
   var candidates = [];
   MockData.members.forEach(function (m) {
@@ -1038,35 +1017,43 @@ function showDeptFlowEditModal(item, cfg, deptId, onSave) {
 
   var html = '<div class="ant-modal-overlay" style="display:flex;">';
   html += '<div class="ant-modal" style="width:600px;">';
-  html += '<div class="ant-modal-header">编辑审批人员 - ' + esc(resLabel) + ' / ' + esc(item.opType) + ' <button class="ant-modal-close" onclick="hideModal()">&times;</button></div>';
+  html += '<div class="ant-modal-header">配置审批流程 - ' + esc(resLabel) + ' / ' + esc(item.opType) + ' <button class="ant-modal-close" onclick="hideModal()">&times;</button></div>';
   html += '<div class="ant-modal-body">';
 
-  // 平台审批流程（只读）
-  html += '<div class="ant-form-item"><div class="ant-form-label">审批流程模板</div>';
-  html += '<div class="ant-form-control"><span class="ant-tag ant-tag-blue" style="font-size:13px;padding:4px 10px;">' + esc(getFlowLabel(flowTemplate)) + '</span>';
-  html += '<span style="font-size:12px;color:var(--text-secondary);margin-left:8px;">（由平台配置，不可修改）</span></div></div>';
+  // 审批流程模板选择
+  html += '<div class="ant-form-item"><div class="ant-form-label"><span class="required">*</span>审批流程模板</div>';
+  html += '<div class="ant-form-control"><select class="ant-select" id="dept-flow-template" style="width:100%;">';
+  var flowOptions = [
+    { value: 'none', label: '无审批（提交即通过）' },
+    { value: 'leader', label: '直属领导审批' },
+    { value: 'leader+l5', label: '直属领导 + 部门负责人审批' },
+    { value: 'leader+l5+admin1', label: '直属领导 + 部门负责人 + 指定审批人' },
+    { value: 'leader+l5+admin2', label: '直属领导 + 部门负责人 + 指定审批人1 + 指定审批人2' }
+  ];
+  flowOptions.forEach(function (opt) {
+    html += '<option value="' + esc(opt.value) + '"' + (flowTemplate === opt.value ? ' selected' : '') + '>' + esc(opt.label) + '</option>';
+  });
+  html += '</select></div></div>';
 
   // 指定人员1
-  if (needAdmin1) {
-    html += '<div class="ant-form-item"><div class="ant-form-label"><span class="required">*</span>指定审批人1</div>';
-    html += '<div class="ant-form-control"><select class="ant-select" id="dept-flow-admin1" style="width:100%;max-width:280px;">';
-    html += '<option value="">请选择</option>';
-    candidates.forEach(function (m) {
-      html += '<option value="' + esc(m.name) + '"' + (m.name === curAdmin1 ? ' selected' : '') + '>' + esc(m.name) + '（' + esc(m.role) + ' - ' + esc(m.orgName) + '）</option>';
-    });
-    html += '</select></div></div>';
-  }
+  html += '<div class="ant-form-item" id="dept-flow-admin1-row" style="' + (needAdmin1 ? '' : 'display:none;') + '">';
+  html += '<div class="ant-form-label"><span class="required">*</span>指定审批人1</div>';
+  html += '<div class="ant-form-control"><select class="ant-select" id="dept-flow-admin1" style="width:100%;max-width:280px;">';
+  html += '<option value="">请选择</option>';
+  candidates.forEach(function (m) {
+    html += '<option value="' + esc(m.name) + '"' + (m.name === curAdmin1 ? ' selected' : '') + '>' + esc(m.name) + '（' + esc(m.role) + ' - ' + esc(m.orgName) + '）</option>';
+  });
+  html += '</select></div></div>';
 
   // 指定人员2
-  if (needAdmin2) {
-    html += '<div class="ant-form-item"><div class="ant-form-label"><span class="required">*</span>指定审批人2</div>';
-    html += '<div class="ant-form-control"><select class="ant-select" id="dept-flow-admin2" style="width:100%;max-width:280px;">';
-    html += '<option value="">请选择</option>';
-    candidates.forEach(function (m) {
-      html += '<option value="' + esc(m.name) + '"' + (m.name === curAdmin2 ? ' selected' : '') + '>' + esc(m.name) + '（' + esc(m.role) + ' - ' + esc(m.orgName) + '）</option>';
-    });
-    html += '</select></div></div>';
-  }
+  html += '<div class="ant-form-item" id="dept-flow-admin2-row" style="' + (needAdmin2 ? '' : 'display:none;') + '">';
+  html += '<div class="ant-form-label"><span class="required">*</span>指定审批人2</div>';
+  html += '<div class="ant-form-control"><select class="ant-select" id="dept-flow-admin2" style="width:100%;max-width:280px;">';
+  html += '<option value="">请选择</option>';
+  candidates.forEach(function (m) {
+    html += '<option value="' + esc(m.name) + '"' + (m.name === curAdmin2 ? ' selected' : '') + '>' + esc(m.name) + '（' + esc(m.role) + ' - ' + esc(m.orgName) + '）</option>';
+  });
+  html += '</select></div></div>';
 
   // 实时预览区域
   html += '<div class="ant-form-item" style="align-items:flex-start;"><div class="ant-form-label" style="line-height:32px;">流程预览</div>';
@@ -1083,42 +1070,53 @@ function showDeptFlowEditModal(item, cfg, deptId, onSave) {
   var overlay = modalContainer.querySelector('.ant-modal-overlay');
   if (overlay) overlay.onclick = function (e) { if (e.target === overlay) hideModal(); };
 
-  // 实时更新预览
+  // 模板切换时更新显隐和预览
+  var templateSel = document.getElementById('dept-flow-template');
+  var admin1Row = document.getElementById('dept-flow-admin1-row');
+  var admin2Row = document.getElementById('dept-flow-admin2-row');
+
   function updatePreview() {
-    var a1 = needAdmin1 && document.getElementById('dept-flow-admin1') ? document.getElementById('dept-flow-admin1').value : '';
-    var a2 = needAdmin2 && document.getElementById('dept-flow-admin2') ? document.getElementById('dept-flow-admin2').value : '';
+    var tmpl = templateSel.value;
+    var a1 = document.getElementById('dept-flow-admin1') ? document.getElementById('dept-flow-admin1').value : '';
+    var a2 = document.getElementById('dept-flow-admin2') ? document.getElementById('dept-flow-admin2').value : '';
     var previewEl = document.getElementById('dept-flow-preview');
-    if (previewEl) previewEl.innerHTML = renderFlowStepsPreview(flowTemplate, a1, a2, deptLeader);
+    if (previewEl) previewEl.innerHTML = renderFlowStepsPreview(tmpl, a1, a2, deptLeader);
   }
-  if (needAdmin1 && document.getElementById('dept-flow-admin1')) {
-    document.getElementById('dept-flow-admin1').onchange = updatePreview;
-  }
-  if (needAdmin2 && document.getElementById('dept-flow-admin2')) {
-    document.getElementById('dept-flow-admin2').onchange = updatePreview;
-  }
+
+  templateSel.onchange = function () {
+    var tmpl = templateSel.value;
+    admin1Row.style.display = (tmpl.indexOf('admin1') !== -1 || tmpl.indexOf('admin2') !== -1) ? '' : 'none';
+    admin2Row.style.display = tmpl.indexOf('admin2') !== -1 ? '' : 'none';
+    updatePreview();
+  };
+  if (document.getElementById('dept-flow-admin1')) document.getElementById('dept-flow-admin1').onchange = updatePreview;
+  if (document.getElementById('dept-flow-admin2')) document.getElementById('dept-flow-admin2').onchange = updatePreview;
 
   // 保存
   document.getElementById('dept-flow-save').onclick = function () {
-    var newAdmin1 = needAdmin1 && document.getElementById('dept-flow-admin1') ? document.getElementById('dept-flow-admin1').value : '';
-    var newAdmin2 = needAdmin2 && document.getElementById('dept-flow-admin2') ? document.getElementById('dept-flow-admin2').value : '';
-    if (needAdmin1 && !newAdmin1) { showMessage('请选择指定审批人1', 'warning'); return; }
-    if (needAdmin2 && !newAdmin2) { showMessage('请选择指定审批人2', 'warning'); return; }
+    var newTemplate = templateSel.value;
+    var needA2 = newTemplate.indexOf('admin2') !== -1;
+    var needA1 = newTemplate.indexOf('admin1') !== -1 || needA2;
+    var newAdmin1 = needA1 && document.getElementById('dept-flow-admin1') ? document.getElementById('dept-flow-admin1').value : '';
+    var newAdmin2 = needA2 && document.getElementById('dept-flow-admin2') ? document.getElementById('dept-flow-admin2').value : '';
+    if (needA1 && !newAdmin1) { showMessage('请选择指定审批人1', 'warning'); return; }
+    if (needA2 && !newAdmin2) { showMessage('请选择指定审批人2', 'warning'); return; }
     // 更新或创建部门流程配置
     var df = item.deptFlow;
     if (df) {
+      df.flowTemplate = newTemplate;
       df.admin1 = newAdmin1;
       df.admin2 = newAdmin2;
-      df.customized = true;
     } else {
       cfg.approvalFlows.push({
         id: 'flow-new-' + Date.now(),
         resType: item.resType, opType: item.opType, category: item.category || '',
         subRes: item.subRes || '',
-        customized: true, admin1: newAdmin1, admin2: newAdmin2
+        flowTemplate: newTemplate, admin1: newAdmin1, admin2: newAdmin2
       });
     }
     hideModal();
-    showMessage(resLabel + ' ' + item.opType + ' 审批人员已更新', 'success');
+    showMessage(resLabel + ' ' + item.opType + ' 审批配置已更新', 'success');
     if (onSave) onSave();
   };
 }

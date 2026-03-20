@@ -292,20 +292,20 @@ MockData.deptConfig = {
       { categoryId: 'cat-other', categoryName: '其他', handler: '张明远', isDefault: true }
     ],
     approvalFlows: [
-      { id: 'flow-1', resType: 'ECS 云服务器', opType: '申请', category: '计算类', customized: false, admin1: '张明远', admin2: '' },
-      { id: 'flow-1a', resType: 'ECS 云服务器', opType: '变配', category: '计算类', customized: false, admin1: '李思远', admin2: '' },
-      { id: 'flow-1b', resType: 'ECS 云服务器', opType: '扩容', category: '计算类', customized: false, admin1: '张明远', admin2: '' },
-      { id: 'flow-1c', resType: 'ECS 云服务器', opType: '销毁', category: '计算类', customized: false, admin1: '张明远', admin2: '' },
-      { id: 'flow-1d', resType: 'ECS 云服务器', opType: '申请', category: '计算类', subRes: '云硬盘', customized: false, admin1: '张明远', admin2: '' },
-      { id: 'flow-1e', resType: 'ECS 云服务器', opType: '申请', category: '计算类', subRes: '弹性IP', customized: false, admin1: '张明远', admin2: '' },
-      { id: 'flow-2', resType: 'K8S 集群', opType: '申请', category: '计算类', customized: false, admin1: '张明远', admin2: '' },
-      { id: 'flow-3', resType: 'RDS 云数据库', opType: '申请', category: '数据库类', customized: true, admin1: '张明远', admin2: '' },
-      { id: 'flow-3a', resType: 'RDS 云数据库', opType: '变配', category: '数据库类', customized: false, admin1: '张明远', admin2: '' },
-      { id: 'flow-4', resType: 'Redis 缓存', opType: '申请', category: '数据库类', customized: false, admin1: '张明远', admin2: '' },
-      { id: 'flow-5', resType: 'Kafka 消息队列', opType: '申请', category: '中间件类', customized: false, admin1: '张明远', admin2: '' },
-      { id: 'flow-5a', resType: 'Kafka 消息队列', opType: '申请', category: '中间件类', subRes: 'Topic', customized: false, admin1: '张明远', admin2: '' },
-      { id: 'flow-6', resType: 'Elasticsearch', opType: '申请', category: '大数据与搜索分析类', customized: false, admin1: '张明远', admin2: '' },
-      { id: 'flow-7', resType: 'OSS 对象存储', opType: '申请', category: '存储类', customized: false, admin1: '李思远', admin2: '' }
+      { id: 'flow-1', resType: 'ECS 云服务器', opType: '申请', category: '计算类', flowTemplate: 'leader+l5+admin1', admin1: '张明远', admin2: '' },
+      { id: 'flow-1a', resType: 'ECS 云服务器', opType: '变配', category: '计算类', flowTemplate: 'leader+l5', admin1: '', admin2: '' },
+      { id: 'flow-1b', resType: 'ECS 云服务器', opType: '扩容', category: '计算类', flowTemplate: 'leader', admin1: '', admin2: '' },
+      { id: 'flow-1c', resType: 'ECS 云服务器', opType: '销毁', category: '计算类', flowTemplate: 'leader+l5+admin1', admin1: '张明远', admin2: '' },
+      { id: 'flow-1d', resType: 'ECS 云服务器', opType: '申请', category: '计算类', subRes: '云硬盘', flowTemplate: 'leader+l5', admin1: '', admin2: '' },
+      { id: 'flow-1e', resType: 'ECS 云服务器', opType: '申请', category: '计算类', subRes: '弹性IP', flowTemplate: 'leader+l5', admin1: '', admin2: '' },
+      { id: 'flow-2', resType: 'K8S 集群', opType: '申请', category: '计算类', flowTemplate: 'leader+l5+admin1', admin1: '张明远', admin2: '' },
+      { id: 'flow-3', resType: 'RDS 云数据库', opType: '申请', category: '数据库类', flowTemplate: 'leader+l5+admin1', admin1: '张明远', admin2: '' },
+      { id: 'flow-3a', resType: 'RDS 云数据库', opType: '变配', category: '数据库类', flowTemplate: 'leader+l5', admin1: '', admin2: '' },
+      { id: 'flow-4', resType: 'Redis 缓存', opType: '申请', category: '数据库类', flowTemplate: 'leader+l5', admin1: '', admin2: '' },
+      { id: 'flow-5', resType: 'Kafka 消息队列', opType: '申请', category: '中间件类', flowTemplate: 'leader+l5', admin1: '', admin2: '' },
+      { id: 'flow-5a', resType: 'Kafka 消息队列', opType: '申请', category: '中间件类', subRes: 'Topic', flowTemplate: 'leader', admin1: '', admin2: '' },
+      { id: 'flow-6', resType: 'Elasticsearch', opType: '申请', category: '大数据与搜索分析类', flowTemplate: 'leader+l5', admin1: '', admin2: '' },
+      { id: 'flow-7', resType: 'OSS 对象存储', opType: '申请', category: '存储类', flowTemplate: 'leader+l5', admin1: '', admin2: '' }
     ]
   },
   'dept-biz': {
@@ -329,10 +329,10 @@ MockData.deptConfig = {
       { categoryId: 'cat-other', categoryName: '其他', handler: '刘佳琪', isDefault: true }
     ],
     approvalFlows: [
-      { id: 'flow-10', resType: 'ECS 云服务器', opType: '申请', category: '计算类', customized: true, admin1: '刘佳琪', admin2: '' },
-      { id: 'flow-11', resType: 'RDS 云数据库', opType: '申请', category: '数据库类', customized: false, admin1: '刘佳琪', admin2: '' },
-      { id: 'flow-12', resType: 'Redis 缓存', opType: '申请', category: '数据库类', customized: false, admin1: '马丽华', admin2: '' },
-      { id: 'flow-13', resType: 'OSS 对象存储', opType: '申请', category: '存储类', customized: false, admin1: '马丽华', admin2: '' }
+      { id: 'flow-10', resType: 'ECS 云服务器', opType: '申请', category: '计算类', flowTemplate: 'leader+l5+admin1', admin1: '刘佳琪', admin2: '' },
+      { id: 'flow-11', resType: 'RDS 云数据库', opType: '申请', category: '数据库类', flowTemplate: 'leader+l5+admin1', admin1: '刘佳琪', admin2: '' },
+      { id: 'flow-12', resType: 'Redis 缓存', opType: '申请', category: '数据库类', flowTemplate: 'leader+l5', admin1: '', admin2: '' },
+      { id: 'flow-13', resType: 'OSS 对象存储', opType: '申请', category: '存储类', flowTemplate: 'leader', admin1: '', admin2: '' }
     ]
   },
   'dept-data': {
@@ -355,9 +355,9 @@ MockData.deptConfig = {
       { categoryId: 'cat-other', categoryName: '其他', handler: '周文博', isDefault: true }
     ],
     approvalFlows: [
-      { id: 'flow-20', resType: 'Elasticsearch', opType: '申请', category: '大数据与搜索分析类', customized: false, admin1: '吴海波', admin2: '' },
-      { id: 'flow-21', resType: 'MaxCompute', opType: '申请', category: '大数据与搜索分析类', customized: false, admin1: '吴海波', admin2: '' },
-      { id: 'flow-22', resType: 'ECS 云服务器', opType: '申请', category: '计算类', customized: false, admin1: '周文博', admin2: '' }
+      { id: 'flow-20', resType: 'Elasticsearch', opType: '申请', category: '大数据与搜索分析类', flowTemplate: 'leader+l5', admin1: '', admin2: '' },
+      { id: 'flow-21', resType: 'MaxCompute', opType: '申请', category: '大数据与搜索分析类', flowTemplate: 'leader+l5', admin1: '', admin2: '' },
+      { id: 'flow-22', resType: 'ECS 云服务器', opType: '申请', category: '计算类', flowTemplate: 'leader+l5+admin1', admin1: '周文博', admin2: '' }
     ]
   }
 };
