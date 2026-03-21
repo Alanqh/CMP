@@ -35,10 +35,7 @@ function initApplyResourcePage() {
   // 云厂商列表
   var cloudVendors = [
     { name: '阿里云', value: 'aliyun' },
-    { name: '腾讯云', value: 'tencent' },
-    { name: '华为云', value: 'huawei' },
-    { name: 'AWS', value: 'aws' },
-    { name: 'Azure', value: 'azure' }
+    { name: '腾讯云', value: 'tencent' }
   ];
   
   if (vendorGrid) {
@@ -294,6 +291,7 @@ function initApplyResourcePage() {
     MockData.resources.push({
       name: resName, resId: 'i-new-' + Date.now(), type: tpl.resType.split(' ')[0], typeColor: 'blue', shape: '实例型',
       group: '容器平台组', groupId: 'grp-container', project: selectedGroup,
+      vendor: selectedVendor === 'aliyun' ? '阿里云' : '腾讯云',
       perm: 'master', permColor: 'green', status: '审批中', statusClass: 'processing'
     });
     var now = new Date();
