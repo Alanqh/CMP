@@ -7,33 +7,35 @@
 </div>
 <div class="page-content">
   <div class="page-content-inner">
-    <div class="ant-steps" style="margin-bottom:20px;">
-      <div class="ant-step active" id="apply-step-1"><div class="ant-step-icon">1</div><div class="ant-step-title">选择类型</div></div>
-      <div class="ant-step-tail" id="apply-tail-1"></div>
-      <div class="ant-step" id="apply-step-2"><div class="ant-step-icon">2</div><div class="ant-step-title">填写参数</div></div>
-      <div class="ant-step-tail" id="apply-tail-2"></div>
-      <div class="ant-step" id="apply-step-3"><div class="ant-step-icon">3</div><div class="ant-step-title">提交审批</div></div>
-    </div>
-
     <!-- 基本信息 -->
     <div class="ant-card">
       <div class="ant-card-head">基本信息</div>
       <div class="ant-card-body">
         <div class="ant-form-item">
-          <div class="ant-form-label"><span class="required">*</span>资源类型</div>
+          <div class="ant-form-label"><span class="required">*</span>云厂商</div>
           <div class="ant-form-control">
-            <select class="ant-select" id="page-apply-res-type" style="width:320px;">
-              <option value="">请选择资源类型...</option>
-            </select>
+            <div id="page-apply-cloud-vendor-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;"></div>
           </div>
         </div>
-        <div class="ant-form-item" style="margin-bottom:0;">
+        <div class="ant-form-item">
           <div class="ant-form-label"><span class="required">*</span>所属资源组</div>
           <div class="ant-form-control">
             <select class="ant-select" id="page-apply-res-group" style="width:320px;">
               <option value="">请选择资源组...</option>
             </select>
             <div class="ant-form-extra">资源组是资源的逻辑容器，用于组织管理和批量授权</div>
+          </div>
+        </div>
+        <div class="ant-form-item">
+          <div class="ant-form-label"><span class="required">*</span>资源大类</div>
+          <div class="ant-form-control">
+            <div id="page-apply-res-category-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;"></div>
+          </div>
+        </div>
+        <div class="ant-form-item" style="margin-bottom:0;">
+          <div class="ant-form-label"><span class="required">*</span>资源类型</div>
+          <div class="ant-form-control">
+            <div id="page-apply-res-type-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;"></div>
           </div>
         </div>
       </div>

@@ -3,10 +3,9 @@
 
 // ===== 申请资源页（独立页面版） =====
 function initApplyResourcePage() {
-  var sel = document.getElementById('page-apply-res-type');
   var formContainer = document.getElementById('page-apply-dynamic-form');
   var pricingContainer = document.getElementById('page-apply-pricing');
-  if (!sel || !formContainer) return;
+  if (!formContainer) return;
 
   // 返回 / 取消
   var backBtn = document.getElementById('btn-back-to-resource');
@@ -24,33 +23,155 @@ function initApplyResourcePage() {
       resGroupSel.appendChild(opt);
     });
   }
-
-  // 填充资源类型下拉（按大类分组）
-  var groupedTemplates = {};
-  MockData.platformTemplates.filter(function (t) { return t.opType === '申请'; }).forEach(function (tpl) {
-    if (!groupedTemplates[tpl.category]) {
-      groupedTemplates[tpl.category] = [];
-    }
-    groupedTemplates[tpl.category].push(tpl);
-  });
   
-  // 按大类顺序排序
-  var categoryOrder = ['计算类', '数据库类', '网络与负载均衡类', '中间件类', '大数据与搜索分析类', '存储类'];
+  // 填充云厂商（平铺显示）
+  var vendorGrid = document.getElementById('page-apply-cloud-vendor-grid');
+  var categoryGrid = document.getElementById('page-apply-res-category-grid');
+  var typeGrid = document.getElementById('page-apply-res-type-grid');
+  var selectedVendor = null;
+  var selectedCategory = null;
+  var selectedType = null;
   
-  categoryOrder.forEach(function (category) {
-    if (groupedTemplates[category]) {
-      var optgroup = document.createElement('optgroup');
-      optgroup.label = category;
-      sel.appendChild(optgroup);
+  // 云厂商列表
+  var cloudVendors = [
+    { name: '阿里云', value: 'aliyun' },
+    { name: '腾讯云', value: 'tencent' },
+    { name: '华为云', value: 'huawei' },
+    { name: 'AWS', value: 'aws' },
+    { name: 'Azure', value: 'azure' }
+  ];
+  
+  if (vendorGrid) {
+    cloudVendors.forEach(function (vendor) {
+      var card = document.createElement('div');
+      card.style.cssText = 'border:1px solid #d9d9d9;padding:12px 16px;cursor:pointer;transition:border-color .15s,background .15s;user-select:none;';
+      card.setAttribute('data-vendor', vendor.value);
+      card.innerHTML = '<div style="font-weight:500;font-size:14px;line-height:1.5;">' + vendor.name + '</div>';
       
-      groupedTemplates[category].forEach(function (tpl) {
-        var opt = document.createElement('option');
-        opt.value = tpl.id;
-        opt.textContent = tpl.resType;
-        optgroup.appendChild(opt);
-      });
+      card.onmouseover = function () { if (selectedVendor !== vendor.value) card.style.borderColor = '#40a9ff'; };
+      card.onmouseout = function () { if (selectedVendor !== vendor.value) card.style.borderColor = '#d9d9d9'; };
+      card.onclick = function () {
+        vendorGrid.querySelectorAll('[data-vendor]').forEach(function (c) {
+          c.style.borderColor = '#d9d9d9';
+          c.style.background = '';
+        });
+        card.style.borderColor = '#1890ff';
+        card.style.background = '#e6f7ff';
+        selectedVendor = vendor.value;
+        renderResourceCategories();
+      };
+      
+      vendorGrid.appendChild(card);
+    });
+  }
+  
+  // 渲染资源大类函数
+  function renderResourceCategories() {
+    if (!categoryGrid) return;
+    
+    categoryGrid.innerHTML = '';
+    selectedCategory = null;
+    typeGrid.innerHTML = '';
+    selectedType = null;
+    
+    if (!selectedVendor) {
+      categoryGrid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--text-secondary);padding:16px;">请先选择云厂商</div>';
+      return;
     }
-  });
+    
+    var categories = [];
+    MockData.platformTemplates.filter(function (t) { return t.opType === '申请'; }).forEach(function (tpl) {
+      if (categories.indexOf(tpl.category) === -1) {
+        categories.push(tpl.category);
+      }
+    });
+    
+    // 按大类顺序排序
+    var categoryOrder = ['计算类', '数据库类', '网络与负载均衡类', '中间件类', '大数据与搜索分析类', '存储类'];
+    var sortedCategories = [];
+    
+    categoryOrder.forEach(function (cat) {
+      if (categories.indexOf(cat) !== -1) {
+        sortedCategories.push(cat);
+        categories.splice(categories.indexOf(cat), 1);
+      }
+    });
+    
+    sortedCategories = sortedCategories.concat(categories);
+    
+    // 渲染资源大类卡片
+    sortedCategories.forEach(function (category) {
+      var card = document.createElement('div');
+      card.style.cssText = 'border:1px solid #d9d9d9;padding:12px 16px;cursor:pointer;transition:border-color .15s,background .15s;user-select:none;';
+      card.setAttribute('data-category', category);
+      card.innerHTML = '<div style="font-weight:500;font-size:14px;line-height:1.5;">' + category + '</div>';
+      
+      card.onmouseover = function () { if (selectedCategory !== category) card.style.borderColor = '#40a9ff'; };
+      card.onmouseout = function () { if (selectedCategory !== category) card.style.borderColor = '#d9d9d9'; };
+      card.onclick = function () {
+        categoryGrid.querySelectorAll('[data-category]').forEach(function (c) {
+          c.style.borderColor = '#d9d9d9';
+          c.style.background = '';
+        });
+        card.style.borderColor = '#1890ff';
+        card.style.background = '#e6f7ff';
+        selectedCategory = category;
+        renderResourceTypes(category);
+      };
+      
+      categoryGrid.appendChild(card);
+    });
+  }
+  
+  // 渲染资源类型函数
+  function renderResourceTypes(category) {
+    if (!typeGrid) return;
+    
+    typeGrid.innerHTML = '';
+    selectedType = null;
+    
+    if (!selectedVendor || !category) {
+      typeGrid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--text-secondary);padding:16px;">请先选择资源大类</div>';
+      formContainer.innerHTML = '';
+      document.getElementById('page-apply-dynamic-card').style.display = 'none';
+      if (pricingContainer) pricingContainer.style.display = 'none';
+      return;
+    }
+    
+    var templates = MockData.platformTemplates.filter(function (t) { 
+      return t.opType === '申请' && t.category === category; 
+    });
+    
+    if (templates.length === 0) {
+      typeGrid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--text-secondary);padding:16px;">暂无资源类型</div>';
+      formContainer.innerHTML = '';
+      document.getElementById('page-apply-dynamic-card').style.display = 'none';
+      if (pricingContainer) pricingContainer.style.display = 'none';
+      return;
+    }
+    
+    templates.forEach(function (tpl) {
+      var card = document.createElement('div');
+      card.style.cssText = 'border:1px solid #d9d9d9;padding:12px 16px;cursor:pointer;transition:border-color .15s,background .15s;user-select:none;';
+      card.setAttribute('data-type-id', tpl.id);
+      card.innerHTML = '<div style="font-weight:500;font-size:14px;line-height:1.5;">' + tpl.resType + '</div>';
+      
+      card.onmouseover = function () { if (selectedType !== tpl.id) card.style.borderColor = '#40a9ff'; };
+      card.onmouseout = function () { if (selectedType !== tpl.id) card.style.borderColor = '#d9d9d9'; };
+      card.onclick = function () {
+        typeGrid.querySelectorAll('[data-type-id]').forEach(function (c) {
+          c.style.borderColor = '#d9d9d9';
+          c.style.background = '';
+        });
+        card.style.borderColor = '#1890ff';
+        card.style.background = '#e6f7ff';
+        selectedType = tpl.id;
+        handleResourceTypeSelect(tpl.id);
+      };
+      
+      typeGrid.appendChild(card);
+    });
+  }
 
   // 价格参考数据（元/月）
   var unitPrices = {
@@ -75,7 +196,7 @@ function initApplyResourcePage() {
     if (periodItem) periodItem.style.display = isPostpaid ? 'none' : '';
     var tpl = null;
     for (var i = 0; i < MockData.platformTemplates.length; i++) {
-      if (MockData.platformTemplates[i].id === sel.value) { tpl = MockData.platformTemplates[i]; break; }
+      if (MockData.platformTemplates[i].id === selectedType) { tpl = MockData.platformTemplates[i]; break; }
     }
     if (!tpl) { unitPriceEl.textContent = '--'; totalPriceEl.textContent = '--'; return; }
     var basePrice = unitPrices[tpl.resType] || 0;
@@ -90,23 +211,14 @@ function initApplyResourcePage() {
     }
   }
 
-  function setStep(n) {
-    [1, 2, 3].forEach(function (i) {
-      var step = document.getElementById('apply-step-' + i);
-      var tail = document.getElementById('apply-tail-' + i);
-      if (!step) return;
-      step.className = 'ant-step' + (i < n ? ' done' : i === n ? ' active' : '');
-      if (tail) tail.className = 'ant-step-tail' + (i < n ? ' done' : '');
-    });
-  }
 
-  sel.onchange = function () {
-    var tplId = sel.value;
+
+  // 处理资源类型选择的函数
+  function handleResourceTypeSelect(tplId) {
     if (!tplId) {
       formContainer.innerHTML = '';
       document.getElementById('page-apply-dynamic-card').style.display = 'none';
       if (pricingContainer) pricingContainer.style.display = 'none';
-      setStep(1);
       return;
     }
     var tpl = null;
@@ -157,8 +269,7 @@ function initApplyResourcePage() {
     document.getElementById('page-apply-dynamic-card').style.display = '';
     if (pricingContainer) pricingContainer.style.display = '';
     updatePricing();
-    setStep(2);
-  };
+  }
 
   ['page-apply-quantity', 'page-apply-pay-type', 'page-apply-period'].forEach(function (id) {
     var el = document.getElementById(id);
@@ -168,11 +279,12 @@ function initApplyResourcePage() {
   // 提交
   var submitBtn = document.getElementById('btn-submit-apply-res');
   if (submitBtn) submitBtn.onclick = function () {
-    if (!sel.value) { showMessage('请选择资源类型', 'warning'); return; }
+    if (!selectedVendor) { showMessage('请选择云厂商', 'warning'); return; }
+    if (!selectedType) { showMessage('请选择资源类型', 'warning'); return; }
     if (!resGroupSel || !resGroupSel.value) { showMessage('请选择所属资源组', 'warning'); return; }
     var tpl = null;
     for (var i = 0; i < MockData.platformTemplates.length; i++) {
-      if (MockData.platformTemplates[i].id === sel.value) { tpl = MockData.platformTemplates[i]; break; }
+      if (MockData.platformTemplates[i].id === selectedType) { tpl = MockData.platformTemplates[i]; break; }
     }
     if (!tpl) return;
     var resName = tpl.resType + '-' + Date.now();
@@ -187,7 +299,6 @@ function initApplyResourcePage() {
     var now = new Date();
     var timeStr = now.getFullYear() + '/' + String(now.getMonth() + 1).padStart(2, '0') + '/' + String(now.getDate()).padStart(2, '0') + ' ' + String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0') + ':' + String(now.getSeconds()).padStart(2, '0');
     MockData.auditLogs.unshift({ time: timeStr, operator: '王浩然', dept: '基础架构部', opType: '资源操作', opTypeColor: 'blue', target: resName, desc: '申请 ' + tpl.resType, ip: '10.128.0.55' });
-    setStep(3);
     pageCache['resource'] = null;
     showMessage('资源申请已提交（' + tpl.resType + '），等待审批', 'success');
     loadPage('resource');
