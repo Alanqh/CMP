@@ -5,8 +5,6 @@
 // 孤儿资源页
 // =============================================
 function initOrphanPage() {
-  var backBtn = document.getElementById('orphan-back-btn');
-  if (backBtn) backBtn.onclick = function () { switchPage('resource', null); };
   renderUngroupedResources();
   var searchInput = document.getElementById('orphan-search');
   if (searchInput) searchInput.oninput = function () { state.orphan.keyword = searchInput.value; renderUngroupedResources(); };
