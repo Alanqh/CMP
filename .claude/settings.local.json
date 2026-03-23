@@ -17,7 +17,8 @@
       "Bash(gh run:*)",
       "Bash(where gh:*)",
       "Bash(winget list:*)",
-      "Bash(python:*)"
+      "Bash(python:*)",
+      "Bash(grep -n \"opType: ''''申请''''\" js/mock/config.js)"
     ]
   }
 }

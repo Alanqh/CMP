@@ -2,7 +2,7 @@
 // CMP 原型 - Mock 数据层 - 配置数据（平台模板、审批流程、部门配置）
 
 MockData.platformTemplates = [
-  { id: 'ptpl-1', templateName: 'ECS申请模板', resType: 'ECS 云服务器', category: '计算类', opType: '申请', apiEndpoint: 'RunInstances', updateTime: '2025/11/20', fieldGroups: [
+  { id: 'ptpl-1', templateName: 'ECS申请模板', resType: 'ECS 云服务器', category: '计算类', opType: '创建', apiEndpoint: 'RunInstances', updateTime: '2025/11/20', fieldGroups: [
     { groupName: '基础配置', fields: [
       { name: '实例名称', param: 'InstanceName', type: 'string', visible: true, required: true },
       { name: '地域', param: 'RegionId', type: 'select', visible: true, required: true, referenceOptions: '华北2（北京）=cn-beijing,华东1（杭州）=cn-hangzhou,华东2（上海）=cn-shanghai,华南1（深圳）=cn-shenzhen' },
@@ -40,7 +40,7 @@ MockData.platformTemplates = [
       { name: '扩容原因', param: '_description', type: 'textarea', visible: true, required: false }
     ]}
   ]},
-  { id: 'ptpl-4', templateName: 'K8S集群申请模板', resType: 'K8S 集群', category: '计算类', opType: '申请', apiEndpoint: 'CreateCluster', updateTime: '2025/12/15', fieldGroups: [
+  { id: 'ptpl-4', templateName: 'K8S集群申请模板', resType: 'K8S 集群', category: '计算类', opType: '创建', apiEndpoint: 'CreateCluster', updateTime: '2025/12/15', fieldGroups: [
     { groupName: '集群配置', fields: [
       { name: '集群名称', param: 'ClusterName', type: 'string', visible: true, required: true, regex: '^[a-zA-Z][a-zA-Z0-9_-]*$' },
       { name: '地域', param: 'RegionId', type: 'select', visible: true, required: true, options: '华北2（北京）,华东1（杭州）,华东2（上海）' },
@@ -54,7 +54,7 @@ MockData.platformTemplates = [
       { name: 'Service CIDR', param: 'ServiceCidr', type: 'string', visible: true, required: true, regex: '^\\d+\\.\\d+\\.\\d+\\.\\d+/\\d+$' }
     ]}
   ]},
-  { id: 'ptpl-5', templateName: 'RDS申请模板', resType: 'RDS 云数据库', category: '数据库类', opType: '申请', apiEndpoint: 'CreateDBInstance', updateTime: '2025/12/01', fieldGroups: [
+  { id: 'ptpl-5', templateName: 'RDS申请模板', resType: 'RDS 云数据库', category: '数据库类', opType: '创建', apiEndpoint: 'CreateDBInstance', updateTime: '2025/12/01', fieldGroups: [
     { groupName: '实例配置', fields: [
       { name: '实例名称', param: 'DBInstanceDescription', type: 'string', visible: true, required: true, regex: '' },
       { name: '数据库引擎', param: 'Engine', type: 'select', visible: true, required: true, options: 'MySQL,PostgreSQL,SQL Server,MariaDB' },
@@ -80,7 +80,7 @@ MockData.platformTemplates = [
       { name: '账号权限', param: 'AccountPrivilege', type: 'select', visible: true, required: true, options: 'ReadOnly,ReadWrite,DDLOnly,DMLOnly' }
     ]}
   ]},
-  { id: 'ptpl-7', templateName: 'PolarDB申请模板', resType: 'PolarDB PostgreSQL', category: '数据库类', opType: '申请', apiEndpoint: 'CreateDBCluster', updateTime: '2025/12/10', fieldGroups: [
+  { id: 'ptpl-7', templateName: 'PolarDB申请模板', resType: 'PolarDB PostgreSQL', category: '数据库类', opType: '创建', apiEndpoint: 'CreateDBCluster', updateTime: '2025/12/10', fieldGroups: [
     { groupName: '集群配置', fields: [
       { name: '集群名称', param: 'DBClusterDescription', type: 'string', visible: true, required: true, regex: '' },
       { name: '地域', param: 'RegionId', type: 'select', visible: true, required: true, options: '华北2（北京）,华东1（杭州）,华东2（上海）' },
@@ -88,7 +88,7 @@ MockData.platformTemplates = [
       { name: '节点数量', param: 'Amount', type: 'number', visible: true, required: true, min: 1, max: 16, decimals: 0 }
     ]}
   ]},
-  { id: 'ptpl-8', templateName: 'MongoDB申请模板', resType: 'MongoDB', category: '数据库类', opType: '申请', apiEndpoint: 'CreateDBInstance', updateTime: '2025/12/10', fieldGroups: [
+  { id: 'ptpl-8', templateName: 'MongoDB申请模板', resType: 'MongoDB', category: '数据库类', opType: '创建', apiEndpoint: 'CreateDBInstance', updateTime: '2025/12/10', fieldGroups: [
     { groupName: '实例配置', fields: [
       { name: '实例名称', param: 'DBInstanceDescription', type: 'string', visible: true, required: true, regex: '' },
       { name: '地域', param: 'RegionId', type: 'select', visible: true, required: true, options: '华北2（北京）,华东1（杭州）,华东2（上海）' },
@@ -96,7 +96,7 @@ MockData.platformTemplates = [
       { name: '存储空间(GB)', param: 'DBInstanceStorage', type: 'number', visible: true, required: true, min: 10, max: 3000, decimals: 0 }
     ]}
   ]},
-  { id: 'ptpl-9', templateName: 'Redis申请模板', resType: 'Redis 缓存', category: '数据库类', opType: '申请', apiEndpoint: 'CreateInstance', updateTime: '2025/12/05', fieldGroups: [
+  { id: 'ptpl-9', templateName: 'Redis申请模板', resType: 'Redis 缓存', category: '数据库类', opType: '创建', apiEndpoint: 'CreateInstance', updateTime: '2025/12/05', fieldGroups: [
     { groupName: '实例配置', fields: [
       { name: '实例名称', param: 'InstanceName', type: 'string', visible: true, required: true, regex: '' },
       { name: '地域', param: 'RegionId', type: 'select', visible: true, required: true, options: '华北2（北京）,华东1（杭州）,华东2（上海）' },
@@ -108,7 +108,7 @@ MockData.platformTemplates = [
       { name: '交换机', param: 'VSwitchId', type: 'select', visible: true, required: true, options: 'vsw-prod-app,vsw-prod-db' }
     ]}
   ]},
-  { id: 'ptpl-10', templateName: 'SLB申请模板', resType: 'SLB 负载均衡', category: '网络与负载均衡类', opType: '申请', apiEndpoint: 'CreateLoadBalancer', updateTime: '2025/12/08', fieldGroups: [
+  { id: 'ptpl-10', templateName: 'SLB申请模板', resType: 'SLB 负载均衡', category: '网络与负载均衡类', opType: '创建', apiEndpoint: 'CreateLoadBalancer', updateTime: '2025/12/08', fieldGroups: [
     { groupName: '基础配置', fields: [
       { name: '实例名称', param: 'LoadBalancerName', type: 'string', visible: true, required: true, regex: '' },
       { name: '地域', param: 'RegionId', type: 'select', visible: true, required: true, options: '华北2（北京）,华东1（杭州）,华东2（上海）' },
@@ -116,28 +116,28 @@ MockData.platformTemplates = [
       { name: '规格', param: 'LoadBalancerSpec', type: 'select', visible: true, required: true, options: 'slb.s1.small,slb.s2.small,slb.s3.small' }
     ]}
   ]},
-  { id: 'ptpl-11', templateName: 'ALB申请模板', resType: 'ALB 应用负载均衡', category: '网络与负载均衡类', opType: '申请', apiEndpoint: 'CreateLoadBalancer', updateTime: '2025/12/08', fieldGroups: [
+  { id: 'ptpl-11', templateName: 'ALB申请模板', resType: 'ALB 应用负载均衡', category: '网络与负载均衡类', opType: '创建', apiEndpoint: 'CreateLoadBalancer', updateTime: '2025/12/08', fieldGroups: [
     { groupName: '基础配置', fields: [
       { name: '实例名称', param: 'LoadBalancerName', type: 'string', visible: true, required: true, regex: '' },
       { name: '地域', param: 'RegionId', type: 'select', visible: true, required: true, options: '华北2（北京）,华东1（杭州）,华东2（上海）' },
       { name: 'VPC', param: 'VpcId', type: 'select', visible: true, required: true, options: 'vpc-prod-beijing,vpc-prod-hangzhou' }
     ]}
   ]},
-  { id: 'ptpl-12', templateName: 'NLB申请模板', resType: 'NLB 网络负载均衡', category: '网络与负载均衡类', opType: '申请', apiEndpoint: 'CreateLoadBalancer', updateTime: '2025/12/08', fieldGroups: [
+  { id: 'ptpl-12', templateName: 'NLB申请模板', resType: 'NLB 网络负载均衡', category: '网络与负载均衡类', opType: '创建', apiEndpoint: 'CreateLoadBalancer', updateTime: '2025/12/08', fieldGroups: [
     { groupName: '基础配置', fields: [
       { name: '实例名称', param: 'LoadBalancerName', type: 'string', visible: true, required: true, regex: '' },
       { name: '地域', param: 'RegionId', type: 'select', visible: true, required: true, options: '华北2（北京）,华东1（杭州）,华东2（上海）' },
       { name: 'VPC', param: 'VpcId', type: 'select', visible: true, required: true, options: 'vpc-prod-beijing,vpc-prod-hangzhou' }
     ]}
   ]},
-  { id: 'ptpl-13', templateName: '云原生网关申请模板', resType: '云原生网关', category: '网络与负载均衡类', opType: '申请', apiEndpoint: 'CreateGateway', updateTime: '2025/12/08', fieldGroups: [
+  { id: 'ptpl-13', templateName: '云原生网关申请模板', resType: '云原生网关', category: '网络与负载均衡类', opType: '创建', apiEndpoint: 'CreateGateway', updateTime: '2025/12/08', fieldGroups: [
     { groupName: '基础配置', fields: [
       { name: '网关名称', param: 'GatewayName', type: 'string', visible: true, required: true, regex: '' },
       { name: '地域', param: 'RegionId', type: 'select', visible: true, required: true, options: '华北2（北京）,华东1（杭州）,华东2（上海）' },
       { name: '规格', param: 'Spec', type: 'select', visible: true, required: true, options: '基础版,专业版,企业版' }
     ]}
   ]},
-  { id: 'ptpl-14', templateName: 'Kafka申请模板', resType: 'Kafka 消息队列', category: '中间件类', opType: '申请', apiEndpoint: 'CreatePostPayOrder', updateTime: '2025/12/10', fieldGroups: [
+  { id: 'ptpl-14', templateName: 'Kafka申请模板', resType: 'Kafka 消息队列', category: '中间件类', opType: '创建', apiEndpoint: 'CreatePostPayOrder', updateTime: '2025/12/10', fieldGroups: [
     { groupName: '实例配置', fields: [
       { name: '实例名称', param: 'InstanceName', type: 'string', visible: true, required: true, regex: '' },
       { name: '地域', param: 'RegionId', type: 'select', visible: true, required: true, options: '华北2（北京）,华东1（杭州）,华东2（上海）' },
@@ -152,7 +152,7 @@ MockData.platformTemplates = [
       { name: '备注', param: 'Remark', type: 'textarea', visible: true, required: false }
     ]}
   ]},
-  { id: 'ptpl-16', templateName: 'ES申请模板', resType: 'Elasticsearch', category: '大数据与搜索分析类', opType: '申请', apiEndpoint: 'createInstance', updateTime: '2026/01/05', fieldGroups: [
+  { id: 'ptpl-16', templateName: 'ES申请模板', resType: 'Elasticsearch', category: '大数据与搜索分析类', opType: '创建', apiEndpoint: 'createInstance', updateTime: '2026/01/05', fieldGroups: [
     { groupName: '集群配置', fields: [
       { name: '实例名称', param: 'description', type: 'string', visible: true, required: true, regex: '' },
       { name: '版本', param: 'esVersion', type: 'select', visible: true, required: true, options: '7.10,7.16,8.5,8.9' },
@@ -168,21 +168,21 @@ MockData.platformTemplates = [
       { name: '副本数', param: 'number_of_replicas', type: 'number', visible: true, required: true, min: 0, max: 5, decimals: 0 }
     ]}
   ]},
-  { id: 'ptpl-18', templateName: 'MaxCompute申请模板', resType: 'MaxCompute', category: '大数据与搜索分析类', opType: '申请', apiEndpoint: 'CreateProject', updateTime: '2026/01/10', fieldGroups: [
+  { id: 'ptpl-18', templateName: 'MaxCompute申请模板', resType: 'MaxCompute', category: '大数据与搜索分析类', opType: '创建', apiEndpoint: 'CreateProject', updateTime: '2026/01/10', fieldGroups: [
     { groupName: '项目配置', fields: [
       { name: '项目名称', param: 'projectName', type: 'string', visible: true, required: true, regex: '^[a-zA-Z][a-zA-Z0-9_]*$' },
       { name: '地域', param: 'RegionId', type: 'select', visible: true, required: true, options: '华北2（北京）,华东1（杭州）,华东2（上海）' },
       { name: '计算资源规格', param: 'defaultQuota', type: 'select', visible: true, required: true, options: '标准版,开发者版' }
     ]}
   ]},
-  { id: 'ptpl-19', templateName: 'Flink申请模板', resType: 'Flink 实时计算', category: '大数据与搜索分析类', opType: '申请', apiEndpoint: 'CreateNamespace', updateTime: '2026/01/10', fieldGroups: [
+  { id: 'ptpl-19', templateName: 'Flink申请模板', resType: 'Flink 实时计算', category: '大数据与搜索分析类', opType: '创建', apiEndpoint: 'CreateNamespace', updateTime: '2026/01/10', fieldGroups: [
     { groupName: '空间配置', fields: [
       { name: '空间名称', param: 'Namespace', type: 'string', visible: true, required: true, regex: '' },
       { name: '地域', param: 'RegionId', type: 'select', visible: true, required: true, options: '华北2（北京）,华东1（杭州）,华东2（上海）' },
       { name: 'CU 数量', param: 'ResourceSpec', type: 'number', visible: true, required: true, min: 1, max: 100, decimals: 0 }
     ]}
   ]},
-  { id: 'ptpl-20', templateName: 'Hologres申请模板', resType: '实时数仓 Hologres', category: '大数据与搜索分析类', opType: '申请', apiEndpoint: 'CreateInstance', updateTime: '2026/01/10', fieldGroups: [
+  { id: 'ptpl-20', templateName: 'Hologres申请模板', resType: '实时数仓 Hologres', category: '大数据与搜索分析类', opType: '创建', apiEndpoint: 'CreateInstance', updateTime: '2026/01/10', fieldGroups: [
     { groupName: '实例配置', fields: [
       { name: '实例名称', param: 'InstanceName', type: 'string', visible: true, required: true, regex: '' },
       { name: '地域', param: 'RegionId', type: 'select', visible: true, required: true, options: '华北2（北京）,华东1（杭州）,华东2（上海）' },
@@ -190,7 +190,7 @@ MockData.platformTemplates = [
       { name: '存储规格(GB)', param: 'StorageLimit', type: 'number', visible: true, required: true, min: 50, max: 10000, decimals: 0 }
     ]}
   ]},
-  { id: 'ptpl-21', templateName: 'OSS申请模板', resType: 'OSS 对象存储', category: '存储类', opType: '申请', apiEndpoint: 'PutBucket', updateTime: '2026/01/15', fieldGroups: [
+  { id: 'ptpl-21', templateName: 'OSS申请模板', resType: 'OSS 对象存储', category: '存储类', opType: '创建', apiEndpoint: 'PutBucket', updateTime: '2026/01/15', fieldGroups: [
     { groupName: 'Bucket 配置', fields: [
       { name: 'Bucket 名称', param: 'BucketName', type: 'string', visible: true, required: true, regex: '^[a-z0-9][a-z0-9-]*$' },
       { name: '地域', param: 'RegionId', type: 'select', visible: true, required: true, options: '华北2（北京）,华东1（杭州）,华东2（上海）' },
@@ -198,7 +198,7 @@ MockData.platformTemplates = [
       { name: '读写权限', param: 'ACL', type: 'select', visible: true, required: true, options: '私有,公共读,公共读写' }
     ]}
   ]},
-  { id: 'ptpl-22', templateName: 'ESSD块存储申请模板', resType: '块存储 ESSD', category: '存储类', opType: '申请', apiEndpoint: 'CreateDisk', updateTime: '2026/01/15', fieldGroups: [
+  { id: 'ptpl-22', templateName: 'ESSD块存储申请模板', resType: '块存储 ESSD', category: '存储类', opType: '创建', apiEndpoint: 'CreateDisk', updateTime: '2026/01/15', fieldGroups: [
     { groupName: '磁盘配置', fields: [
       { name: '磁盘名称', param: 'DiskName', type: 'string', visible: true, required: true, regex: '' },
       { name: '地域', param: 'RegionId', type: 'select', visible: true, required: true, options: '华北2（北京）,华东1（杭州）,华东2（上海）' },
@@ -206,7 +206,7 @@ MockData.platformTemplates = [
       { name: '性能等级', param: 'PerformanceLevel', type: 'select', visible: true, required: true, options: 'PL0,PL1,PL2,PL3' }
     ]}
   ]},
-  { id: 'ptpl-23', templateName: 'NAS申请模板', resType: '文件存储 NAS', category: '存储类', opType: '申请', apiEndpoint: 'CreateFileSystem', updateTime: '2026/01/15', fieldGroups: [
+  { id: 'ptpl-23', templateName: 'NAS申请模板', resType: '文件存储 NAS', category: '存储类', opType: '创建', apiEndpoint: 'CreateFileSystem', updateTime: '2026/01/15', fieldGroups: [
     { groupName: '文件系统配置', fields: [
       { name: '文件系统名称', param: 'FileSystemType', type: 'string', visible: true, required: true, regex: '' },
       { name: '地域', param: 'RegionId', type: 'select', visible: true, required: true, options: '华北2（北京）,华东1（杭州）,华东2（上海）' },
@@ -214,7 +214,7 @@ MockData.platformTemplates = [
       { name: '协议类型', param: 'ProtocolType', type: 'select', visible: true, required: true, options: 'NFS,SMB' }
     ]}
   ]},
-  { id: 'ptpl-24', templateName: 'CDN流量包申请模板', resType: 'CDN 流量包', category: '存储类', opType: '申请', apiEndpoint: 'CreateCdnPackage', updateTime: '2026/01/20', fieldGroups: [
+  { id: 'ptpl-24', templateName: 'CDN流量包申请模板', resType: 'CDN 流量包', category: '存储类', opType: '创建', apiEndpoint: 'CreateCdnPackage', updateTime: '2026/01/20', fieldGroups: [
     { groupName: '流量包配置', fields: [
       { name: '流量包规格', param: 'PackageSpec', type: 'select', visible: true, required: true, options: '100GB,500GB,1TB,5TB,10TB' },
       { name: '有效期', param: 'Duration', type: 'select', visible: true, required: true, options: '1个月,3个月,6个月,1年' },
@@ -224,22 +224,22 @@ MockData.platformTemplates = [
 ];
 
 MockData.platformFlows = [
-  { resType: 'ECS 云服务器', opType: '申请', subRes: '', flowTemplate: 'leader+l5+admin1', admin1: '', admin2: '' },
+  { resType: 'ECS 云服务器', opType: '创建', subRes: '', flowTemplate: 'leader+l5+admin1', admin1: '', admin2: '' },
   { resType: 'ECS 云服务器', opType: '变配', subRes: '', flowTemplate: 'leader+l5', admin1: '', admin2: '' },
   { resType: 'ECS 云服务器', opType: '扩容', subRes: '', flowTemplate: 'leader', admin1: '', admin2: '' },
   { resType: 'ECS 云服务器', opType: '销毁', subRes: '', flowTemplate: 'leader+l5+admin1', admin1: '', admin2: '' },
-  { resType: 'K8S 集群', opType: '申请', subRes: '', flowTemplate: 'leader+l5+admin2', admin1: '', admin2: '' },
+  { resType: 'K8S 集群', opType: '创建', subRes: '', flowTemplate: 'leader+l5+admin2', admin1: '', admin2: '' },
   { resType: 'K8S 集群', opType: '变配', subRes: '', flowTemplate: 'leader+l5', admin1: '', admin2: '' },
-  { resType: 'RDS 云数据库', opType: '申请', subRes: '', flowTemplate: 'leader+l5+admin1', admin1: '', admin2: '' },
+  { resType: 'RDS 云数据库', opType: '创建', subRes: '', flowTemplate: 'leader+l5+admin1', admin1: '', admin2: '' },
   { resType: 'RDS 云数据库', opType: '变配', subRes: '', flowTemplate: 'leader+l5', admin1: '', admin2: '' },
   { resType: 'RDS 云数据库', opType: '销毁', subRes: '', flowTemplate: 'leader+l5+admin1', admin1: '', admin2: '' },
-  { resType: 'Redis 缓存', opType: '申请', subRes: '', flowTemplate: 'leader+l5', admin1: '', admin2: '' },
+  { resType: 'Redis 缓存', opType: '创建', subRes: '', flowTemplate: 'leader+l5', admin1: '', admin2: '' },
   { resType: 'Redis 缓存', opType: '销毁', subRes: '', flowTemplate: 'leader+l5+admin1', admin1: '', admin2: '' },
-  { resType: 'SLB 负载均衡', opType: '申请', subRes: '', flowTemplate: 'leader+l5', admin1: '', admin2: '' },
-  { resType: 'Kafka 消息队列', opType: '申请', subRes: '', flowTemplate: 'leader+l5+admin1', admin1: '', admin2: '' },
-  { resType: 'Elasticsearch', opType: '申请', subRes: '', flowTemplate: 'leader+l5+admin1', admin1: '', admin2: '' },
-  { resType: 'MaxCompute', opType: '申请', subRes: '', flowTemplate: 'leader+l5', admin1: '', admin2: '' },
-  { resType: 'OSS 对象存储', opType: '申请', subRes: '', flowTemplate: 'leader', admin1: '', admin2: '' },
+  { resType: 'SLB 负载均衡', opType: '创建', subRes: '', flowTemplate: 'leader+l5', admin1: '', admin2: '' },
+  { resType: 'Kafka 消息队列', opType: '创建', subRes: '', flowTemplate: 'leader+l5+admin1', admin1: '', admin2: '' },
+  { resType: 'Elasticsearch', opType: '创建', subRes: '', flowTemplate: 'leader+l5+admin1', admin1: '', admin2: '' },
+  { resType: 'MaxCompute', opType: '创建', subRes: '', flowTemplate: 'leader+l5', admin1: '', admin2: '' },
+  { resType: 'OSS 对象存储', opType: '创建', subRes: '', flowTemplate: 'leader', admin1: '', admin2: '' },
   { resType: 'OSS 对象存储', opType: '销毁', subRes: '', flowTemplate: 'leader+l5+admin1', admin1: '', admin2: '' }
 ];
 
@@ -250,7 +250,7 @@ MockData.deptConfig = {
     cloudAccountBound: true,
     cloudAccountOptions: ['infra-main', 'infra-dev', 'shared-services'],
     templates: [
-      { id: 'tpl-1', resType: 'ECS 云服务器', opType: '申请', category: '计算类', customized: true, fieldOverrides: {
+      { id: 'tpl-1', resType: 'ECS 云服务器', opType: '创建', category: '计算类', customized: true, fieldOverrides: {
         '0|RegionId': { show: true, options: '华北2（北京）=cn-beijing,华东1（杭州）=cn-hangzhou' },
         '0|ZoneId': { show: true, cascadeFrom: 'RegionId', cascadeData: 'cn-beijing:可用区B=cn-beijing-b,可用区C=cn-beijing-c,可用区H=cn-beijing-h\ncn-hangzhou:可用区G=cn-hangzhou-g,可用区H=cn-hangzhou-h' },
         '0|InstanceType': { show: true, options: 'ecs.c7.large=ecs.c7.large,ecs.c7.xlarge=ecs.c7.xlarge,ecs.c7.2xlarge=ecs.c7.2xlarge' },
@@ -262,16 +262,16 @@ MockData.deptConfig = {
       { id: 'tpl-1a', resType: 'ECS 云服务器', opType: '变配', category: '计算类', customized: false, fieldOverrides: {} },
       { id: 'tpl-1b', resType: 'ECS 云服务器', opType: '扩容', category: '计算类', customized: false, fieldOverrides: {} },
       { id: 'tpl-1c', resType: 'ECS 云服务器', opType: '销毁', category: '计算类', customized: false, fieldOverrides: {} },
-      { id: 'tpl-2', resType: 'K8S 集群', opType: '申请', category: '计算类', customized: false, fieldOverrides: {} },
-      { id: 'tpl-3', resType: 'RDS 云数据库', opType: '申请', category: '数据库类', customized: false, fieldOverrides: {} },
+      { id: 'tpl-2', resType: 'K8S 集群', opType: '创建', category: '计算类', customized: false, fieldOverrides: {} },
+      { id: 'tpl-3', resType: 'RDS 云数据库', opType: '创建', category: '数据库类', customized: false, fieldOverrides: {} },
       { id: 'tpl-3a', resType: 'RDS 云数据库', opType: '变配', category: '数据库类', customized: false, fieldOverrides: {} },
-      { id: 'tpl-4', resType: 'PolarDB PostgreSQL', opType: '申请', category: '数据库类', customized: false, fieldOverrides: {} },
-      { id: 'tpl-5', resType: 'MongoDB', opType: '申请', category: '数据库类', customized: false, fieldOverrides: {} },
-      { id: 'tpl-6', resType: 'Redis 缓存', opType: '申请', category: '数据库类', customized: true, fieldOverrides: {} },
-      { id: 'tpl-7', resType: 'SLB 负载均衡', opType: '申请', category: '网络与负载均衡类', customized: false, fieldOverrides: {} },
-      { id: 'tpl-8', resType: 'Kafka 消息队列', opType: '申请', category: '中间件类', customized: true, fieldOverrides: {} },
-      { id: 'tpl-9', resType: 'Elasticsearch', opType: '申请', category: '大数据与搜索分析类', customized: false, fieldOverrides: {} },
-      { id: 'tpl-10', resType: 'OSS 对象存储', opType: '申请', category: '存储类', customized: false, fieldOverrides: {} }
+      { id: 'tpl-4', resType: 'PolarDB PostgreSQL', opType: '创建', category: '数据库类', customized: false, fieldOverrides: {} },
+      { id: 'tpl-5', resType: 'MongoDB', opType: '创建', category: '数据库类', customized: false, fieldOverrides: {} },
+      { id: 'tpl-6', resType: 'Redis 缓存', opType: '创建', category: '数据库类', customized: true, fieldOverrides: {} },
+      { id: 'tpl-7', resType: 'SLB 负载均衡', opType: '创建', category: '网络与负载均衡类', customized: false, fieldOverrides: {} },
+      { id: 'tpl-8', resType: 'Kafka 消息队列', opType: '创建', category: '中间件类', customized: true, fieldOverrides: {} },
+      { id: 'tpl-9', resType: 'Elasticsearch', opType: '创建', category: '大数据与搜索分析类', customized: false, fieldOverrides: {} },
+      { id: 'tpl-10', resType: 'OSS 对象存储', opType: '创建', category: '存储类', customized: false, fieldOverrides: {} }
     ],
     ticketHandlers: [
       { categoryId: 'cat-auth', categoryName: '账号权限类', handler: '张明远', isDefault: true },
@@ -280,17 +280,17 @@ MockData.deptConfig = {
       { categoryId: 'cat-security', categoryName: '安全合规类', handler: '张明远', isDefault: true }
     ],
     approvalFlows: [
-      { id: 'flow-1', resType: 'ECS 云服务器', opType: '申请', category: '计算类', flowTemplate: 'leader+l5+admin1', admin1: '张明远', admin2: '' },
+      { id: 'flow-1', resType: 'ECS 云服务器', opType: '创建', category: '计算类', flowTemplate: 'leader+l5+admin1', admin1: '张明远', admin2: '' },
       { id: 'flow-1a', resType: 'ECS 云服务器', opType: '变配', category: '计算类', flowTemplate: 'leader+l5', admin1: '', admin2: '' },
       { id: 'flow-1b', resType: 'ECS 云服务器', opType: '扩容', category: '计算类', flowTemplate: 'leader', admin1: '', admin2: '' },
       { id: 'flow-1c', resType: 'ECS 云服务器', opType: '销毁', category: '计算类', flowTemplate: 'leader+l5+admin1', admin1: '张明远', admin2: '' },
-      { id: 'flow-2', resType: 'K8S 集群', opType: '申请', category: '计算类', flowTemplate: 'leader+l5+admin1', admin1: '张明远', admin2: '' },
-      { id: 'flow-3', resType: 'RDS 云数据库', opType: '申请', category: '数据库类', flowTemplate: 'leader+l5+admin1', admin1: '张明远', admin2: '' },
+      { id: 'flow-2', resType: 'K8S 集群', opType: '创建', category: '计算类', flowTemplate: 'leader+l5+admin1', admin1: '张明远', admin2: '' },
+      { id: 'flow-3', resType: 'RDS 云数据库', opType: '创建', category: '数据库类', flowTemplate: 'leader+l5+admin1', admin1: '张明远', admin2: '' },
       { id: 'flow-3a', resType: 'RDS 云数据库', opType: '变配', category: '数据库类', flowTemplate: 'leader+l5', admin1: '', admin2: '' },
-      { id: 'flow-4', resType: 'Redis 缓存', opType: '申请', category: '数据库类', flowTemplate: 'leader+l5', admin1: '', admin2: '' },
-      { id: 'flow-5', resType: 'Kafka 消息队列', opType: '申请', category: '中间件类', flowTemplate: 'leader+l5', admin1: '', admin2: '' },
-      { id: 'flow-6', resType: 'Elasticsearch', opType: '申请', category: '大数据与搜索分析类', flowTemplate: 'leader+l5', admin1: '', admin2: '' },
-      { id: 'flow-7', resType: 'OSS 对象存储', opType: '申请', category: '存储类', flowTemplate: 'leader+l5', admin1: '', admin2: '' }
+      { id: 'flow-4', resType: 'Redis 缓存', opType: '创建', category: '数据库类', flowTemplate: 'leader+l5', admin1: '', admin2: '' },
+      { id: 'flow-5', resType: 'Kafka 消息队列', opType: '创建', category: '中间件类', flowTemplate: 'leader+l5', admin1: '', admin2: '' },
+      { id: 'flow-6', resType: 'Elasticsearch', opType: '创建', category: '大数据与搜索分析类', flowTemplate: 'leader+l5', admin1: '', admin2: '' },
+      { id: 'flow-7', resType: 'OSS 对象存储', opType: '创建', category: '存储类', flowTemplate: 'leader+l5', admin1: '', admin2: '' }
     ]
   },
   'dept-biz': {
@@ -299,12 +299,12 @@ MockData.deptConfig = {
     cloudAccountBound: true,
     cloudAccountOptions: ['biz-prod', 'biz-staging', 'shared-services'],
     templates: [
-      { id: 'tpl-20', resType: 'ECS 云服务器', opType: '申请', category: '计算类', customized: true, fieldOverrides: {} },
-      { id: 'tpl-21', resType: 'RDS 云数据库', opType: '申请', category: '数据库类', customized: false, fieldOverrides: {} },
-      { id: 'tpl-22', resType: 'Redis 缓存', opType: '申请', category: '数据库类', customized: false, fieldOverrides: {} },
-      { id: 'tpl-23', resType: 'SLB 负载均衡', opType: '申请', category: '网络与负载均衡类', customized: false, fieldOverrides: {} },
-      { id: 'tpl-24', resType: 'Kafka 消息队列', opType: '申请', category: '中间件类', customized: false, fieldOverrides: {} },
-      { id: 'tpl-25', resType: 'OSS 对象存储', opType: '申请', category: '存储类', customized: false, fieldOverrides: {} }
+      { id: 'tpl-20', resType: 'ECS 云服务器', opType: '创建', category: '计算类', customized: true, fieldOverrides: {} },
+      { id: 'tpl-21', resType: 'RDS 云数据库', opType: '创建', category: '数据库类', customized: false, fieldOverrides: {} },
+      { id: 'tpl-22', resType: 'Redis 缓存', opType: '创建', category: '数据库类', customized: false, fieldOverrides: {} },
+      { id: 'tpl-23', resType: 'SLB 负载均衡', opType: '创建', category: '网络与负载均衡类', customized: false, fieldOverrides: {} },
+      { id: 'tpl-24', resType: 'Kafka 消息队列', opType: '创建', category: '中间件类', customized: false, fieldOverrides: {} },
+      { id: 'tpl-25', resType: 'OSS 对象存储', opType: '创建', category: '存储类', customized: false, fieldOverrides: {} }
     ],
     ticketHandlers: [
       { categoryId: 'cat-auth', categoryName: '账号权限类', handler: '刘佳琪', isDefault: true },
@@ -313,10 +313,10 @@ MockData.deptConfig = {
       { categoryId: 'cat-security', categoryName: '安全合规类', handler: '刘佳琪', isDefault: true }
     ],
     approvalFlows: [
-      { id: 'flow-10', resType: 'ECS 云服务器', opType: '申请', category: '计算类', flowTemplate: 'leader+l5+admin1', admin1: '刘佳琪', admin2: '' },
-      { id: 'flow-11', resType: 'RDS 云数据库', opType: '申请', category: '数据库类', flowTemplate: 'leader+l5+admin1', admin1: '刘佳琪', admin2: '' },
-      { id: 'flow-12', resType: 'Redis 缓存', opType: '申请', category: '数据库类', flowTemplate: 'leader+l5', admin1: '', admin2: '' },
-      { id: 'flow-13', resType: 'OSS 对象存储', opType: '申请', category: '存储类', flowTemplate: 'leader', admin1: '', admin2: '' }
+      { id: 'flow-10', resType: 'ECS 云服务器', opType: '创建', category: '计算类', flowTemplate: 'leader+l5+admin1', admin1: '刘佳琪', admin2: '' },
+      { id: 'flow-11', resType: 'RDS 云数据库', opType: '创建', category: '数据库类', flowTemplate: 'leader+l5+admin1', admin1: '刘佳琪', admin2: '' },
+      { id: 'flow-12', resType: 'Redis 缓存', opType: '创建', category: '数据库类', flowTemplate: 'leader+l5', admin1: '', admin2: '' },
+      { id: 'flow-13', resType: 'OSS 对象存储', opType: '创建', category: '存储类', flowTemplate: 'leader', admin1: '', admin2: '' }
     ]
   },
   'dept-data': {
@@ -325,11 +325,11 @@ MockData.deptConfig = {
     cloudAccountBound: false,
     cloudAccountOptions: ['data-prod', 'data-dev', 'shared-services'],
     templates: [
-      { id: 'tpl-30', resType: 'Elasticsearch', opType: '申请', category: '大数据与搜索分析类', customized: false, fieldOverrides: {} },
-      { id: 'tpl-31', resType: 'MaxCompute', opType: '申请', category: '大数据与搜索分析类', customized: false, fieldOverrides: {} },
-      { id: 'tpl-32', resType: 'Flink 实时计算', opType: '申请', category: '大数据与搜索分析类', customized: true, fieldOverrides: {} },
-      { id: 'tpl-33', resType: 'ECS 云服务器', opType: '申请', category: '计算类', customized: false, fieldOverrides: {} },
-      { id: 'tpl-34', resType: 'OSS 对象存储', opType: '申请', category: '存储类', customized: false, fieldOverrides: {} }
+      { id: 'tpl-30', resType: 'Elasticsearch', opType: '创建', category: '大数据与搜索分析类', customized: false, fieldOverrides: {} },
+      { id: 'tpl-31', resType: 'MaxCompute', opType: '创建', category: '大数据与搜索分析类', customized: false, fieldOverrides: {} },
+      { id: 'tpl-32', resType: 'Flink 实时计算', opType: '创建', category: '大数据与搜索分析类', customized: true, fieldOverrides: {} },
+      { id: 'tpl-33', resType: 'ECS 云服务器', opType: '创建', category: '计算类', customized: false, fieldOverrides: {} },
+      { id: 'tpl-34', resType: 'OSS 对象存储', opType: '创建', category: '存储类', customized: false, fieldOverrides: {} }
     ],
     ticketHandlers: [
       { categoryId: 'cat-auth', categoryName: '账号权限类', handler: '周文博', isDefault: true },
@@ -338,9 +338,9 @@ MockData.deptConfig = {
       { categoryId: 'cat-security', categoryName: '安全合规类', handler: '周文博', isDefault: true }
     ],
     approvalFlows: [
-      { id: 'flow-20', resType: 'Elasticsearch', opType: '申请', category: '大数据与搜索分析类', flowTemplate: 'leader+l5', admin1: '', admin2: '' },
-      { id: 'flow-21', resType: 'MaxCompute', opType: '申请', category: '大数据与搜索分析类', flowTemplate: 'leader+l5', admin1: '', admin2: '' },
-      { id: 'flow-22', resType: 'ECS 云服务器', opType: '申请', category: '计算类', flowTemplate: 'leader+l5+admin1', admin1: '周文博', admin2: '' }
+      { id: 'flow-20', resType: 'Elasticsearch', opType: '创建', category: '大数据与搜索分析类', flowTemplate: 'leader+l5', admin1: '', admin2: '' },
+      { id: 'flow-21', resType: 'MaxCompute', opType: '创建', category: '大数据与搜索分析类', flowTemplate: 'leader+l5', admin1: '', admin2: '' },
+      { id: 'flow-22', resType: 'ECS 云服务器', opType: '创建', category: '计算类', flowTemplate: 'leader+l5+admin1', admin1: '周文博', admin2: '' }
     ]
   }
 };

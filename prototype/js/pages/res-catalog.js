@@ -36,25 +36,42 @@ function renderResCatalog() {
     html += '<span class="catalog-category-arrow' + (isExpanded ? ' expanded' : '') + '">&#8250;</span>';
     html += '<span style="font-weight:500;font-size:14px;color:' + cat.color + ';">' + esc(cat.name) + '</span>';
     html += '<span style="font-weight:normal;font-size:12px;color:var(--text-secondary);margin-left:8px;">' + totalTypes + ' 种资源';
-    if (applyCount < totalTypes) html += '，' + applyCount + ' 种可申请';
+    if (applyCount < totalTypes) html += '，' + applyCount + ' 种可创建';
     html += '</span>';
     html += '</div>';
     html += '</div>';
     html += '<div class="catalog-category-body' + (isExpanded ? '' : ' collapsed') + '" data-cat-body="' + catIdx + '">';
     html += '<table class="ant-table" style="table-layout:fixed;"><thead><tr>';
-    html += '<th style="width:15%;">资源编码</th>';
-    html += '<th style="width:20%;">资源类型</th>';
-    html += '<th style="width:10%;">云厂商</th>';
-    html += '<th style="width:18%;">标识</th>';
-    html += '<th style="width:20%;">需要审批的操作</th>';
-    html += '<th style="width:17%;">不需要审批的操作</th>';
+    html += '<th style="width:10%;">资源编码</th>';
+    html += '<th style="width:16%;">资源类型</th>';
+    html += '<th style="width:8%;">云厂商</th>';
+    html += '<th style="width:14%;">标识</th>';
+    html += '<th style="width:14%;">需要审批的操作</th>';
+    html += '<th style="width:10%;">不需要审批</th>';
+    html += '<th style="width:28%;">权限操作说明</th>';
     html += '</tr></thead><tbody>';
     if (cat.types.length === 0) {
-      html += '<tr><td colspan="6" style="text-align:center;color:var(--text-secondary);padding:20px;">该大类下暂无资源类型</td></tr>';
+      html += '<tr><td colspan="7" style="text-align:center;color:var(--text-secondary);padding:20px;">该大类下暂无资源类型</td></tr>';
     }
     cat.types.forEach(function (t) {
       var aOps = t.approvalOps || [];
       var nOps = (t.operations || []).filter(function (op) { return aOps.indexOf(op) === -1; });
+      var permOps = t.permOps || {};
+      var permHtml = '';
+      if (permOps.master || permOps.developer || permOps.reporter) {
+        permHtml += '<div style="font-size:12px;line-height:1.8;">';
+        permHtml += '<span style="display:inline-block;width:62px;color:var(--text-secondary);">master</span>';
+        permHtml += (permOps.master || []).map(function(op){ return '<span class="ant-tag ant-tag-green" style="margin-bottom:2px;">' + esc(op) + '</span>'; }).join(' ');
+        permHtml += '<br>';
+        permHtml += '<span style="display:inline-block;width:62px;color:var(--text-secondary);">developer</span>';
+        permHtml += (permOps.developer || []).map(function(op){ return '<span class="ant-tag ant-tag-cyan" style="margin-bottom:2px;">' + esc(op) + '</span>'; }).join(' ');
+        permHtml += '<br>';
+        permHtml += '<span style="display:inline-block;width:62px;color:var(--text-secondary);">reporter</span>';
+        permHtml += (permOps.reporter || []).map(function(op){ return '<span class="ant-tag" style="margin-bottom:2px;">' + esc(op) + '</span>'; }).join(' ');
+        permHtml += '</div>';
+      } else {
+        permHtml = '<span style="color:var(--text-secondary);">--</span>';
+      }
       html += '<tr>';
       html += '<td><code style="font-size:12px;color:#595959;">' + esc(t.code || '') + '</code></td>';
       html += '<td><strong>' + esc(t.name) + '</strong></td>';
@@ -62,6 +79,7 @@ function renderResCatalog() {
       html += '<td><code style="font-size:12px;color:#1890ff;">' + esc(t.queryApi || '') + '</code></td>';
       html += '<td>' + (aOps.length ? aOps.map(function (op) { return '<span class="ant-tag ant-tag-orange">' + esc(op) + '</span>'; }).join(' ') : '<span style="color:var(--text-secondary);">无</span>') + '</td>';
       html += '<td>' + (nOps.length ? nOps.map(function (op) { return '<span class="ant-tag ant-tag-default">' + esc(op) + '</span>'; }).join(' ') : '<span style="color:var(--text-secondary);">无</span>') + '</td>';
+      html += '<td>' + permHtml + '</td>';
       html += '</tr>';
     });
     html += '</tbody></table>';

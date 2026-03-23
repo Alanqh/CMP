@@ -127,7 +127,7 @@ function bindPageEvents(id) {
   else if (id === 'apply-records') initApplyRecordsPage();
   else if (id === 'apply-resource') initApplyResourcePage();
   else if (id === 'review-records') initReviewRecordsPage();
-  else if (id === 'res-packages') initResPackagesPage();
+  else if (id === 'resource-detail') initResourceDetailPage();
 }
 
 function bindModalEvents(name) {

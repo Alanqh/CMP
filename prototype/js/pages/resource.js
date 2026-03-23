@@ -216,7 +216,7 @@ function renderResources() {
     // 从资源目录获取操作
     var catalogOps = getCatalogOps(r.type);
     catalogOps.forEach(function (op) {
-      if (op === '申请') return; // 申请不显示在已有资源的操作中
+      if (op === '创建') return; // 创建不显示在已有资源的操作中
       allOps.push({ label: op, cls: 'resource-action-btn', attrs: 'data-res="' + esc(r.name) + '" data-action="' + esc(op) + '"' });
     });
     var html = '';
@@ -285,20 +285,9 @@ function renderResources() {
         if (MockData.resources[i].name === resName) { res = MockData.resources[i]; break; }
       }
       if (!res) return;
-      loadAndShowModal('resource/view-resource', function () {
-        var titleEl = document.getElementById('resource-detail-title');
-        if (titleEl) titleEl.textContent = '资源详情 - ' + resName;
-        var bodyEl = document.getElementById('resource-detail-body');
-        if (bodyEl) bodyEl.innerHTML =
-          '<div class="ant-descriptions-row"><div class="ant-descriptions-label">资源名称</div><div class="ant-descriptions-content">' + esc(res.name) + '</div></div>' +
-          '<div class="ant-descriptions-row"><div class="ant-descriptions-label">资源ID</div><div class="ant-descriptions-content" style="font-family:monospace;font-size:12px;">' + esc(res.resId) + '</div></div>' +
-          '<div class="ant-descriptions-row"><div class="ant-descriptions-label">资源类型</div><div class="ant-descriptions-content"><span class="ant-tag ant-tag-' + res.typeColor + '">' + esc(res.type) + '</span></div></div>' +
-          '<div class="ant-descriptions-row"><div class="ant-descriptions-label">所属组</div><div class="ant-descriptions-content">' + esc(res.group) + '</div></div>' +
-          '<div class="ant-descriptions-row"><div class="ant-descriptions-label">所属资源组</div><div class="ant-descriptions-content">' + esc(res.project) + '</div></div>' +
-          '<div class="ant-descriptions-row"><div class="ant-descriptions-label">云厂商</div><div class="ant-descriptions-content">' + (res.vendor ? esc(res.vendor) : '--') + '</div></div>' +
-          '<div class="ant-descriptions-row"><div class="ant-descriptions-label">我的权限</div><div class="ant-descriptions-content"><span class="ant-tag ant-tag-' + res.permColor + '">' + esc(res.perm) + '</span></div></div>' +
-          '<div class="ant-descriptions-row"><div class="ant-descriptions-label">状态</div><div class="ant-descriptions-content"><span class="ant-badge-status-dot ant-badge-status-' + res.statusClass + '"></span>' + esc(res.status) + '</div></div>';
-      });
+      state.currentResourceDetail = res;
+      pageCache['resource-detail'] = null;
+      loadPage('resource-detail');
     };
   });
 

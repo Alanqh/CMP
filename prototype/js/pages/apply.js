@@ -77,7 +77,7 @@ function initApplyResourcePage() {
     }
     
     var categories = [];
-    MockData.platformTemplates.filter(function (t) { return t.opType === '申请'; }).forEach(function (tpl) {
+    MockData.platformTemplates.filter(function (t) { return t.opType === '创建'; }).forEach(function (tpl) {
       if (categories.indexOf(tpl.category) === -1) {
         categories.push(tpl.category);
       }
@@ -136,7 +136,7 @@ function initApplyResourcePage() {
     }
     
     var templates = MockData.platformTemplates.filter(function (t) { 
-      return t.opType === '申请' && t.category === category; 
+      return t.opType === '创建' && t.category === category; 
     });
     
     if (templates.length === 0) {
@@ -262,7 +262,7 @@ function initApplyResourcePage() {
     initCascadeFields(formContainer);
 
     var titleEl = document.getElementById('page-apply-dynamic-title');
-    if (titleEl) titleEl.textContent = tpl.resType + ' — 申请参数';
+    if (titleEl) titleEl.textContent = tpl.resType + ' — 创建参数';
     document.getElementById('page-apply-dynamic-card').style.display = '';
     if (pricingContainer) pricingContainer.style.display = '';
     updatePricing();
@@ -296,9 +296,9 @@ function initApplyResourcePage() {
     });
     var now = new Date();
     var timeStr = now.getFullYear() + '/' + String(now.getMonth() + 1).padStart(2, '0') + '/' + String(now.getDate()).padStart(2, '0') + ' ' + String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0') + ':' + String(now.getSeconds()).padStart(2, '0');
-    MockData.auditLogs.unshift({ time: timeStr, operator: '王浩然', dept: '基础架构部', opType: '资源操作', opTypeColor: 'blue', target: resName, desc: '申请 ' + tpl.resType, ip: '10.128.0.55' });
+    MockData.auditLogs.unshift({ time: timeStr, operator: '王浩然', dept: '基础架构部', opType: '资源操作', opTypeColor: 'blue', target: resName, desc: '创建 ' + tpl.resType, ip: '10.128.0.55' });
     pageCache['resource'] = null;
-    showMessage('资源申请已提交（' + tpl.resType + '），等待审批', 'success');
+    showMessage('资源创建申请已提交（' + tpl.resType + '），等待审批', 'success');
     loadPage('resource');
   };
 }
@@ -323,7 +323,7 @@ function initApplyResourceModal() {
 
   // 填充资源类型下拉（按大类分组）
   var groupedTemplates = {};
-  MockData.platformTemplates.filter(function (t) { return t.opType === '申请'; }).forEach(function (tpl) {
+  MockData.platformTemplates.filter(function (t) { return t.opType === '创建'; }).forEach(function (tpl) {
     if (!groupedTemplates[tpl.category]) {
       groupedTemplates[tpl.category] = [];
     }

@@ -131,7 +131,7 @@ MockData.tickets = [
 
 MockData.applicationRecords = [
   {
-    id: 'APP-20260316-001', title: '申请 ECS 云服务器（生产环境）', type: 'resource', opType: '申请',
+    id: 'APP-20260316-001', title: '创建 ECS 云服务器（生产环境）', type: 'resource', opType: '创建',
     resType: 'ECS 云服务器', subRes: '', status: '审批中', statusClass: 'processing',
     applicant: '王浩然', applicantDept: '基础架构部', applicantGroup: '容器平台组',
     createTime: '2026/03/16 10:00:00', updateTime: '2026/03/16 14:00:00',
@@ -142,10 +142,10 @@ MockData.applicationRecords = [
       { role: '部门负责人', name: '张明远', status: 'pending', time: '', remark: '' },
       { role: '指定审批人', name: '张明远', status: 'waiting', time: '', remark: '' }
     ],
-    formData: { '资源类型': 'ECS 云服务器', '操作类型': '申请', '规格': 'ecs.c6.2xlarge (8C16G)', '实例个数': '2', '付费类型': '包年包月', '付费周期': '1年', '单价（元/月）': '1,520.00', '总价（元）': '36,480.00', '系统盘': '40GB ESSD PL1', '数据盘': '200GB ESSD PL1', '所属资源组': '核心基础设施', '用途说明': '生产环境 Web 服务扩容' }
+    formData: { '资源类型': 'ECS 云服务器', '操作类型': '创建', '规格': 'ecs.c6.2xlarge (8C16G)', '实例个数': '2', '付费类型': '包年包月', '付费周期': '1年', '单价（元/月）': '1,520.00', '总价（元）': '36,480.00', '系统盘': '40GB ESSD PL1', '数据盘': '200GB ESSD PL1', '所属资源组': '核心基础设施', '用途说明': '生产环境 Web 服务扩容' }
   },
   {
-    id: 'APP-20260315-002', title: '申请 RDS 云数据库实例', type: 'resource', opType: '申请',
+    id: 'APP-20260315-002', title: '创建 RDS 云数据库实例', type: 'resource', opType: '创建',
     resType: 'RDS 云数据库', subRes: '', status: '审批中', statusClass: 'processing',
     applicant: '林志强', applicantDept: '业务研发部', applicantGroup: '订单交易组',
     createTime: '2026/03/15 09:00:00', updateTime: '2026/03/15 11:00:00',
@@ -155,10 +155,10 @@ MockData.applicationRecords = [
       { role: '直属领导', name: '刘佳琪', status: 'pending', time: '', remark: '' },
       { role: '部门负责人', name: '刘佳琪', status: 'waiting', time: '', remark: '' }
     ],
-    formData: { '资源类型': 'RDS 云数据库', '操作类型': '申请', '引擎版本': 'MySQL 8.0', '规格': 'rds.mysql.s3.large (4C8G)', '存储空间': '100GB', '实例个数': '1', '付费类型': '包年包月', '付费周期': '1年', '单价（元/月）': '980.00', '总价（元）': '11,760.00', '高可用方案': '双机热备', '所属资源组': '订单系统', '用途说明': '订单数据读写分离-从库' }
+    formData: { '资源类型': 'RDS 云数据库', '操作类型': '创建', '引擎版本': 'MySQL 8.0', '规格': 'rds.mysql.s3.large (4C8G)', '存储空间': '100GB', '实例个数': '1', '付费类型': '包年包月', '付费周期': '1年', '单价（元/月）': '980.00', '总价（元）': '11,760.00', '高可用方案': '双机热备', '所属资源组': '订单系统', '用途说明': '订单数据读写分离-从库' }
   },
   {
-    id: 'APP-20260314-003', title: 'Kafka Topic 申请: user-events', type: 'resource', opType: '申请',
+    id: 'APP-20260314-003', title: 'Kafka Topic 创建: user-events', type: 'resource', opType: '创建',
     resType: 'Kafka 消息队列', subRes: 'Topic', status: '审批中', statusClass: 'processing',
     applicant: '马丽华', applicantDept: '业务研发部', applicantGroup: '用户服务组',
     createTime: '2026/03/14 14:30:00', updateTime: '2026/03/14 16:00:00',
@@ -169,7 +169,7 @@ MockData.applicationRecords = [
       { role: '部门负责人', name: '刘佳琪', status: 'done', time: '2026/03/14 15:00:00', remark: '同意（与直属领导为同一人）' },
       { role: '指定审批人', name: '马丽华', status: 'pending', time: '', remark: '' }
     ],
-    formData: { '资源类型': 'Kafka 消息队列 / Topic', '操作类型': '申请', 'Topic 名称': 'user-events', '分区数': '6', '副本数': '2', '实例个数': '1', '付费类型': '按量付费', '单价（元/时）': '0.00', '总价（元）': '0.00（按量）', '数据保留': '72小时', '所属资源组': '用户中心', '用途说明': '用户行为事件流' }
+    formData: { '资源类型': 'Kafka 消息队列 / Topic', '操作类型': '创建', 'Topic 名称': 'user-events', '分区数': '6', '副本数': '2', '实例个数': '1', '付费类型': '按量付费', '单价（元/时）': '0.00', '总价（元）': '0.00（按量）', '数据保留': '72小时', '所属资源组': '用户中心', '用途说明': '用户行为事件流' }
   },
   {
     id: 'APP-20260313-004', title: 'ECS 变配升级（8C16G→16C32G）', type: 'resource', opType: '变配',
@@ -185,7 +185,7 @@ MockData.applicationRecords = [
     formData: { '资源类型': 'ECS 云服务器', '操作类型': '变配', '目标实例': 'ecs-staging-app-01', '当前规格': '8C16G', '目标规格': '16C32G', '变配原因': '压测发现 CPU 瓶颈，需要升配' }
   },
   {
-    id: 'APP-20260312-005', title: '申请 Redis 缓存实例', type: 'resource', opType: '申请',
+    id: 'APP-20260312-005', title: '创建 Redis 缓存实例', type: 'resource', opType: '创建',
     resType: 'Redis 缓存', subRes: '', status: '已通过', statusClass: 'success',
     applicant: '马丽华', applicantDept: '业务研发部', applicantGroup: '用户服务组',
     createTime: '2026/03/12 14:20:00', updateTime: '2026/03/12 17:00:00',
@@ -195,10 +195,10 @@ MockData.applicationRecords = [
       { role: '直属领导', name: '刘佳琪', status: 'done', time: '2026/03/12 15:00:00', remark: '同意' },
       { role: '部门负责人', name: '刘佳琪', status: 'done', time: '2026/03/12 16:00:00', remark: '同意' }
     ],
-    formData: { '资源类型': 'Redis 缓存', '操作类型': '申请', '规格': '4GB 主从版', '版本': 'Redis 6.0', '实例个数': '1', '付费类型': '包年包月', '付费周期': '1年', '单价（元/月）': '340.00', '总价（元）': '4,080.00', '所属资源组': '用户中心', '用途说明': '用户 Session 缓存' }
+    formData: { '资源类型': 'Redis 缓存', '操作类型': '创建', '规格': '4GB 主从版', '版本': 'Redis 6.0', '实例个数': '1', '付费类型': '包年包月', '付费周期': '1年', '单价（元/月）': '340.00', '总价（元）': '4,080.00', '所属资源组': '用户中心', '用途说明': '用户 Session 缓存' }
   },
   {
-    id: 'APP-20260311-006', title: '申请 OSS 存储桶', type: 'resource', opType: '申请',
+    id: 'APP-20260311-006', title: '创建 OSS 存储桶', type: 'resource', opType: '创建',
     resType: 'OSS 对象存储', subRes: '', status: '已通过', statusClass: 'success',
     applicant: '黄晓燕', applicantDept: '业务研发部', applicantGroup: '前端组',
     createTime: '2026/03/11 09:00:00', updateTime: '2026/03/11 14:00:00',
@@ -208,7 +208,7 @@ MockData.applicationRecords = [
       { role: '直属领导', name: '刘佳琪', status: 'done', time: '2026/03/11 10:30:00', remark: '同意' },
       { role: '部门负责人', name: '刘佳琪', status: 'done', time: '2026/03/11 10:30:00', remark: '同意' }
     ],
-    formData: { '资源类型': 'OSS 对象存储', '操作类型': '申请', 'Bucket 名称': 'oss-frontend-static', '存储类型': '标准存储', '读写权限': '公共读', '实例个数': '1', '付费类型': '按量付费', '单价（元/月）': '约200.00（按实际用量）', '总价（元）': '按量计费', '所属资源组': '前端资源池', '用途说明': '前端静态资源CDN回源' }
+    formData: { '资源类型': 'OSS 对象存储', '操作类型': '创建', 'Bucket 名称': 'oss-frontend-static', '存储类型': '标准存储', '读写权限': '公共读', '实例个数': '1', '付费类型': '按量付费', '单价（元/月）': '约200.00（按实际用量）', '总价（元）': '按量计费', '所属资源组': '前端资源池', '用途说明': '前端静态资源CDN回源' }
   },
   {
     id: 'APP-20260310-007', title: 'ECS 云服务器扩容磁盘', type: 'resource', opType: '扩容',
@@ -224,7 +224,7 @@ MockData.applicationRecords = [
     formData: { '资源类型': 'ECS 云服务器', '操作类型': '扩容', '目标实例': 'ecs-storage-backup', '当前磁盘': '500GB', '扩容至': '1TB', '扩容原因': '备份数据增长较快' }
   },
   {
-    id: 'APP-20260309-008', title: '销毁临时测试 Redis 实例', type: 'resource', opType: '销毁',
+    id: 'APP-20260309-008', title: '回收临时测试 Redis 实例', type: 'resource', opType: '回收',
     resType: 'Redis 缓存', subRes: '', status: '已通过', statusClass: 'success',
     applicant: '王浩然', applicantDept: '基础架构部', applicantGroup: '容器平台组',
     createTime: '2026/03/09 09:00:00', updateTime: '2026/03/09 16:00:00',
@@ -234,10 +234,10 @@ MockData.applicationRecords = [
       { role: '直属领导', name: '李思远', status: 'done', time: '2026/03/09 10:30:00', remark: '确认可以销毁' },
       { role: '部门负责人', name: '张明远', status: 'done', time: '2026/03/09 15:00:00', remark: '同意销毁' }
     ],
-    formData: { '资源类型': 'Redis 缓存', '操作类型': '销毁', '目标实例': 'redis-temp-test', '销毁原因': '临时测试已完成，资源不再需要' }
+    formData: { '资源类型': 'Redis 缓存', '操作类型': '回收', '目标实例': 'redis-temp-test', '回收原因': '临时测试已完成，资源不再需要' }
   },
   {
-    id: 'APP-20260308-009', title: 'Elasticsearch 集群申请', type: 'resource', opType: '申请',
+    id: 'APP-20260308-009', title: 'Elasticsearch 集群创建', type: 'resource', opType: '创建',
     resType: 'Elasticsearch', subRes: '', status: '已撤回', statusClass: 'default',
     applicant: '吴海波', applicantDept: '数据平台部', applicantGroup: '大数据组',
     createTime: '2026/03/08 10:00:00', updateTime: '2026/03/08 14:00:00',
@@ -248,7 +248,7 @@ MockData.applicationRecords = [
       { role: '部门负责人', name: '周文博', status: 'waiting', time: '', remark: '' },
       { role: '指定审批人', name: '吴海波', status: 'waiting', time: '', remark: '' }
     ],
-    formData: { '资源类型': 'Elasticsearch', '操作类型': '申请', '规格': '3节点 4C16G', '存储': '500GB SSD', '实例个数': '1（3节点集群）', '付费类型': '包年包月', '付费周期': '1年', '单价（元/月）': '2,880.00', '总价（元）': '34,560.00', '所属资源组': '数据管道', '用途说明': '数据分析日志检索（申请人已撤回，改为使用现有集群）' }
+    formData: { '资源类型': 'Elasticsearch', '操作类型': '创建', '规格': '3节点 4C16G', '存储': '500GB SSD', '实例个数': '1（3节点集群）', '付费类型': '包年包月', '付费周期': '1年', '单价（元/月）': '2,880.00', '总价（元）': '34,560.00', '所属资源组': '数据管道', '用途说明': '数据分析日志检索（申请人已撤回，改为使用现有集群）' }
   },
   {
     id: 'APP-20260307-010', title: '申请子账号 developer 权限', type: 'subaccount', opType: '申请',
