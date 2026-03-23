@@ -34,8 +34,7 @@ function initApplyResourcePage() {
   
   // 云厂商列表
   var cloudVendors = [
-    { name: '阿里云', value: 'aliyun' },
-    { name: '腾讯云', value: 'tencent' }
+    { name: '阿里云', value: 'aliyun' }
   ];
   
   if (vendorGrid) {
@@ -60,6 +59,10 @@ function initApplyResourcePage() {
       
       vendorGrid.appendChild(card);
     });
+
+    // 自动选中阿里云
+    var firstCard = vendorGrid.querySelector('[data-vendor]');
+    if (firstCard) firstCard.click();
   }
   
   // 渲染资源大类函数

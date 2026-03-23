@@ -8,7 +8,6 @@ MockData.resourcePackages = [
     name: '容器平台资源包',
     description: '容器平台组日常使用的核心资源集合，涵盖 K8s 集群、ECS 节点及负载均衡',
     creator: '陈天宇', creatorUsername: 'chenty', createTime: '2025-03-10 14:22',
-    visibility: 'dept', visibilityDept: '基础架构部',
     resources: [
       { resId: 'i-cs-001', name: 'k8s-prod-cluster', type: 'K8S 集群', typeColor: 'purple', perm: 'master' },
       { resId: 'i-ecs-001', name: 'k8s-node-01', type: 'ECS 云服务器', typeColor: 'blue', perm: 'developer' },
@@ -25,7 +24,6 @@ MockData.resourcePackages = [
     name: '业务数据库资源包',
     description: '业务研发部使用的数据库资源，含主从 RDS 及 Redis 缓存',
     creator: '林志强', creatorUsername: 'linzq', createTime: '2025-04-02 10:05',
-    visibility: 'dept', visibilityDept: '业务研发部',
     resources: [
       { resId: 'i-rds-001', name: 'mysql-biz-master', type: 'RDS 云数据库', typeColor: 'orange', perm: 'master' },
       { resId: 'i-rds-002', name: 'mysql-biz-slave', type: 'RDS 云数据库', typeColor: 'orange', perm: 'reporter' },
@@ -42,7 +40,6 @@ MockData.resourcePackages = [
     name: '数据平台资源包',
     description: '大数据平台资源集合，供数据平台组日常开发和分析使用',
     creator: '吴海波', creatorUsername: 'wuhb', createTime: '2025-05-18 09:30',
-    visibility: 'all',
     resources: [
       { resId: 'i-mc-001', name: 'maxcompute-prod', type: 'MaxCompute', typeColor: 'geekblue', perm: 'master' },
       { resId: 'i-flink-001', name: 'flink-streaming', type: 'Flink 实时计算', typeColor: 'geekblue', perm: 'developer' },
@@ -58,7 +55,6 @@ MockData.resourcePackages = [
     name: '运维监控资源包',
     description: '运维团队只读监控资源包，供值班人员查看所有生产资源状态',
     creator: '张明远', creatorUsername: 'zhangmy', createTime: '2025-06-01 16:40',
-    visibility: 'admin',
     resources: [
       { resId: 'i-cs-001', name: 'k8s-prod-cluster', type: 'K8S 集群', typeColor: 'purple', perm: 'reporter' },
       { resId: 'i-rds-001', name: 'mysql-biz-master', type: 'RDS 云数据库', typeColor: 'orange', perm: 'reporter' },

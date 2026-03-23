@@ -225,42 +225,143 @@ function renderDeptTemplateEdit(container, cfg, tplIdx) {
   html += '<div class="ant-card"><div class="ant-card-head"><span>编辑部门模板 - ' + esc(resLabel) + ' / ' + esc(deptTpl.opType) + '</span></div>';
   html += '<div class="ant-card-body">';
   html += '<div class="ant-alert ant-alert-info" style="margin-bottom:16px;">';
-  html += '<b>部门配置规则：</b>仅显示平台配置为「可见」的字段。各字段可配置范围：<br>';
-  html += '• <b>fixed</b>：只能决定是否展示；<br>';
-  html += '• <b>string</b>：可配置正则表达式校验及默认值；<br>';
-  html += '• <b>number</b>：可在平台范围内缩小 min/max，配置小数位数及默认值；<br>';
-  html += '• <b>select</b>：可配置选项 kv 及级联约束；<br>';
-  html += '• <b>textarea</b>：可配置默认值。';
+  html += '<div style="font-weight:500;margin-bottom:8px;">部门配置说明</div>';
+  html += '<div style="font-size:12px;color:#595959;line-height:2;">';
+  html += '<b style="display:inline-block;width:60px;">仅显示</b>平台模板中标记为「可见」的字段，部门在此基础上进行二次限制。<br>';
+  html += '<b style="display:inline-block;width:60px;">是否可见</b>可隐藏字段；<span style="color:#d46b08;font-weight:500;">若字段为必填且设为不可见，则必须在「部门配置」中填写传参值（默认值）。</span><br>';
+  html += '<b style="display:inline-block;width:60px;">部门配置</b>';
+  html += '<span class="ant-tag" style="font-size:11px;margin:0 2px 0 0;">select</span>默认值；接口型：限定/级联；固定型：子集筛选&emsp;';
+  html += '<span class="ant-tag" style="font-size:11px;margin:0 2px 0 0;">string</span>正则校验 + 默认值&emsp;';
+  html += '<span class="ant-tag" style="font-size:11px;margin:0 2px 0 0;">number</span>缩小范围 + 默认值&emsp;';
+  html += '<span class="ant-tag" style="font-size:11px;margin:0 2px 0 0;">textarea</span>默认值&emsp;';
+  html += '<span class="ant-tag" style="font-size:11px;margin:0 2px 0 0;">boolean</span>默认值&emsp;';
+  html += '<span class="ant-tag" style="font-size:11px;margin:0 2px 0 0;">fixed</span>不可配置';
+  html += '</div>';
   html += '</div>';
 
   (platformTpl.fieldGroups || []).forEach(function (group, gIdx) {
     html += '<div style="margin-bottom:16px;border:1px solid #f0f0f0;border-radius:6px;">';
     html += '<div style="padding:8px 16px;background:#fafafa;border-bottom:1px solid #f0f0f0;font-weight:500;border-radius:6px 6px 0 0;">&#128193; ' + esc(group.groupName) + '</div>';
     html += '<table class="ant-table" style="margin:0;table-layout:fixed;"><thead><tr>';
-    html += '<th style="width:13%;">字段名称</th>';
-    html += '<th style="width:11%;">参数名</th>';
-    html += '<th style="width:7%;">类型</th>';
-    html += '<th style="width:6%;">必填</th>';
-    html += '<th style="width:7%;">展示</th>';
+    html += '<th style="width:11%;">字段参数名</th>';
+    html += '<th style="width:9%;">字段名称</th>';
+    html += '<th style="width:6%;">是否必填</th>';
+    html += '<th style="width:6%;">字段类型</th>';
+    html += '<th style="width:16%;">平台默认规范</th>';
+    html += '<th style="width:7%;">是否可见</th>';
+    html += '<th style="width:15%;">默认值</th>';
     html += '<th style="width:30%;">部门配置</th>';
-    html += '<th style="width:26%;">平台原始值</th>';
     html += '</tr></thead><tbody>';
     group.fields.forEach(function (field) {
       var key = gIdx + '|' + field.param;
       var override = deptTpl.fieldOverrides[key] || {};
       var show = override.show !== undefined ? override.show : true;
-      html += '<tr' + (!show ? ' style="background:#fafafa;opacity:0.6;"' : '') + '>';
-      html += '<td>' + esc(field.name) + '</td>';
-      html += '<td><code style="font-size:11px;">' + esc(field.param) + '</code></td>';
-      html += '<td><span class="ant-tag ant-tag-default" style="font-size:11px;">' + esc(field.type) + '</span></td>';
-      html += '<td style="text-align:center;">' + (field.required ? '<span class="ant-tag ant-tag-red" style="font-size:10px;">必填</span>' : '<span style="color:#999;font-size:11px;">选填</span>') + '</td>';
-      html += '<td style="text-align:center;"><label class="toggle-switch"><input type="checkbox" class="dept-tpl-field-show" data-key="' + esc(key) + '"' + (show ? ' checked' : '') + ' /><span class="toggle-slider"></span></label></td>';
-      html += '<td>';
-      // 根据字段类型渲染不同的编辑控件
+      var isRequired = !!field.required;
+      var hiddenRequired = isRequired && !show && !override.defaultValue && !override.fixedValue && field.type !== 'fixed';
+      var rowStyle = hiddenRequired ? 'background:#fff7e6;' : (!show ? 'background:#fafafa;opacity:0.6;' : '');
+      html += '<tr data-row-key="' + esc(key) + '"' + (rowStyle ? ' style="' + rowStyle + '"' : '') + '>';
+
+      // 字段参数名
+      html += '<td><code style="font-size:11px;word-break:break-all;color:#722ed1;">' + esc(field.param) + '</code></td>';
+
+      // 字段名称
+      html += '<td style="font-size:13px;">' + esc(field.name) + '</td>';
+
+      // 是否必填
+      html += '<td style="text-align:center;">';
+      html += isRequired ? '<span class="ant-tag ant-tag-red" style="font-size:10px;">必填</span>' : '<span style="color:#bfbfbf;font-size:11px;">选填</span>';
+      html += '</td>';
+
+      // 字段类型
+      html += '<td style="text-align:center;"><span class="ant-tag ant-tag-default" style="font-size:11px;">' + esc(field.type) + '</span></td>';
+
+      // 平台默认规范
+      html += '<td style="font-size:11px;">';
       if (field.type === 'fixed') {
-        html += '<span style="color:#999;font-size:12px;">不可编辑: ' + esc(field.fixedValue || '') + '</span>';
+        html += '<span style="color:#888;">固定值：<code style="font-size:10px;">' + esc(field.fixedValue || '—') + '</code></span>';
       } else if (field.type === 'select') {
-        // 部门负责人配置选项或级联——显示摘要 + ⚙ 按钮
+        var hasRefOpts = field.referenceOptions !== undefined;
+        var refOptStr = field.referenceOptions || '';
+        var staticOptStr = field.options || '';
+        if (hasRefOpts) {
+          html += '<div style="display:flex;align-items:center;gap:4px;">';
+          html += '<span style="color:#595959;">接口获取</span>';
+          html += '<button class="ant-btn ant-btn-sm dept-tpl-view-api-btn" data-key="' + esc(key) + '" data-field="' + esc(field.param) + '" style="padding:0 6px;height:20px;font-size:10px;flex-shrink:0;">查看</button>';
+          html += '</div>';
+        } else if (staticOptStr) {
+          var optList = staticOptStr.split(',').filter(Boolean);
+          html += '<div style="display:flex;align-items:center;gap:4px;">';
+          html += '<span style="color:#595959;">固定选项，' + optList.length + ' 项</span>';
+          html += '<button class="ant-btn ant-btn-sm dept-tpl-view-static-btn" data-key="' + esc(key) + '" data-field="' + esc(field.param) + '" style="padding:0 6px;height:20px;font-size:10px;flex-shrink:0;">查看</button>';
+          html += '</div>';
+        } else {
+          html += '<span style="color:#bfbfbf;">未定义</span>';
+        }
+      } else if (field.type === 'number') {
+        var rangeStr = '';
+        if (field.min != null && field.max != null) rangeStr = field.min + ' ~ ' + field.max;
+        else if (field.min != null) rangeStr = '≥ ' + field.min;
+        else if (field.max != null) rangeStr = '≤ ' + field.max;
+        else rangeStr = '无范围限制';
+        html += '<span style="color:#595959;">' + esc(rangeStr) + '</span>';
+        if (field.decimals != null) html += '，<span style="color:#888;">小数位 ' + field.decimals + '</span>';
+      } else if (field.type === 'string') {
+        if (field.regex) {
+          html += '<code style="font-size:10px;word-break:break-all;color:#722ed1;">' + esc(field.regex) + '</code>';
+        } else {
+          html += '<span style="color:#bfbfbf;">无约束</span>';
+        }
+      } else if (field.type === 'textarea') {
+        html += '<span style="color:#bfbfbf;">多行文本</span>';
+      } else if (field.type === 'boolean') {
+        html += '<span style="color:#595959;">true / false</span>';
+      } else {
+        html += '<span style="color:#bfbfbf;">—</span>';
+      }
+      html += '</td>';
+
+      // 是否可见
+      html += '<td style="text-align:center;">';
+      html += '<label class="toggle-switch"><input type="checkbox" class="dept-tpl-field-show" data-key="' + esc(key) + '"' + (show ? ' checked' : '') + ' /><span class="toggle-slider"></span></label>';
+      html += '<div class="dept-tpl-hidden-req-warning" style="font-size:10px;color:#d46b08;margin-top:2px;white-space:nowrap;' + (hiddenRequired ? '' : 'display:none;') + '">⚠ 需传参值</div>';
+      html += '</td>';
+
+      // 默认值
+      html += '<td style="vertical-align:middle;">';
+      if (field.type === 'fixed') {
+        html += '<span style="color:#bfbfbf;font-size:11px;">—</span>';
+      } else if (field.type === 'select') {
+        var selectDefault = override.defaultValue || '';
+        var defRequired = isRequired && !show;
+        html += '<input class="ant-input dept-tpl-select-default" data-key="' + esc(key) + '" value="' + esc(selectDefault) + '" placeholder="' + (defRequired ? '必填' : '选填') + '" style="height:22px;font-size:11px;width:100%;' + (defRequired ? 'border-color:#faad14;' : '') + '" />';
+      } else if (field.type === 'string' || field.type === 'textarea') {
+        var strDefault = override.defaultValue || '';
+        var strDefRequired = isRequired && !show;
+        html += '<input class="ant-input dept-tpl-field-default" data-key="' + esc(key) + '" value="' + esc(strDefault) + '" placeholder="' + (strDefRequired ? '必填' : '选填') + '" style="height:22px;font-size:11px;width:100%;' + (strDefRequired ? 'border-color:#faad14;' : '') + '" />';
+      } else if (field.type === 'number') {
+        var numDefault = override.defaultValue !== undefined ? override.defaultValue : '';
+        var numDefRequired = isRequired && !show;
+        html += '<input class="ant-input dept-tpl-num-default" data-key="' + esc(key) + '" type="number" value="' + esc(numDefault) + '" placeholder="' + (numDefRequired ? '必填' : '选填') + '" style="height:22px;font-size:11px;width:100%;' + (numDefRequired ? 'border-color:#faad14;' : '') + '" />';
+      } else if (field.type === 'boolean') {
+        var boolDefault = override.defaultValue || '';
+        html += '<select class="ant-select dept-tpl-bool-default" data-key="' + esc(key) + '" style="height:26px;font-size:12px;width:100%;">';
+        html += '<option value="">不设置</option>';
+        html += '<option value="true"' + (boolDefault === 'true' ? ' selected' : '') + '>true</option>';
+        html += '<option value="false"' + (boolDefault === 'false' ? ' selected' : '') + '>false</option>';
+        html += '</select>';
+      } else {
+        var defVal2 = override.defaultValue || '';
+        html += '<input class="ant-input dept-tpl-field-default" data-key="' + esc(key) + '" value="' + esc(defVal2) + '" placeholder="默认值" style="height:22px;font-size:11px;width:100%;" />';
+      }
+      html += '</td>';
+
+      // 部门配置
+      var extraDisabled = !show && field.type !== 'fixed';
+      html += '<td class="dept-cfg-extra-cell"' + (extraDisabled ? ' style="opacity:0.4;pointer-events:none;"' : '') + '>';
+      if (field.type === 'fixed') {
+        html += '<span style="color:#bfbfbf;font-size:12px;">不可配置</span>';
+      } else if (field.type === 'select') {
+        var isStaticField = !!(field.options && !field.referenceOptions);
         var hasOpts = !!(override.options && override.options.trim());
         var hasCascade = !!(override.cascadeFrom);
         var isUnconfigured = !hasOpts && !hasCascade;
@@ -270,58 +371,31 @@ function renderDeptTemplateEdit(container, cfg, tplIdx) {
           summaryText = '级联 ← ' + esc(override.cascadeFrom) + '，' + ruleLines + ' 条规则';
         } else if (hasOpts) {
           var optCount2 = override.options.split(',').filter(Boolean).length;
-          summaryText = optCount2 + ' 个选项';
+          summaryText = optCount2 + ' 个选项' + (isStaticField ? '（已筛选）' : '');
         } else {
-          summaryText = (field.required ? '⚠ 必填未配置' : '未配置');
+          summaryText = isStaticField ? '未筛选（使用全部）' : (isRequired ? '⚠ 必填未配置' : '未配置');
         }
-        var summaryStyle = (isUnconfigured && field.required)
+        var summaryStyle = (isUnconfigured && isRequired && !isStaticField)
           ? 'font-size:12px;color:#ff4d4f;'
           : (isUnconfigured ? 'font-size:12px;color:#bfbfbf;' : 'font-size:12px;color:#595959;');
         html += '<div style="display:flex;align-items:center;gap:6px;">';
         html += '<span style="' + summaryStyle + '">' + summaryText + '</span>';
-        html += '<button class="ant-btn ant-btn-sm dept-tpl-select-settings-btn" data-key="' + esc(key) + '" style="padding:0 8px;height:22px;font-size:11px;flex-shrink:0;">&#9881; 配置</button>';
+        var configBtnLabel = isStaticField ? '&#9881; 筛选' : '&#9881; 配置';
+        html += '<button class="ant-btn ant-btn-sm dept-tpl-select-settings-btn" data-key="' + esc(key) + '" style="padding:0 8px;height:22px;font-size:11px;flex-shrink:0;">' + configBtnLabel + '</button>';
         html += '</div>';
       } else if (field.type === 'string') {
         var regexVal = override.regex || '';
-        var strDefault = override.defaultValue || '';
-        html += '<div style="display:flex;flex-direction:column;gap:4px;">';
-        html += '<input class="ant-input dept-tpl-string-regex" data-key="' + esc(key) + '" value="' + esc(regexVal) + '" placeholder="正则校验（留空不限制）" style="height:26px;font-size:12px;max-width:240px;font-family:monospace;" />';
-        html += '<input class="ant-input dept-tpl-field-default" data-key="' + esc(key) + '" value="' + esc(strDefault) + '" placeholder="默认值（选填）" style="height:26px;font-size:12px;max-width:240px;" />';
-        html += '</div>';
+        html += '<input class="ant-input dept-tpl-string-regex" data-key="' + esc(key) + '" value="' + esc(regexVal) + '" placeholder="正则校验（留空不限制）" style="height:22px;font-size:11px;font-family:monospace;width:100%;" />';
       } else if (field.type === 'number') {
         var deptMin = override.deptMin !== undefined ? override.deptMin : '';
         var deptMax = override.deptMax !== undefined ? override.deptMax : '';
-        var deptDecimals = override.deptDecimals !== undefined ? override.deptDecimals : '';
-        var numDefault = override.defaultValue !== undefined ? override.defaultValue : '';
-        html += '<div style="font-size:12px;">';
-        html += '<div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;margin-bottom:4px;">';
-        html += '下限: <input class="ant-input dept-tpl-num-min" data-key="' + esc(key) + '" type="number" value="' + esc(deptMin) + '" placeholder="' + (field.min != null ? field.min : '无') + '" style="height:26px;width:60px;font-size:12px;" />';
-        html += '上限: <input class="ant-input dept-tpl-num-max" data-key="' + esc(key) + '" type="number" value="' + esc(deptMax) + '" placeholder="' + (field.max != null ? field.max : '无') + '" style="height:26px;width:60px;font-size:12px;" />';
-        html += '小数位: <input class="ant-input dept-tpl-num-decimals" data-key="' + esc(key) + '" type="number" value="' + esc(deptDecimals) + '" placeholder="' + (field.decimals != null ? field.decimals : '0') + '" min="0" max="10" style="height:26px;width:50px;font-size:12px;" />';
+        html += '<div style="display:flex;align-items:center;gap:4px;font-size:11px;">';
+        html += '<span style="color:#888;">下限:</span><input class="ant-input dept-tpl-num-min" data-key="' + esc(key) + '" type="number" value="' + esc(deptMin) + '" placeholder="' + (field.min != null ? field.min : '无') + '" style="height:22px;width:56px;font-size:11px;" />';
+        html += '<span style="color:#888;">上限:</span><input class="ant-input dept-tpl-num-max" data-key="' + esc(key) + '" type="number" value="' + esc(deptMax) + '" placeholder="' + (field.max != null ? field.max : '无') + '" style="height:22px;width:56px;font-size:11px;" />';
         html += '</div>';
-        html += '<div style="display:flex;align-items:center;gap:4px;">';
-        html += '默认值: <input class="ant-input dept-tpl-num-default" data-key="' + esc(key) + '" type="number" value="' + esc(numDefault) + '" placeholder="不填则无默认" style="height:26px;width:100px;font-size:12px;" />';
-        html += '</div>';
-        html += '</div>';
-      } else if (field.type === 'textarea') {
-        var defVal = override.defaultValue || '';
-        html += '<input class="ant-input dept-tpl-field-default" data-key="' + esc(key) + '" value="' + esc(defVal) + '" placeholder="默认值" style="height:28px;font-size:12px;max-width:240px;" />';
       } else {
-        var defVal = override.defaultValue || '';
-        html += '<input class="ant-input dept-tpl-field-default" data-key="' + esc(key) + '" value="' + esc(defVal) + '" placeholder="默认值" style="height:28px;font-size:12px;max-width:240px;" />';
+        html += '<span style="color:#bfbfbf;font-size:11px;">—</span>';
       }
-      html += '</td>';
-      // 平台原始值
-      html += '<td style="font-size:11px;color:#999;">';
-      if (field.type === 'select') {
-        var refOpts = (field.referenceOptions || '').split(',').filter(Boolean).map(function (o) {
-          var eq = o.indexOf('='); return eq > 0 ? o.slice(0, eq).trim() : o.trim();
-        });
-        html += refOpts.length ? ('参考: ' + esc(refOpts.join(', '))) : '<span style="color:#bfbfbf;">无参考选项</span>';
-      }
-      else if (field.type === 'number') html += 'min:' + (field.min != null ? field.min : '--') + ' max:' + (field.max != null ? field.max : '--');
-      else if (field.type === 'fixed') html += esc(field.fixedValue || '');
-      else html += '--';
       html += '</td>';
       html += '</tr>';
     });
@@ -354,6 +428,80 @@ function renderDeptTemplateEdit(container, cfg, tplIdx) {
     };
   });
 
+  // 绑定 平台默认规范「查看」按钮（接口数据结构）
+  container.querySelectorAll('.dept-tpl-view-api-btn').forEach(function (btn) {
+    btn.onclick = function () {
+      var key = btn.getAttribute('data-key');
+      var fieldParam = btn.getAttribute('data-field');
+      var parts = key.split('|');
+      var gIdxV = parseInt(parts[0]);
+      var pGroupV = platformTpl.fieldGroups[gIdxV];
+      var pFieldV = pGroupV && pGroupV.fields.find(function (f) { return f.param === fieldParam; });
+      if (!pFieldV) return;
+      showFieldApiInfoModal(fieldParam, pFieldV.name, pFieldV.referenceOptions || '');
+    };
+  });
+
+  // 绑定 平台默认规范「查看」按钮（固定选项）
+  container.querySelectorAll('.dept-tpl-view-static-btn').forEach(function (btn) {
+    btn.onclick = function () {
+      var key = btn.getAttribute('data-key');
+      var fieldParam = btn.getAttribute('data-field');
+      var parts = key.split('|');
+      var gIdxS = parseInt(parts[0]);
+      var pGroupS = platformTpl.fieldGroups[gIdxS];
+      var pFieldS = pGroupS && pGroupS.fields.find(function (f) { return f.param === fieldParam; });
+      if (!pFieldS) return;
+      showStaticOptionsModal(fieldParam, pFieldS.name, pFieldS.options || '');
+    };
+  });
+
+  // 动态联动：切换「是否可见」时实时更新行样式和传参值状态
+  container.querySelectorAll('.dept-tpl-field-show').forEach(function (toggle) {
+    toggle.onchange = function () {
+      var key = toggle.getAttribute('data-key');
+      var parts = key.split('|');
+      var gIdx = parseInt(parts[0]);
+      var param = parts[1];
+      var pGroup = platformTpl.fieldGroups[gIdx];
+      var field = pGroup && pGroup.fields.find(function (f) { return f.param === param; });
+      var isRequired = !!(field && field.required);
+      var show = toggle.checked;
+      var hiddenRequired = isRequired && !show;
+      var row = toggle.closest('tr');
+      if (!row) return;
+
+      // 行背景
+      if (hiddenRequired) {
+        row.style.background = '#fff7e6'; row.style.opacity = '';
+      } else if (!show) {
+        row.style.background = '#fafafa'; row.style.opacity = '0.6';
+      } else {
+        row.style.background = ''; row.style.opacity = '';
+      }
+
+      // 警告提示
+      var warning = row.querySelector('.dept-tpl-hidden-req-warning');
+      if (warning) warning.style.display = hiddenRequired ? '' : 'none';
+
+      // 默认值输入框
+      ['.dept-tpl-select-default', '.dept-tpl-field-default', '.dept-tpl-num-default'].forEach(function (sel) {
+        var inp = row.querySelector(sel);
+        if (inp) {
+          inp.style.borderColor = hiddenRequired ? '#faad14' : '';
+          inp.placeholder = hiddenRequired ? '必填' : '选填';
+        }
+      });
+
+      // 部门配置列：不可见时禁用额外配置
+      var extraCell = row.querySelector('.dept-cfg-extra-cell');
+      if (extraCell) {
+        extraCell.style.opacity = (!show) ? '0.4' : '';
+        extraCell.style.pointerEvents = (!show) ? 'none' : '';
+      }
+    };
+  });
+
   // 返回
   container.querySelectorAll('.dept-tpl-back-btn').forEach(function (btn) {
     btn.onclick = function () {
@@ -382,6 +530,12 @@ function renderDeptTemplateEdit(container, cfg, tplIdx) {
         if (!overrides[key]) overrides[key] = {};
         overrides[key].show = cb.checked;
       });
+      // 收集 select 传参值（隐藏必填时的默认传参值）
+      container.querySelectorAll('.dept-tpl-select-default').forEach(function (input) {
+        var key = input.getAttribute('data-key');
+        if (!overrides[key]) overrides[key] = {};
+        if (input.value.trim()) overrides[key].defaultValue = input.value.trim();
+      });
       // 收集 select 配置（已由 showDeptFieldSettingsModal 直接写入 deptTpl.fieldOverrides，
       // 这里只需把它们合并进本次 overrides，防止与其他字段的收集冲突）
       (platformTpl.fieldGroups || []).forEach(function (g, gi) {
@@ -394,6 +548,7 @@ function renderDeptTemplateEdit(container, cfg, tplIdx) {
             if (saved.options !== undefined) overrides[k].options = saved.options;
             if (saved.cascadeFrom !== undefined) overrides[k].cascadeFrom = saved.cascadeFrom;
             if (saved.cascadeData !== undefined) overrides[k].cascadeData = saved.cascadeData;
+            if (saved.defaultValue !== undefined && !overrides[k].defaultValue) overrides[k].defaultValue = saved.defaultValue;
           }
         });
       });
@@ -420,11 +575,6 @@ function renderDeptTemplateEdit(container, cfg, tplIdx) {
         if (!overrides[key]) overrides[key] = {};
         overrides[key].deptMax = input.value.trim() !== '' ? parseFloat(input.value) : undefined;
       });
-      container.querySelectorAll('.dept-tpl-num-decimals').forEach(function (input) {
-        var key = input.getAttribute('data-key');
-        if (!overrides[key]) overrides[key] = {};
-        overrides[key].deptDecimals = input.value.trim() !== '' ? parseInt(input.value) : undefined;
-      });
       container.querySelectorAll('.dept-tpl-num-default').forEach(function (input) {
         var key = input.getAttribute('data-key');
         if (!overrides[key]) overrides[key] = {};
@@ -435,6 +585,12 @@ function renderDeptTemplateEdit(container, cfg, tplIdx) {
         var key = input.getAttribute('data-key');
         if (!overrides[key]) overrides[key] = {};
         overrides[key].defaultValue = input.value.trim();
+      });
+      // 收集 boolean 默认值
+      container.querySelectorAll('.dept-tpl-bool-default').forEach(function (sel) {
+        var key = sel.getAttribute('data-key');
+        if (!overrides[key]) overrides[key] = {};
+        if (sel.value) overrides[key].defaultValue = sel.value;
       });
       // 验证: 必填字段不展示时必须给默认值
       (platformTpl.fieldGroups || []).forEach(function (group, gIdx) {
@@ -454,7 +610,7 @@ function renderDeptTemplateEdit(container, cfg, tplIdx) {
       var hasCustom = false;
       Object.keys(overrides).forEach(function (k) {
         var o = overrides[k];
-        if (o.show === false || o.defaultValue || o.fixedValue || o.options || o.cascadeFrom || o.regex || o.deptMin !== undefined || o.deptMax !== undefined || o.deptDecimals !== undefined) hasCustom = true;
+        if (o.show === false || o.defaultValue || o.fixedValue || o.options || o.cascadeFrom || o.regex || o.deptMin !== undefined || o.deptMax !== undefined) hasCustom = true;
       });
       deptTpl.customized = hasCustom;
       state.deptConfig._editingTplIdx = null;
@@ -466,6 +622,10 @@ function renderDeptTemplateEdit(container, cfg, tplIdx) {
 
 // 部门级 select 字段设置弹窗
 function showDeptFieldSettingsModal(platformField, platformGroup, key, override, onSave) {
+  if (!platformField.referenceOptions && !!platformField.options) {
+    showStaticSelectSettingsModal(platformField, key, override, onSave);
+    return;
+  }
   var otherSelects = platformGroup.fields.filter(function (f) {
     return f !== platformField && f.type === 'select' && f.param;
   });
@@ -799,6 +959,141 @@ function showDeptFieldSettingsModal(platformField, platformGroup, key, override,
     hideModal();
     onSave();
   };
+}
+
+// 固定选项子集筛选弹窗（部门配置 ⚙ 筛选按钮）
+function showStaticSelectSettingsModal(platformField, key, override, onSave) {
+  var staticOpts = (platformField.options || '').split(',').filter(Boolean).map(function (o) {
+    o = o.trim(); var eq = o.indexOf('=');
+    return eq > 0 ? { label: o.slice(0, eq).trim(), value: o.slice(eq + 1).trim(), raw: o } : { label: o, value: o, raw: o };
+  }).filter(function (o) { return o.label; });
+
+  var savedRaws = (override.options || '').split(',').filter(Boolean).map(function (s) { return s.trim(); });
+  var allSelected = savedRaws.length === 0;
+
+  var html = '<div class="ant-modal-overlay" style="display:flex;">';
+  html += '<div class="ant-modal" style="width:500px;max-height:88vh;overflow-y:auto;">';
+  html += '<div class="ant-modal-header">字段选项筛选';
+  html += '<span style="font-size:13px;color:var(--text-secondary);margin-left:8px;">· ' + esc(platformField.name) + '</span>';
+  html += '<button class="ant-modal-close" onclick="hideModal()">&times;</button></div>';
+  html += '<div class="ant-modal-body">';
+  html += '<div style="background:#fffbe6;border:1px solid #ffe58f;border-radius:4px;padding:8px 12px;margin-bottom:12px;font-size:12px;color:#876800;">';
+  html += '只能从平台固定选项中删减，不可添加或修改选项名称和值。';
+  html += '</div>';
+  html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">';
+  html += '<span style="font-size:13px;font-weight:500;">选项列表</span>';
+  html += '<div style="display:flex;gap:12px;">';
+  html += '<a id="dfset-static-select-all" style="font-size:12px;color:#1890ff;cursor:pointer;">全选</a>';
+  html += '<a id="dfset-static-deselect-all" style="font-size:12px;color:#1890ff;cursor:pointer;">全不选</a>';
+  html += '</div></div>';
+  html += '<div id="dfset-static-opts-list" style="border:1px solid #f0f0f0;border-radius:4px;overflow:hidden;">';
+  staticOpts.forEach(function (opt, i) {
+    var checked = allSelected || savedRaws.some(function (r) {
+      var eq = r.indexOf('='); var rv = eq > 0 ? r.slice(eq + 1).trim() : r;
+      return rv === opt.value || r === opt.raw;
+    });
+    html += '<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;' + (i < staticOpts.length - 1 ? 'border-bottom:1px solid #f0f0f0;' : '') + '">';
+    html += '<input type="checkbox" class="dfset-static-opt-cb" data-raw="' + esc(opt.raw) + '"' + (checked ? ' checked' : '') + ' style="width:14px;height:14px;cursor:pointer;accent-color:var(--primary-color);" />';
+    html += '<span style="flex:1;font-size:13px;">' + esc(opt.label) + '</span>';
+    html += '<code style="font-size:11px;color:#722ed1;background:#f9f0ff;border-radius:3px;padding:1px 5px;">' + esc(opt.value) + '</code>';
+    html += '</div>';
+  });
+  html += '</div>';
+  html += '</div>';
+  html += '<div class="ant-modal-footer">';
+  html += '<button class="ant-btn" onclick="hideModal()">取消</button>';
+  html += '<button class="ant-btn ant-btn-primary" id="dfset-static-save-btn">保存</button>';
+  html += '</div></div></div>';
+
+  var mc = document.getElementById('modal-container');
+  mc.innerHTML = html;
+  var overlay = mc.querySelector('.ant-modal-overlay');
+  if (overlay) overlay.onclick = function (e) { if (e.target === overlay) hideModal(); };
+
+  document.getElementById('dfset-static-select-all').onclick = function () {
+    mc.querySelectorAll('.dfset-static-opt-cb').forEach(function (cb) { cb.checked = true; });
+  };
+  document.getElementById('dfset-static-deselect-all').onclick = function () {
+    mc.querySelectorAll('.dfset-static-opt-cb').forEach(function (cb) { cb.checked = false; });
+  };
+
+  document.getElementById('dfset-static-save-btn').onclick = function () {
+    var checkedRaws = [];
+    mc.querySelectorAll('.dfset-static-opt-cb').forEach(function (cb) {
+      if (cb.checked) checkedRaws.push(cb.getAttribute('data-raw'));
+    });
+    if (checkedRaws.length === 0) { showMessage('至少需要保留一个选项', 'warning'); return; }
+    override.options = (checkedRaws.length === staticOpts.length) ? '' : checkedRaws.join(',');
+    hideModal();
+    onSave();
+  };
+}
+
+// 查看固定选项弹窗（平台默认规范「查看」按钮）
+function showStaticOptionsModal(fieldParam, fieldName, optionsStr) {
+  var opts = (optionsStr || '').split(',').filter(Boolean).map(function (o) {
+    o = o.trim(); var eq = o.indexOf('=');
+    return eq > 0 ? { label: o.slice(0, eq).trim(), value: o.slice(eq + 1).trim() } : { label: o, value: o };
+  }).filter(function (o) { return o.label; });
+
+  var html = '<div class="ant-modal-overlay" style="display:flex;">';
+  html += '<div class="ant-modal" style="width:420px;max-height:80vh;overflow-y:auto;">';
+  html += '<div class="ant-modal-header">固定选项';
+  html += '<span style="font-size:12px;color:var(--text-secondary);font-weight:normal;margin-left:8px;">· ' + esc(fieldName) + ' (' + esc(fieldParam) + ')</span>';
+  html += '<button class="ant-modal-close" onclick="hideModal()">&times;</button></div>';
+  html += '<div class="ant-modal-body" style="padding:0;">';
+  html += '<table class="ant-table"><thead><tr><th>展示名</th><th>传参值</th></tr></thead><tbody>';
+  if (opts.length === 0) {
+    html += '<tr><td colspan="2" style="text-align:center;color:#bfbfbf;padding:24px;">暂无选项</td></tr>';
+  } else {
+    opts.forEach(function (o) {
+      html += '<tr>';
+      html += '<td>' + esc(o.label) + '</td>';
+      html += '<td><code style="font-size:12px;color:#722ed1;">' + esc(o.value) + '</code></td>';
+      html += '</tr>';
+    });
+  }
+  html += '</tbody></table>';
+  html += '</div>';
+  html += '<div class="ant-modal-footer"><button class="ant-btn" onclick="hideModal()">关闭</button></div>';
+  html += '</div></div>';
+
+  var mc = document.getElementById('modal-container');
+  mc.innerHTML = html;
+  var overlay = mc.querySelector('.ant-modal-overlay');
+  if (overlay) overlay.onclick = function (e) { if (e.target === overlay) hideModal(); };
+}
+
+// 查看接口数据结构弹窗（select 字段平台默认规范）
+function showFieldApiInfoModal(fieldParam, fieldName, referenceOptions) {
+  var apiMocks = {
+    'RegionId':        { sample: [{ RegionId: 'cn-beijing', LocalName: '华北2（北京）' }, { RegionId: 'cn-hangzhou', LocalName: '华东1（杭州）' }, { RegionId: 'cn-shanghai', LocalName: '华东2（上海）' }] },
+    'ZoneId':          { sample: [{ ZoneId: 'cn-beijing-b', LocalName: '华北2可用区B' }, { ZoneId: 'cn-beijing-c', LocalName: '华北2可用区C' }] },
+    'InstanceType':    { sample: [{ InstanceTypeId: 'ecs.c7.large', CpuCoreCount: 2, MemorySize: 4, InstanceTypeFamily: 'ecs.c7' }] },
+    'VpcId':           { sample: [{ VpcId: 'vpc-bp1xxxxx', VpcName: 'vpc-prod', CidrBlock: '10.0.0.0/8', Status: 'Available' }] },
+    'VSwitchId':       { sample: [{ VSwitchId: 'vsw-bp1xxxxx', VSwitchName: 'vsw-prod-app', ZoneId: 'cn-beijing-b', CidrBlock: '10.0.1.0/24' }] },
+    'SecurityGroupId': { sample: [{ SecurityGroupId: 'sg-bp1xxxxx', SecurityGroupName: 'sg-web', Description: 'Web 服务安全组' }] },
+    'ImageId':         { sample: [{ ImageId: 'aliyun_3_x64_20G_alibase_20240819.vhd', ImageName: 'Alibaba Cloud Linux 3', OSName: 'Alibaba Cloud Linux  3.2104 LTS 64位' }] }
+  };
+  var mock = apiMocks[fieldParam];
+  var sampleData = mock ? mock.sample : [{}];
+  var jsonStr = JSON.stringify({ RequestId: 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx', TotalCount: sampleData.length, PageSize: 50, PageNumber: 1, Data: sampleData }, null, 2);
+
+  var html = '<div class="ant-modal-overlay" style="display:flex;">';
+  html += '<div class="ant-modal" style="width:660px;max-height:88vh;overflow-y:auto;">';
+  html += '<div class="ant-modal-header">接口数据规范';
+  html += '<span style="font-size:12px;color:var(--text-secondary);font-weight:normal;margin-left:8px;">· ' + esc(fieldName) + ' (' + esc(fieldParam) + ')</span>';
+  html += '<button class="ant-modal-close" onclick="hideModal()">&times;</button></div>';
+  html += '<div class="ant-modal-body">';
+  html += '<pre style="background:#1e2127;color:#abb2bf;padding:14px 16px;border-radius:6px;font-size:12px;line-height:1.6;overflow-x:auto;margin:0;">' + esc(jsonStr) + '</pre>';
+  html += '</div>';
+  html += '<div class="ant-modal-footer"><button class="ant-btn" onclick="hideModal()">关闭</button></div>';
+  html += '</div></div>';
+
+  var mc = document.getElementById('modal-container');
+  mc.innerHTML = html;
+  var overlay = mc.querySelector('.ant-modal-overlay');
+  if (overlay) overlay.onclick = function (e) { if (e.target === overlay) hideModal(); };
 }
 
 function renderDeptApproval(container, cfg, deptId) {

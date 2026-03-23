@@ -243,7 +243,7 @@ function renderResources() {
   var tableContainer = document.getElementById('resource-table-container');
   
   if (tableContainer) {
-    var html = '<table class="ant-table"><thead><tr><th class="check-col"><input type="checkbox" id="resource-select-all" /></th><th>资源名称</th><th>资源类型</th><th>所属组</th><th>所属资源组</th><th>云厂商</th><th>申请人</th><th>我的权限</th><th>状态</th><th>操作</th></tr></thead><tbody>';
+    var html = '<table class="ant-table"><thead><tr><th class="check-col"><input type="checkbox" id="resource-select-all" /></th><th>资源名称</th><th>云厂商</th><th>资源类型</th><th>所属组</th><th>所属资源组</th><th>申请人</th><th>我的权限</th><th>状态</th><th>操作</th></tr></thead><tbody>';
     if (pageData.length === 0) {
       html += '<tr><td colspan="10" style="text-align:center;color:var(--text-secondary);padding:32px;">暂无数据</td></tr>';
     }
@@ -251,9 +251,9 @@ function renderResources() {
     pageData.forEach(function (r) {
       html += '<tr><td class="check-col"><input type="checkbox" class="resource-row-check" /></td>';
       html += '<td><a class="link">' + esc(r.name) + '</a><div style="font-size:12px;color:var(--text-secondary);">' + esc(r.resId) + '</div></td>';
+      html += '<td>' + (r.vendor ? esc(r.vendor) : '--') + '</td>';
       html += '<td><span class="ant-tag ant-tag-' + r.typeColor + '">' + esc(r.type) + '</span></td>';
       html += '<td>' + esc(r.group) + '</td><td>' + esc(r.project) + '</td>';
-      html += '<td>' + (r.vendor ? esc(r.vendor) : '--') + '</td>';
       html += '<td>' + (r.applicant ? esc(r.applicant) : '--') + '</td>';
       html += '<td><span class="ant-tag ant-tag-' + r.permColor + '"' +
         (r.perm === 'master' && (r.type === 'RDS' || r.type === 'Redis' || r.type === 'Kafka' || r.type === 'ES' || r.type === 'PG' || r.type === 'MongoDB') ? ' title="数据库/中间件 master 权限仅组长和部门负责人可持有" style="cursor:help;"' : '') +

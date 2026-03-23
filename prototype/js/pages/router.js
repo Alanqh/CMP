@@ -62,6 +62,57 @@ function hideModal() {
   if (overlay) overlay.style.display = 'none';
 }
 
+// ===== 关联主账号弹窗 步骤切换 =====
+window.bindMainStep = function (step) {
+  var s1 = document.getElementById('bind-step-1');
+  var s2 = document.getElementById('bind-step-2');
+  var btnNext = document.getElementById('bind-btn-next');
+  var btnBack = document.getElementById('bind-btn-back');
+  var btnConfirm = document.getElementById('bind-btn-confirm');
+  var tab1 = document.getElementById('bind-tab-1');
+  var tab2 = document.getElementById('bind-tab-2');
+  var tab2Num = document.getElementById('bind-tab-2-num');
+  var tab1Num = document.getElementById('bind-tab-1-num');
+  if (!s1) return;
+  if (step === 2) {
+    s1.style.display = 'none'; s2.style.display = '';
+    if (btnNext) btnNext.style.display = 'none';
+    if (btnBack) btnBack.style.display = '';
+    if (btnConfirm) btnConfirm.style.display = '';
+    if (tab1) { tab1.style.borderBottomColor = 'transparent'; tab1.style.color = '#8c8c8c'; }
+    if (tab1Num) { tab1Num.style.background = '#52c41a'; tab1Num.innerHTML = '&#10003;'; }
+    if (tab2) { tab2.style.borderBottomColor = '#1890ff'; tab2.style.color = '#1890ff'; }
+    if (tab2Num) { tab2Num.style.background = '#1890ff'; tab2Num.style.color = '#fff'; }
+  } else {
+    s1.style.display = ''; s2.style.display = 'none';
+    if (btnNext) btnNext.style.display = '';
+    if (btnBack) btnBack.style.display = 'none';
+    if (btnConfirm) btnConfirm.style.display = 'none';
+    if (tab1) { tab1.style.borderBottomColor = '#1890ff'; tab1.style.color = '#1890ff'; }
+    if (tab1Num) { tab1Num.style.background = '#1890ff'; tab1Num.innerHTML = '1'; }
+    if (tab2) { tab2.style.borderBottomColor = 'transparent'; tab2.style.color = '#bfbfbf'; }
+    if (tab2Num) { tab2Num.style.background = '#e8e8e8'; tab2Num.style.color = '#999'; }
+  }
+};
+
+window.bindMainCopyPolicy = function () {
+  var el = document.getElementById('bind-policy-json');
+  if (!el) return;
+  var text = el.textContent;
+  var btn = document.getElementById('bind-copy-btn');
+  var done = function () {
+    if (btn) { btn.textContent = '✓ 已复制'; btn.style.color = '#52c41a'; setTimeout(function () { btn.textContent = '复制'; btn.style.color = ''; }, 2000); }
+  };
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(done);
+  } else {
+    var ta = document.createElement('textarea');
+    ta.value = text; ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0;';
+    document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+    done();
+  }
+};
+
 // ===== Tab 切换 =====
 function switchTab(el, showId, hideId) {
   el.parentElement.querySelectorAll('.ant-tabs-tab').forEach(function (t) { t.classList.remove('active'); });
@@ -128,6 +179,7 @@ function bindPageEvents(id) {
   else if (id === 'apply-resource') initApplyResourcePage();
   else if (id === 'review-records') initReviewRecordsPage();
   else if (id === 'resource-detail') initResourceDetailPage();
+  else if (id === 'res-packages') initResPackagesPage();
 }
 
 function bindModalEvents(name) {
@@ -146,8 +198,8 @@ function bindModalEvents(name) {
     };
   }
 
-  // 取消按钮（模态框 footer 和抽屉 footer）
-  container.querySelectorAll('.ant-modal-footer .ant-btn:not(.ant-btn-primary), .ant-drawer-footer .ant-btn:not(.ant-btn-primary)').forEach(function (btn) {
+  // 取消按钮（模态框 footer 和抽屉 footer），data-no-close 的按钮不自动关闭
+  container.querySelectorAll('.ant-modal-footer .ant-btn:not(.ant-btn-primary):not([data-no-close]), .ant-drawer-footer .ant-btn:not(.ant-btn-primary):not([data-no-close])').forEach(function (btn) {
     btn.onclick = function () { hideModal(); };
   });
 
