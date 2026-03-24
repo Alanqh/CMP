@@ -313,17 +313,17 @@ function handleModalSubmit(name) {
         createTime: new Date().toLocaleString('zh-CN').replace(/\//g, '/')
       });
       hideModal();
-      showMessage('创建资源组「' + projName.value.trim() + '」成功', 'success');
-      MockData.auditLogs.unshift({ time: new Date().toLocaleString('zh-CN').replace(/\//g, '/'), operator: '张明远', dept: '基础架构部', opType: '资源组管理', opTypeColor: 'blue', target: projName.value.trim(), desc: '创建资源组', ip: '10.128.0.10' });
+      showMessage('创建项目「' + projName.value.trim() + '」成功', 'success');
+      MockData.auditLogs.unshift({ time: new Date().toLocaleString('zh-CN').replace(/\//g, '/'), operator: '张明远', dept: '基础架构部', opType: '项目管理', opTypeColor: 'blue', target: projName.value.trim(), desc: '创建项目', ip: '10.128.0.10' });
       if (currentPage === 'project') { pageCache.project = null; loadPage('project'); }
     } else {
-      showMessage('请填写资源组名称', 'warning');
+      showMessage('请填写项目名称', 'warning');
     }
   } else if (name === 'resource/apply-resource') {
     var resTypeSelect = document.getElementById('modal-apply-res-type');
     if (!resTypeSelect || !resTypeSelect.value) { showMessage('请选择资源类型', 'warning'); return; }
     var resGroupSelect = document.getElementById('modal-apply-res-group');
-    if (!resGroupSelect || !resGroupSelect.value) { showMessage('请选择所属资源组', 'warning'); return; }
+    if (!resGroupSelect || !resGroupSelect.value) { showMessage('请选择所属项目', 'warning'); return; }
     var selectedTpl = null;
     for (var i = 0; i < MockData.platformTemplates.length; i++) {
       if (MockData.platformTemplates[i].id === resTypeSelect.value) { selectedTpl = MockData.platformTemplates[i]; break; }
@@ -789,7 +789,7 @@ function handleModalSubmit(name) {
     var deptInput = document.getElementById('edit-project-dept');
     var descInput = document.getElementById('edit-project-desc');
     hideModal();
-    showMessage('资源组信息已更新', 'success');
+    showMessage('项目信息已更新', 'success');
     pageCache = {};
     if (currentPage === 'project') loadPage('project');
   } else if (name === 'res-catalog/add-category') {

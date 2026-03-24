@@ -27,7 +27,7 @@ function initResourceDetailPage() {
   html += descRow('资源类型', '<span class="ant-tag ant-tag-' + res.typeColor + '">' + esc(res.type) + '</span>');
   html += descRow('形态', esc(res.shape || '--'));
   html += descRow('所属组', esc(res.group));
-  html += descRow('所属资源组', esc(res.project));
+  html += descRow('所属项目', esc(res.project));
   html += descRow('云厂商', esc(res.vendor || '--'));
   html += descRow('申请人', esc(res.applicant || '--'));
   html += descRow('我的权限', '<span class="ant-tag ant-tag-' + res.permColor + '">' + esc(res.perm) + '</span>');

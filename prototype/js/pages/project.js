@@ -42,7 +42,7 @@ function renderProjects() {
   if (statsContainer) {
     var totalRes = 0; var depts = {};
     MockData.projects.forEach(function (p) { totalRes += p.resourceCount; depts[p.dept] = true; });
-    statsContainer.innerHTML = '<div class="stat-card"><div class="stat-value">' + MockData.projects.length + '</div><div class="stat-label">资源组总数</div></div>' +
+    statsContainer.innerHTML = '<div class="stat-card"><div class="stat-value">' + MockData.projects.length + '</div><div class="stat-label">项目总数</div></div>' +
       '<div class="stat-card"><div class="stat-value">' + totalRes + '</div><div class="stat-label">关联资源总数</div></div>' +
       '<div class="stat-card"><div class="stat-value">' + Object.keys(depts).length + '</div><div class="stat-label">涉及部门数</div></div>';
   }
@@ -50,7 +50,7 @@ function renderProjects() {
   // Table
   var tableContainer = document.getElementById('project-table-container');
   if (!tableContainer) return;
-  var html = '<table class="ant-table"><thead><tr><th>资源组名称</th><th>描述</th><th>所属部门</th><th>创建人</th><th>可查看资源 / 总资源</th><th>创建时间</th><th>操作</th></tr></thead><tbody>';
+  var html = '<table class="ant-table"><thead><tr><th>项目名称</th><th>描述</th><th>所属部门</th><th>创建人</th><th>可查看资源 / 总资源</th><th>创建时间</th><th>操作</th></tr></thead><tbody>';
   if (data.length === 0) {
     html += '<tr><td colspan="7" style="text-align:center;color:var(--text-secondary);padding:32px;">暂无数据</td></tr>';
   }
@@ -92,10 +92,10 @@ function renderProjects() {
       var totalCount = proj.resourceCount;
       loadAndShowModal('project/view-project', function () {
         var titleEl = document.getElementById('project-detail-title');
-        if (titleEl) titleEl.textContent = '资源组详情 - ' + projName;
+        if (titleEl) titleEl.textContent = '项目详情 - ' + projName;
         var bodyEl = document.getElementById('project-detail-body');
         if (bodyEl) bodyEl.innerHTML =
-          '<div class="ant-descriptions-row"><div class="ant-descriptions-label">资源组名称</div><div class="ant-descriptions-content">' + esc(proj.name) + '</div></div>' +
+          '<div class="ant-descriptions-row"><div class="ant-descriptions-label">项目名称</div><div class="ant-descriptions-content">' + esc(proj.name) + '</div></div>' +
           '<div class="ant-descriptions-row"><div class="ant-descriptions-label">所属部门</div><div class="ant-descriptions-content">' + esc(proj.dept) + '</div></div>' +
           '<div class="ant-descriptions-row"><div class="ant-descriptions-label">资源总数</div><div class="ant-descriptions-content">' + totalCount + ' 个（含您无权限查看的资源）</div></div>';
         var headerEl = document.getElementById('project-res-header');
@@ -106,7 +106,7 @@ function renderProjects() {
         var resBodyEl = document.getElementById('project-res-body');
         if (!resBodyEl) return;
         if (projRes.length === 0) {
-          resBodyEl.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-secondary);">您在该资源组下暂无可查看的资源</div>';
+          resBodyEl.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-secondary);">您在该项目下暂无可查看的资源</div>';
         } else {
           var resHtml = '<table class="ant-table"><thead><tr><th>资源名称</th><th>资源ID</th><th>类型</th><th>所属组</th><th>状态</th><th>我的权限</th></tr></thead><tbody>';
           projRes.forEach(function (r) {
@@ -158,16 +158,16 @@ function renderProjects() {
         var msgEl = document.getElementById('project-delete-msg');
         var extraEl = document.getElementById('project-delete-extra');
         var okBtn = document.getElementById('project-delete-ok');
-        if (msgEl) msgEl.textContent = '确定要删除资源组「' + projName + '」吗？';
+        if (msgEl) msgEl.textContent = '确定要删除项目「' + projName + '」吗？';
         if (extraEl) extraEl.textContent = resCount > 0
-          ? '该资源组下仍有 ' + resCount + ' 个可见资源，删除后这些资源将解除资源组绑定。此操作不可撤销。'
+          ? '该项目下仍有 ' + resCount + ' 个可见资源，删除后这些资源将解除项目绑定。此操作不可撤销。'
           : '此操作不可撤销。';
         if (okBtn) {
           okBtn.onclick = function () {
             MockData.projects = MockData.projects.filter(function (p) { return p.name !== projName; });
-            MockData.auditLogs.unshift({ time: new Date().toLocaleString('zh-CN').replace(/\//g, '/'), operator: '张明远', dept: '基础架构部', opType: '资源组管理', opTypeColor: 'purple', target: projName, desc: '删除资源组', ip: '10.128.0.10' });
+            MockData.auditLogs.unshift({ time: new Date().toLocaleString('zh-CN').replace(/\//g, '/'), operator: '张明远', dept: '基础架构部', opType: '项目管理', opTypeColor: 'purple', target: projName, desc: '删除项目', ip: '10.128.0.10' });
             hideModal();
-            showMessage('资源组「' + projName + '」已删除', 'success');
+            showMessage('项目「' + projName + '」已删除', 'success');
             pageCache = {};
             renderProjects();
           };

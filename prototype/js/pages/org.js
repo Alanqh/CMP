@@ -89,9 +89,9 @@ function renderOrgDetail(org) {
       projsHtml = projs.map(function (p) { return '<span class="ant-tag ant-tag-cyan">' + esc(p) + '</span>'; }).join(' ');
     } else {
       projsHtml = projs.slice(0, 2).map(function (p) { return '<span class="ant-tag ant-tag-cyan">' + esc(p) + '</span>'; }).join(' ');
-      projsHtml += ' <span class="org-overflow-trigger" data-overflow-type="projects" data-org-id="' + org.id + '">等 ' + projs.length + ' 个<span class="org-overflow-popover"><span class="org-overflow-popover-title">全部关联资源组（' + projs.length + '）</span>' + projs.map(function (p) { return '<span class="ant-tag ant-tag-cyan">' + esc(p) + '</span>'; }).join('') + '</span></span>';
+      projsHtml += ' <span class="org-overflow-trigger" data-overflow-type="projects" data-org-id="' + org.id + '">等 ' + projs.length + ' 个<span class="org-overflow-popover"><span class="org-overflow-popover-title">全部关联项目（' + projs.length + '）</span>' + projs.map(function (p) { return '<span class="ant-tag ant-tag-cyan">' + esc(p) + '</span>'; }).join('') + '</span></span>';
     }
-    html += '<div class="ant-descriptions-row"><div class="ant-descriptions-label">关联资源组</div><div class="ant-descriptions-content">' + projsHtml + '</div></div>';
+    html += '<div class="ant-descriptions-row"><div class="ant-descriptions-label">关联项目</div><div class="ant-descriptions-content">' + projsHtml + '</div></div>';
   }
   html += '</div></div></div>';
   return html;

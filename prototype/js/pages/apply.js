@@ -13,7 +13,7 @@ function initApplyResourcePage() {
   var cancelBtn = document.getElementById('btn-cancel-apply-res');
   if (cancelBtn) cancelBtn.onclick = function () { loadPage('resource'); };
 
-  // 填充资源组下拉
+  // 填充项目下拉
   var resGroupSel = document.getElementById('page-apply-res-group');
   if (resGroupSel) {
     MockData.projects.forEach(function (p) {
@@ -281,7 +281,7 @@ function initApplyResourcePage() {
   if (submitBtn) submitBtn.onclick = function () {
     if (!selectedVendor) { showMessage('请选择云厂商', 'warning'); return; }
     if (!selectedType) { showMessage('请选择资源类型', 'warning'); return; }
-    if (!resGroupSel || !resGroupSel.value) { showMessage('请选择所属资源组', 'warning'); return; }
+    if (!resGroupSel || !resGroupSel.value) { showMessage('请选择所属项目', 'warning'); return; }
     var tpl = null;
     for (var i = 0; i < MockData.platformTemplates.length; i++) {
       if (MockData.platformTemplates[i].id === selectedType) { tpl = MockData.platformTemplates[i]; break; }
@@ -313,7 +313,7 @@ function initApplyResourceModal() {
   var pricingContainer = document.getElementById('modal-apply-pricing');
   if (!sel || !formContainer) return;
 
-  // 填充资源组下拉
+  // 填充项目下拉
   var resGroupSel = document.getElementById('modal-apply-res-group');
   if (resGroupSel) {
     MockData.projects.forEach(function (p) {
