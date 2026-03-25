@@ -614,3 +614,43 @@ a:hover, .link:hover { color: var(--primary-hover); }
   margin-bottom: 8px;
 }
 .catalog-child-edit-row .ant-checkbox-group { font-size: 13px; }
+
+/* ===== 分配角色 - 多选列表 ===== */
+.assign-role-checklist {
+  max-height: 280px;
+  overflow-y: auto;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background: #fff;
+}
+.assign-role-item {
+  display: flex;
+  align-items: center;
+  padding: 9px 12px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border-color);
+  transition: background 0.15s;
+  gap: 0;
+}
+.assign-role-item:last-child { border-bottom: none; }
+.assign-role-item:hover { background: #f5f5f5; }
+.assign-role-item.is-checked { background: #e6f7ff; }
+.assign-role-item-name { font-weight: 500; color: var(--text-color); white-space: nowrap; }
+.assign-role-item-scope {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-secondary);
+  font-size: 12px;
+  margin-left: 8px;
+}
+.assign-role-footer {
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--text-color);
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  flex-wrap: wrap;
+}

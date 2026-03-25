@@ -107,9 +107,9 @@ function renderUsers() {
   var tableContainer = document.getElementById('user-table-container');
   if (!tableContainer) return;
 
-  var html = '<table class="ant-table"><thead><tr><th>姓名</th><th>邮箱</th><th>手机号</th><th>所属部门</th><th>角色</th><th>创建时间</th><th>最后登录</th><th>操作</th></tr></thead><tbody>';
+  var html = '<table class="ant-table"><thead><tr><th>姓名</th><th>邮箱</th><th>所属部门</th><th>角色</th><th>创建时间</th><th>最后登录</th><th>操作</th></tr></thead><tbody>';
   if (pageData.length === 0) {
-    html += '<tr><td colspan="8" style="text-align:center;color:var(--text-secondary);padding:32px;">暂无数据</td></tr>';
+    html += '<tr><td colspan="7" style="text-align:center;color:var(--text-secondary);padding:32px;">暂无数据</td></tr>';
   }
   for (var i = 0; i < pageData.length; i++) {
     var m = pageData[i];
@@ -122,13 +122,16 @@ function renderUsers() {
     });
     html += '<tr><td>' + esc(m.name) + '</td>';
     html += '<td>' + esc(email(m.username)) + '</td>';
-    html += '<td>' + esc(u.phone || '--') + '</td>';
     html += '<td>' + (dept === '未分配' ? '<span class="ant-tag ant-tag-orange">未分配</span>' : esc(dept)) + '</td>';
     html += '<td>';
-    if (userRoles.length > 0) {
+    if (userRoles.length === 0) {
+      html += '<span style="color:var(--text-secondary);">--</span>';
+    } else if (userRoles.length <= 2) {
       userRoles.forEach(function (rn) { html += '<span class="ant-tag ant-tag-blue" style="margin-right:4px;">' + esc(rn) + '</span>'; });
     } else {
-      html += '<span style="color:var(--text-secondary);">--</span>';
+      html += '<span class="ant-tag ant-tag-blue" style="margin-right:4px;">' + esc(userRoles[0]) + '</span>';
+      html += '<span class="ant-tag ant-tag-blue" style="margin-right:4px;">' + esc(userRoles[1]) + '</span>';
+      html += '<span class="ant-tag ant-tag-default role-overflow-tag" style="cursor:default;" title="' + esc(userRoles.slice(2).join('、')) + '">+' + (userRoles.length - 2) + '</span>';
     }
     html += '</td>';
     html += '<td>' + esc(u.createTime || m.joinDate) + '</td>';
@@ -178,12 +181,86 @@ function bindUserActions() {
       loadAndShowModal('user/assign-role', function () {
         var nameEl = document.getElementById('assign-role-user-name');
         if (nameEl && member) nameEl.textContent = member.name + ' (' + email(member.username) + ')';
-        var sel = document.getElementById('assign-role-select');
-        if (sel) {
-          sel.innerHTML = '<option value="">请选择角色...</option>';
-          MockData.roles.filter(function (r) { return !r.superOnly; }).forEach(function (r) {
-            sel.innerHTML += '<option value="' + esc(r.name) + '">' + esc(r.name) + ' - ' + esc(r.scope) + '</option>';
+
+        // 获取该用户当前已有角色
+        var currentRoles = {};
+        MockData.roles.forEach(function (r) {
+          if (r.users) r.users.forEach(function (ru) {
+            if (ru.username === username) currentRoles[r.name] = true;
           });
+        });
+
+        function renderRoleList(keyword) {
+          var listEl = document.getElementById('assign-role-list');
+          if (!listEl) return;
+          var roles = MockData.roles.filter(function (r) {
+            if (r.superOnly) return false;
+            if (keyword) return r.name.indexOf(keyword) !== -1;
+            return true;
+          });
+          if (roles.length === 0) {
+            listEl.innerHTML = '<div style="text-align:center;color:var(--text-secondary);padding:24px 0;">暂无匹配角色</div>';
+            return;
+          }
+          var html = '';
+          roles.forEach(function (r) {
+            var checked = currentRoles[r.name] ? ' checked' : '';
+            var typeClass = r.typeColor === 'red' ? 'ant-tag-red' : r.typeColor === 'orange' ? 'ant-tag-orange' : 'ant-tag-blue';
+            html += '<label class="assign-role-item' + (currentRoles[r.name] ? ' is-checked' : '') + '">';
+            html += '<input type="checkbox" name="assign-role-cb" value="' + esc(r.name) + '"' + checked + ' style="margin-right:8px;accent-color:var(--primary-color);">';
+            html += '<span class="assign-role-item-name">' + esc(r.name) + '</span>';
+            html += '<span class="ant-tag ' + typeClass + '" style="margin-left:6px;flex-shrink:0;">' + esc(r.type) + '</span>';
+            html += '<span class="assign-role-item-scope">' + esc(r.scope) + '</span>';
+            html += '</label>';
+          });
+          listEl.innerHTML = html;
+          // 绑定 checkbox 变化更新计数
+          listEl.querySelectorAll('input[type="checkbox"]').forEach(function (cb) {
+            cb.onchange = function () {
+              if (cb.checked) currentRoles[cb.value] = true;
+              else delete currentRoles[cb.value];
+              var countEl = document.getElementById('assign-role-count');
+              if (countEl) countEl.textContent = Object.keys(currentRoles).length;
+              // 更新 label 样式
+              cb.closest('label').classList.toggle('is-checked', cb.checked);
+            };
+          });
+        }
+
+        // 初始化计数
+        var countEl = document.getElementById('assign-role-count');
+        if (countEl) countEl.textContent = Object.keys(currentRoles).length;
+
+        // 搜索
+        var searchEl = document.getElementById('assign-role-search');
+        if (searchEl) {
+          searchEl.value = '';
+          searchEl.oninput = function () { renderRoleList(searchEl.value.trim()); };
+        }
+        renderRoleList('');
+
+        // 确定按钮：同步更新 MockData.roles
+        var confirmBtn = document.getElementById('assign-role-confirm-btn');
+        if (confirmBtn) {
+          confirmBtn.onclick = function () {
+            // 从所有角色中移除该用户
+            MockData.roles.forEach(function (r) {
+              if (r.users) r.users = r.users.filter(function (ru) { return ru.username !== username; });
+            });
+            // 将用户添加到选中的角色
+            var dept = getMemberDept(member);
+            MockData.roles.forEach(function (r) {
+              if (currentRoles[r.name]) {
+                if (!r.users) r.users = [];
+                r.users.push({ name: member.name, username: username, dept: dept });
+                r.userCount = r.users.length;
+              }
+            });
+            // 关闭弹窗并刷新
+            var overlay = confirmBtn.closest('.ant-modal-overlay');
+            if (overlay) overlay.style.display = 'none';
+            renderUsers();
+          };
         }
       });
     };
