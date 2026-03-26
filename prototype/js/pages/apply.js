@@ -486,7 +486,18 @@ function initApplyRecordsPage() {
 
 function renderApplyRecords() {
   var s = state.applyRecords;
+  var ctx = getRoleContext();
   var filtered = MockData.applicationRecords.filter(function (r) {
+    // 数据权限：普通成员只看自己，组长看本组，部门负责人看本部门，超管看全部
+    if (currentRole === 'member') {
+      if (r.applicant !== ctx.name) return false;
+    } else if (currentRole === 'group_leader1') {
+      if (r.applicantGroup !== '容器平台组') return false;
+    } else if (currentRole === 'group_leader2') {
+      if (r.applicantGroup !== 'K8s运维小组') return false;
+    } else if (currentRole === 'dept_head') {
+      if (r.applicantDept !== ctx.deptName) return false;
+    }
     if (s.keyword) {
       var kw = s.keyword.toLowerCase();
       if (r.id.toLowerCase().indexOf(kw) === -1 && r.title.toLowerCase().indexOf(kw) === -1) return false;
@@ -547,14 +558,25 @@ function initReviewRecordsPage() {
 }
 
 function getReviewRecords() {
-  // 获取当前用户（admin）需要审核或已审核的记录
-  var currentUser = 'admin'; // 模拟当前用户
-  var reviewerNames = ['张明远', '李思远', '刘佳琪', '周文博']; // admin 可能对应的审核人身份
+  // 根据当前角色确定审核人身份
+  var ctx = getRoleContext();
+  var reviewerNames;
+  if (currentRole === 'superadmin') {
+    reviewerNames = ['张明远', '李思远', '刘佳琪', '周文博']; // 超管可代理所有审核人
+  } else if (currentRole === 'dept_head') {
+    reviewerNames = [ctx.name]; // 部门负责人节点
+  } else if (currentRole === 'group_leader1') {
+    reviewerNames = [ctx.name]; // 直属领导节点（容器平台组长）
+  } else if (currentRole === 'group_leader2') {
+    reviewerNames = [ctx.name]; // 直属领导节点（K8s组长）
+  } else {
+    reviewerNames = [];
+  }
   var results = [];
   MockData.applicationRecords.forEach(function (r) {
     var isReviewer = false;
     var currentNode = '';
-    var myStatus = ''; // pending | done | rejected
+    var myStatus = '';
     for (var i = 0; i < r.flowNodes.length; i++) {
       var node = r.flowNodes[i];
       if (node.role === '申请人') continue;
@@ -565,7 +587,6 @@ function getReviewRecords() {
         else if (node.status === 'rejected') { myStatus = 'rejected'; }
       }
     }
-    // 找当前节点
     for (var j = 0; j < r.flowNodes.length; j++) {
       if (r.flowNodes[j].status === 'pending') { currentNode = r.flowNodes[j].role + '（' + r.flowNodes[j].name + '）'; break; }
     }

@@ -5,11 +5,21 @@
 // 工单管理页
 // =============================================
 function initTicketPage() {
+  // 角色数据范围：计算当前角色可见的工单
+  var ctx = getRoleContext();
+  var visibleTickets = MockData.tickets.filter(function (t) {
+    if (currentRole === 'member') return t.applicant === ctx.name;
+    // 组长只看自己创建的工单和被指派给自己处理的工单
+    if (currentRole === 'group_leader1' || currentRole === 'group_leader2') return t.applicant === ctx.name || t.handler === ctx.name;
+    if (currentRole === 'dept_head') return t.applicantDept === ctx.deptName;
+    return true; // 超管
+  });
+
   // 统计卡片
   var statsEl = document.getElementById('ticket-stats');
   if (statsEl) {
     var pending = 0, processing = 0, done = 0;
-    MockData.tickets.forEach(function (t) {
+    visibleTickets.forEach(function (t) {
       if (t.status === '待处理') pending++;
       else if (t.status === '处理中') processing++;
       else if (t.status === '已完结') done++;
@@ -18,8 +28,7 @@ function initTicketPage() {
       '<div class="stat-card"><div class="stat-value" style="color:#faad14;">' + pending + '</div><div class="stat-label">待处理</div></div>' +
       '<div class="stat-card"><div class="stat-value" style="color:#1890ff;">' + processing + '</div><div class="stat-label">处理中</div></div>' +
       '<div class="stat-card"><div class="stat-value" style="color:#52c41a;">' + done + '</div><div class="stat-label">已完结</div></div>' +
-      '<div class="stat-card"><div class="stat-value">' + MockData.tickets.length + '</div><div class="stat-label">总工单</div></div>';
-    // 状态流程说明（避免重复插入）
+      '<div class="stat-card"><div class="stat-value">' + visibleTickets.length + '</div><div class="stat-label">总工单</div></div>';
     if (!document.getElementById('ticket-status-note')) {
       var flowNote = document.createElement('div');
       flowNote.id = 'ticket-status-note';
@@ -30,12 +39,18 @@ function initTicketPage() {
     }
   }
 
-  // 部门筛选下拉
+  // 部门筛选下拉（仅超管显示全部，其他角色隐藏）
   var deptFilter = document.getElementById('ticket-dept-filter');
-  if (deptFilter && deptFilter.options.length <= 1) {
-    MockData.getAllDepts().forEach(function (d) {
-      deptFilter.innerHTML += '<option value="' + esc(d) + '">' + esc(d) + '</option>';
-    });
+  if (deptFilter) {
+    if (currentRole !== 'superadmin') {
+      // 非超管：隐藏部门筛选
+      var deptFilterWrap = deptFilter.closest('.csd-wrap') || deptFilter.parentElement;
+      if (deptFilterWrap) deptFilterWrap.style.display = 'none';
+    } else if (deptFilter.options.length <= 1) {
+      MockData.getAllDepts().forEach(function (d) {
+        deptFilter.innerHTML += '<option value="' + esc(d) + '">' + esc(d) + '</option>';
+      });
+    }
   }
 
   // Tab切换
@@ -85,10 +100,16 @@ function initTicketPage() {
 
 function renderTickets() {
   var s = state.ticket;
+  var ctx = getRoleContext();
   var filtered = MockData.tickets.filter(function (t) {
+    // 数据权限基础过滤
+    if (currentRole === 'member' && t.applicant !== ctx.name) return false;
+    // 组长只看自己创建或自己处理的工单
+    if ((currentRole === 'group_leader1' || currentRole === 'group_leader2') && t.applicant !== ctx.name && t.handler !== ctx.name) return false;
+    if (currentRole === 'dept_head' && t.applicantDept && t.applicantDept !== ctx.deptName) return false;
     // Tab过滤
-    if (s.activeTab === 'mine' && t.applicant !== '王浩然') return false;
-    if (s.activeTab === 'handle' && t.handler !== '张明远') return false;
+    if (s.activeTab === 'mine' && t.applicant !== ctx.name) return false;
+    if (s.activeTab === 'handle' && t.handler !== ctx.name) return false;
     if (s.keyword) {
       var kw = s.keyword.toLowerCase();
       if (t.id.toLowerCase().indexOf(kw) === -1 && t.title.toLowerCase().indexOf(kw) === -1) return false;
@@ -119,9 +140,12 @@ function renderTickets() {
     html += '<td>' + esc(t.handler) + '</td>';
     html += '<td style="white-space:nowrap;">' + esc(t.createTime) + '</td>';
     html += '<td><a class="ant-btn-link ticket-view-btn" data-ticket-id="' + esc(t.id) + '">查看</a>';
-    if (t.status === '待处理') html += ' <a class="ant-btn-link ticket-handle-btn" data-ticket-id="' + esc(t.id) + '">接单处理</a>';
-    if (t.status === '处理中') html += ' <a class="ant-btn-link ticket-close-btn" data-ticket-id="' + esc(t.id) + '">完结</a>';
-    if (t.status !== '已完结') html += ' <a class="ant-btn-link ticket-transfer-btn" data-ticket-id="' + esc(t.id) + '">转移</a>';
+    // 接单/完结/转移：仅工单处理人、部门负责人、超管可操作
+    var isHandler = t.handler === ctx.name;
+    var canManageTicket = currentRole === 'superadmin' || currentRole === 'dept_head' || isHandler;
+    if (t.status === '待处理' && canManageTicket) html += ' <a class="ant-btn-link ticket-handle-btn" data-ticket-id="' + esc(t.id) + '">接单处理</a>';
+    if (t.status === '处理中' && canManageTicket) html += ' <a class="ant-btn-link ticket-close-btn" data-ticket-id="' + esc(t.id) + '">完结</a>';
+    if (t.status !== '已完结' && canManageTicket) html += ' <a class="ant-btn-link ticket-transfer-btn" data-ticket-id="' + esc(t.id) + '">转移</a>';
     html += '</td></tr>';
   });
   html += '</tbody></table><div id="ticket-pagination"></div>';

@@ -33,8 +33,8 @@ function renderOrgTree(orgs, selectedId) {
   // 未分配成员数量
   var unassignedCount = MockData.members.filter(function (m) { return m.orgId === 'unassigned'; }).length;
   var html = '<div class="ant-tree">';
-  // 未分配成员节点
-  if (unassignedCount > 0) {
+  // 未分配成员节点（仅超管可见）
+  if (unassignedCount > 0 && currentRole === 'superadmin') {
     var isUnassignedSelected = selectedId === 'unassigned';
     html += '<div class="ant-tree-node"><div class="ant-tree-node-content' + (isUnassignedSelected ? ' selected' : '') + '" data-org-id="unassigned" title="仅超级管理员可管理未分配成员">';
     html += '<span class="ant-tree-switcher" style="visibility:hidden;">&#9654;</span>';
@@ -64,10 +64,14 @@ function renderOrgDetail(org) {
   var typeLabel = { dept: '部门', group: '一级组', subgroup: '二级组' };
   var childCount = org.children ? org.children.length : 0;
   var childLabel = org.type === 'dept' ? (childCount + ' 个一级组') : (childCount > 0 ? (childCount + ' 个下级组') : '无');
+  // 编辑/删除权限：超管可操作所有；部门负责人只能操作组（不能操作部门）；组长无权
+  var canManageOrg = currentRole === 'superadmin' || (currentRole === 'dept_head' && org.type !== 'dept');
   var html = '<div class="ant-card"><div class="ant-card-head"><span id="org-detail-title">' + esc(org.name) + '</span>';
-  var deleteTitle = org.type === 'dept' ? '仅超级管理员可删除部门' : '删除该组';
-  html += '<div class="btn-group"><button class="ant-btn-link" id="btn-edit-org" data-org-id="' + org.id + '"' + (org.type === 'dept' ? ' title="仅超级管理员可编辑部门"' : '') + '>编辑</button>';
-  html += '<button class="ant-btn-link" id="btn-delete-org" data-org-id="' + org.id + '" style="color:#ff4d4f;" title="' + deleteTitle + '">删除</button></div></div>';
+  if (canManageOrg) {
+    html += '<div class="btn-group"><button class="ant-btn-link" id="btn-edit-org" data-org-id="' + org.id + '">编辑</button>';
+    html += '<button class="ant-btn-link" id="btn-delete-org" data-org-id="' + org.id + '" style="color:#ff4d4f;">删除</button></div>';
+  }
+  html += '</div>';
   html += '<div class="ant-card-body" style="padding:0;"><div class="ant-descriptions">';
   html += '<div class="ant-descriptions-row"><div class="ant-descriptions-label">类型</div><div class="ant-descriptions-content"><span class="ant-tag ant-tag-blue">' + (typeLabel[org.type] || org.type) + '</span></div></div>';
   html += '<div class="ant-descriptions-row"><div class="ant-descriptions-label">负责人</div><div class="ant-descriptions-content">' + esc(org.leader.name) + ' (' + esc(email(org.leader.username)) + ')</div></div>';
@@ -100,6 +104,9 @@ function renderOrgDetail(org) {
 function renderOrgMembers(orgId, keyword, page) {
   var orgIds = MockData.getOrgAndChildIds(orgId);
   var isDeptSelected = orgId.indexOf('dept-') === 0;
+  // 添加成员按钮权限：部门节点仅超管；组节点超管/部门负责人可操作
+  var canAddMember = currentRole === 'superadmin' ||
+    (!isDeptSelected && currentRole === 'dept_head');
   var filtered = MockData.members.filter(function (m) {
     if (m.orgId === 'unassigned') return false;
     if (orgIds.indexOf(m.orgId) === -1) return false;
@@ -117,7 +124,8 @@ function renderOrgMembers(orgId, keyword, page) {
   var html = '<div class="ant-card"><div class="ant-card-head"><span>成员列表</span>';
   html += '<div class="btn-group"><div class="ant-input-search"><input id="org-member-search" placeholder="搜索成员..." value="' + esc(keyword) + '" />';
   html += '<button class="ant-input-search-button">&#128269;</button></div>';
-  html += '<button class="ant-btn ant-btn-primary ant-btn-sm" id="btn-add-member" data-org-id="' + esc(orgId) + '">+ 添加成员</button></div></div>';
+  if (canAddMember) html += '<button class="ant-btn ant-btn-primary ant-btn-sm" id="btn-add-member" data-org-id="' + esc(orgId) + '">+ 添加成员</button>';
+  html += '</div></div>';
   html += '<table class="ant-table"><thead><tr><th>姓名</th><th>邮箱</th><th>所属组</th><th>角色</th><th>加入时间</th><th>操作</th></tr></thead><tbody>';
   if (pageData.length === 0) {
     html += '<tr><td colspan="6" style="text-align:center;color:var(--text-secondary);padding:32px;">暂无数据</td></tr>';
@@ -134,11 +142,17 @@ function renderOrgMembers(orgId, keyword, page) {
     if (m.role === '部门负责人') {
       html += '<span style="color:#999;">--</span>';
     } else if (isDirectDeptMember) {
-      html += '<a class="ant-btn-link assign-to-group-btn" data-username="' + esc(m.username) + '" data-member-name="' + esc(m.name) + '" style="color:#faad14;">归组</a>';
-      html += ' <a class="ant-btn-link remove-member-btn" data-username="' + esc(m.username) + '" data-member-name="' + esc(m.name) + '" data-org-type="dept" style="color:#ff4d4f;">移出部门</a>';
+      // 部门直属层：归组/移出部门仅超管和部门负责人
+      if (currentRole === 'superadmin' || currentRole === 'dept_head') {
+        html += '<a class="ant-btn-link assign-to-group-btn" data-username="' + esc(m.username) + '" data-member-name="' + esc(m.name) + '" style="color:#faad14;">归组</a>';
+        html += ' <a class="ant-btn-link remove-member-btn" data-username="' + esc(m.username) + '" data-member-name="' + esc(m.name) + '" data-org-type="dept" style="color:#ff4d4f;">移出部门</a>';
+      }
     } else {
-      html += '<a class="ant-btn-link transfer-group-btn" data-username="' + esc(m.username) + '" data-member-name="' + esc(m.name) + '">调组</a>';
-      html += ' <a class="ant-btn-link remove-member-btn" data-username="' + esc(m.username) + '" data-member-name="' + esc(m.name) + '" data-org-type="group" style="color:#ff4d4f;">移出组</a>';
+      // 组内成员：调组/移出组仅超管、部门负责人可操作（涉及跨组人员流动）
+      if (currentRole === 'superadmin' || currentRole === 'dept_head') {
+        html += '<a class="ant-btn-link transfer-group-btn" data-username="' + esc(m.username) + '" data-member-name="' + esc(m.name) + '">调组</a>';
+        html += ' <a class="ant-btn-link remove-member-btn" data-username="' + esc(m.username) + '" data-member-name="' + esc(m.name) + '" data-org-type="group" style="color:#ff4d4f;">移出组</a>';
+      }
     }
     html += '</td></tr>';
   }
@@ -150,14 +164,47 @@ function initOrgPage() {
   var s = state.org;
   var container = document.getElementById('page-container');
 
+  // 根据角色计算可见的组织树范围
+  var ctx = getRoleContext();
+  var visibleOrgs;
+  if (!ctx.deptId) {
+    // 超管：全部
+    visibleOrgs = MockData.orgs;
+  } else if (currentRole === 'dept_head') {
+    // 部门负责人：只看自己部门
+    visibleOrgs = MockData.orgs.filter(function (o) { return o.id === ctx.deptId; });
+  } else {
+    // 组长：只看自己组的子树
+    var rootOrg = MockData.findOrg(ctx.rootOrgId);
+    visibleOrgs = rootOrg ? [rootOrg] : [];
+  }
+
+  // 如果当前选中节点不在可见范围内，自动跳到角色根节点
+  if (ctx.orgIds && ctx.orgIds.indexOf(s.selectedOrgId) === -1 && s.selectedOrgId !== 'unassigned') {
+    s.selectedOrgId = ctx.rootOrgId || (visibleOrgs.length > 0 ? visibleOrgs[0].id : '');
+    s.memberPage = 1;
+  }
+
   // Render tree
   var treeContainer = document.getElementById('org-tree-container');
   if (treeContainer) {
-    treeContainer.innerHTML = renderOrgTree(MockData.orgs, s.selectedOrgId);
-    // Update dept count
+    treeContainer.innerHTML = renderOrgTree(visibleOrgs, s.selectedOrgId);
+    // Update dept count（超管显示总部门数，其他显示本组织名称）
     var deptCount = container.querySelector('.org-dept-count');
-    if (deptCount) deptCount.textContent = MockData.orgs.length + ' 个部门';
+    if (deptCount) {
+      deptCount.textContent = currentRole === 'superadmin'
+        ? (MockData.orgs.length + ' 个部门')
+        : ctx.deptName || '';
+    }
   }
+
+  // 隐藏超管专属按钮
+  var addDeptBtn = document.getElementById('btn-add-dept');
+  if (addDeptBtn) addDeptBtn.style.display = (currentRole === 'superadmin') ? '' : 'none';
+
+  // 组长不能新建/删除组
+  var addGroupBtn = document.getElementById('btn-add-group');
+  if (addGroupBtn) addGroupBtn.style.display = (currentRole === 'superadmin' || currentRole === 'dept_head') ? '' : 'none';
 
   // Render detail
   var detailContainer = document.getElementById('org-detail-container');

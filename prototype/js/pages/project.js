@@ -14,6 +14,11 @@ function initProjectPage() {
   if (deptFilter) {
     deptFilter.onchange = function () { state.project.deptFilter = deptFilter.value; renderProjects(); };
   }
+  // 创建项目按钮：仅超管和部门负责人可见
+  var createBtn = document.querySelector('[data-modal="project/add-project"]');
+  if (createBtn && currentRole !== 'superadmin' && currentRole !== 'dept_head') {
+    createBtn.style.display = 'none';
+  }
 }
 
 function renderAddProjectModal() {
@@ -31,18 +36,25 @@ function renderAddProjectModal() {
 
 function renderProjects() {
   var s = state.project;
+  var ctx = getRoleContext();
   var data = MockData.projects.filter(function (p) {
+    // 数据权限：非超管只看本部门项目
+    if (ctx.deptName && p.dept !== ctx.deptName) return false;
     if (s.keyword && p.name.toLowerCase().indexOf(s.keyword.toLowerCase()) === -1) return false;
     if (s.deptFilter && p.dept !== s.deptFilter) return false;
     return true;
   });
 
+  // 隐藏部门筛选（非超管只有一个部门）
+  var deptFilterEl2 = document.getElementById('project-dept-filter');
+  if (deptFilterEl2) deptFilterEl2.style.display = (currentRole === 'superadmin') ? '' : 'none';
+
   // Stats
   var statsContainer = document.getElementById('project-stats');
   if (statsContainer) {
     var totalRes = 0; var depts = {};
-    MockData.projects.forEach(function (p) { totalRes += p.resourceCount; depts[p.dept] = true; });
-    statsContainer.innerHTML = '<div class="stat-card"><div class="stat-value">' + MockData.projects.length + '</div><div class="stat-label">项目总数</div></div>' +
+    data.forEach(function (p) { totalRes += p.resourceCount; depts[p.dept] = true; });
+    statsContainer.innerHTML = '<div class="stat-card"><div class="stat-value">' + data.length + '</div><div class="stat-label">项目总数</div></div>' +
       '<div class="stat-card"><div class="stat-value">' + totalRes + '</div><div class="stat-label">关联资源总数</div></div>' +
       '<div class="stat-card"><div class="stat-value">' + Object.keys(depts).length + '</div><div class="stat-label">涉及部门数</div></div>';
   }
@@ -69,9 +81,11 @@ function renderProjects() {
     html += '<td>' + resLabel + '</td>';
     html += '<td>' + esc(p.createTime) + '</td>';
     html += '<td>';
-    html += '<a class="ant-btn-link project-res-btn" data-project="' + esc(p.name) + '">查看资源</a> ';
-    html += '<a class="ant-btn-link project-edit-btn" data-project="' + esc(p.name) + '">编辑</a> ';
-    html += '<a class="ant-btn-link project-delete-btn" data-project="' + esc(p.name) + '" style="color:#ff4d4f;">删除</a>';
+    html += '<a class="ant-btn-link project-res-btn" data-project="' + esc(p.name) + '">查看资源</a>';
+    if (currentRole === 'superadmin' || currentRole === 'dept_head') {
+      html += ' <a class="ant-btn-link project-edit-btn" data-project="' + esc(p.name) + '">编辑</a> ';
+      html += '<a class="ant-btn-link project-delete-btn" data-project="' + esc(p.name) + '" style="color:#ff4d4f;">删除</a>';
+    }
     html += '</td></tr>';
   });
   html += '</tbody></table>';

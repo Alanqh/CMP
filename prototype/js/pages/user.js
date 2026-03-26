@@ -5,35 +5,68 @@
 // 用户管理页
 // =============================================
 function initUserPage() {
-  // 统计卡片
+  var ctx = getRoleContext();
+
+  // 统计卡片（部门负责人显示本部门统计，超管显示全平台）
   var statsEl = document.getElementById('user-stats');
   if (statsEl) {
-    var totalUsers = MockData.members.length;
-    var unassignedCount = 0;
-    var roleAssignedCount = 0;
-    MockData.members.forEach(function (m) {
-      if (m.orgId === 'unassigned') unassignedCount++;
-    });
-    // 计算已分配角色的人数
+    var scopedMembers = currentRole === 'dept_head'
+      ? MockData.members.filter(function (m) { return getMemberDeptId(m) === ctx.deptId; })
+      : MockData.members;
+    var totalUsers = scopedMembers.length;
+    var unassignedCount = currentRole === 'dept_head' ? 0 : MockData.members.filter(function (m) { return m.orgId === 'unassigned'; }).length;
     var roleUsernames = {};
     MockData.roles.forEach(function (r) {
-      if (r.users) r.users.forEach(function (u) { roleUsernames[u.username] = true; });
+      if (r.users) r.users.forEach(function (u) {
+        if (currentRole !== 'dept_head' || getMemberDeptId(u) === ctx.deptId) roleUsernames[u.username] = true;
+      });
     });
-    roleAssignedCount = Object.keys(roleUsernames).length;
-    var deptCount = MockData.orgs.length;
+    var roleAssignedCount = Object.keys(roleUsernames).length;
+    var deptCount = currentRole === 'dept_head' ? 1 : MockData.orgs.length;
     statsEl.innerHTML =
-      '<div class="stat-card"><div class="stat-value">' + totalUsers + '</div><div class="stat-label">总用户数</div></div>' +
-      '<div class="stat-card"><div class="stat-value">' + deptCount + '</div><div class="stat-label">部门数</div></div>' +
+      '<div class="stat-card"><div class="stat-value">' + totalUsers + '</div><div class="stat-label">' + (currentRole === 'dept_head' ? '本部门用户' : '总用户数') + '</div></div>' +
+      '<div class="stat-card"><div class="stat-value">' + deptCount + '</div><div class="stat-label">' + (currentRole === 'dept_head' ? '部门' : '部门数') + '</div></div>' +
       '<div class="stat-card"><div class="stat-value" style="color:#1890ff;">' + roleAssignedCount + '</div><div class="stat-label">已分配角色</div></div>' +
-      '<div class="stat-card"><div class="stat-value" style="color:#faad14;">' + unassignedCount + '</div><div class="stat-label">未分配部门</div></div>';
+      (currentRole !== 'dept_head' ? '<div class="stat-card"><div class="stat-value" style="color:#faad14;">' + unassignedCount + '</div><div class="stat-label">未分配部门</div></div>' : '');
   }
 
-  // 部门筛选下拉
+  // 部门筛选下拉：超管可切换所有部门；部门负责人固定本部门（隐藏下拉）
   var deptFilter = document.getElementById('user-dept-filter');
-  if (deptFilter && deptFilter.options.length <= 1) {
-    MockData.getAllDepts().forEach(function (d) {
-      deptFilter.innerHTML += '<option value="' + esc(d) + '">' + esc(d) + '</option>';
-    });
+  if (deptFilter) {
+    if (currentRole === 'dept_head') {
+      var deptFilterWrap = deptFilter.closest('.csd-wrap') || deptFilter.parentElement;
+      if (deptFilterWrap) deptFilterWrap.style.display = 'none';
+    } else if (deptFilter.options.length <= 1) {
+      MockData.getAllDepts().forEach(function (d) {
+        deptFilter.innerHTML += '<option value="' + esc(d) + '">' + esc(d) + '</option>';
+      });
+    }
+  }
+
+  // 创建用户按钮：仅超管可见
+  var createBtn = document.getElementById('btn-create-user');
+  if (createBtn) {
+    if (currentRole !== 'superadmin') {
+      createBtn.style.display = 'none';
+    } else {
+      createBtn.style.display = '';
+      createBtn.onclick = function () {
+        loadAndShowModal('user/create-user', function () {
+          var orgSelect = document.getElementById('create-user-org');
+          if (orgSelect) {
+            var opts = '';
+            function buildOrgOptions(nodes, indent) {
+              for (var i = 0; i < nodes.length; i++) {
+                opts += '<option value="' + esc(nodes[i].id) + '">' + indent + esc(nodes[i].name) + '</option>';
+                if (nodes[i].children) buildOrgOptions(nodes[i].children, indent + '　　');
+              }
+            }
+            buildOrgOptions(MockData.orgs, '');
+            orgSelect.innerHTML = opts;
+          }
+        });
+      };
+    }
   }
 
   // 搜索绑定
@@ -41,26 +74,16 @@ function initUserPage() {
   if (searchEl) searchEl.oninput = function () { state.user.keyword = searchEl.value; state.user.page = 1; renderUsers(); };
   if (deptFilter) deptFilter.onchange = function () { state.user.deptFilter = deptFilter.value; state.user.page = 1; renderUsers(); };
 
-  // 创建用户按钮
-  var createBtn = document.getElementById('btn-create-user');
-  if (createBtn) createBtn.onclick = function () {
-    loadAndShowModal('user/create-user', function () {
-      var orgSelect = document.getElementById('create-user-org');
-      if (orgSelect) {
-        var opts = '';
-        function buildOrgOptions(nodes, indent) {
-          for (var i = 0; i < nodes.length; i++) {
-            opts += '<option value="' + esc(nodes[i].id) + '">' + indent + esc(nodes[i].name) + '</option>';
-            if (nodes[i].children) buildOrgOptions(nodes[i].children, indent + '　　');
-          }
-        }
-        buildOrgOptions(MockData.orgs, '');
-        orgSelect.innerHTML = opts;
-      }
-    });
-  };
-
   renderUsers();
+}
+
+function getMemberDeptId(m) {
+  if (!m || m.orgId === 'unassigned') return null;
+  for (var i = 0; i < MockData.orgs.length; i++) {
+    var ids = MockData.getOrgAndChildIds(MockData.orgs[i].id);
+    if (ids.indexOf(m.orgId) !== -1) return MockData.orgs[i].id;
+  }
+  return null;
 }
 
 function getUser(username) {
@@ -89,7 +112,10 @@ function getMemberDept(member) {
 
 function renderUsers() {
   var s = state.user;
+  var ctx = getRoleContext();
   var filtered = MockData.members.filter(function (m) {
+    // 数据权限：部门负责人只看本部门成员
+    if (currentRole === 'dept_head' && getMemberDeptId(m) !== ctx.deptId) return false;
     if (s.keyword) {
       var kw = s.keyword.toLowerCase();
       if (m.name.toLowerCase().indexOf(kw) === -1 && m.username.toLowerCase().indexOf(kw) === -1) return false;

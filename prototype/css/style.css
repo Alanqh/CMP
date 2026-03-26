@@ -112,7 +112,57 @@ body {
 }
 .panther-username { font-size: 14px; }
 
-/* ===== 侧边栏 (Ant Design Sider theme=dark) ===== */
+/* ===== 角色切换器 ===== */
+.role-switcher {
+  position: relative; display: flex; align-items: center;
+}
+.role-switcher-trigger {
+  display: flex; align-items: center; gap: 4px;
+  height: 48px; padding: 0 10px; cursor: pointer;
+  color: rgba(255,255,255,0.65); transition: color .2s;
+  user-select: none;
+}
+.role-switcher-trigger:hover { color: #fff; }
+.role-badge {
+  display: inline-block; padding: 2px 8px; border-radius: 3px;
+  font-size: 12px; font-weight: 500; line-height: 1.6;
+}
+.role-badge--superadmin  { background: rgba(207,19,34,0.25);  color: #ff7875; border: 1px solid rgba(255,77,79,0.35); }
+.role-badge--dept_head   { background: rgba(212,107,8,0.25);  color: #ffc53d; border: 1px solid rgba(250,173,20,0.35); }
+.role-badge--group_leader1 { background: rgba(56,158,13,0.25); color: #95de64; border: 1px solid rgba(82,196,26,0.35); }
+.role-badge--group_leader2 { background: rgba(8,151,156,0.25); color: #5cdbd3; border: 1px solid rgba(19,194,194,0.35); }
+.role-badge--member      { background: rgba(9,109,217,0.25);  color: #69c0ff; border: 1px solid rgba(24,144,255,0.35); }
+
+.role-switcher-panel {
+  position: absolute; top: 100%; right: 0; z-index: 9999;
+  background: #fff; border-radius: 4px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.2); min-width: 260px;
+  border: 1px solid #e8e8e8; overflow: hidden;
+  padding: 4px 0;
+}
+.role-option {
+  padding: 10px 16px; cursor: pointer; font-size: 13px;
+  color: var(--text-color); transition: background .15s;
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
+}
+.role-option:hover { background: #f5f5f5; }
+.role-option.active { background: #e6f7ff; }
+.role-option-info { display: flex; flex-direction: column; gap: 2px; }
+.role-option-name { font-weight: 500; font-size: 14px; color: var(--text-color); }
+.role-option.active .role-option-name { color: #1890ff; }
+.role-option-user { font-size: 12px; color: var(--text-secondary); }
+.role-option-scope { font-size: 11px; color: var(--text-secondary); white-space: nowrap; margin-top: 2px; flex-shrink: 0; }
+
+/* 数据权限提示栏 */
+.role-data-scope-banner {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 20px; font-size: 13px;
+  background: #fffbe6; border-bottom: 1px solid #ffe58f;
+  color: #614700; flex-shrink: 0;
+}
+.role-data-scope-banner strong { color: #d46b08; }
+
+
 .ant-layout-sider {
   width: var(--sider-width); min-width: var(--sider-width); max-width: var(--sider-width);
   background: var(--sider-bg);

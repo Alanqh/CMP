@@ -11,7 +11,13 @@ function initAuditPage() {
   var typeFilter = document.getElementById('audit-type-filter');
   if (typeFilter) typeFilter.onchange = function () { state.audit.typeFilter = typeFilter.value; state.audit.page = 1; renderAuditLogs(); };
   var deptFilter = document.getElementById('audit-dept-filter');
-  if (deptFilter) deptFilter.onchange = function () { state.audit.deptFilter = deptFilter.value; state.audit.page = 1; renderAuditLogs(); };
+  if (deptFilter) {
+    if (currentRole !== 'superadmin') {
+      deptFilter.style.display = 'none';
+    } else {
+      deptFilter.onchange = function () { state.audit.deptFilter = deptFilter.value; state.audit.page = 1; renderAuditLogs(); };
+    }
+  }
   var dateFrom = document.getElementById('audit-date-from');
   if (dateFrom) dateFrom.onchange = function () { state.audit.dateFrom = dateFrom.value; state.audit.page = 1; renderAuditLogs(); };
   var dateTo = document.getElementById('audit-date-to');
@@ -22,7 +28,10 @@ function initAuditPage() {
 
 function renderAuditLogs() {
   var s = state.audit;
+  var ctx = getRoleContext();
   var data = MockData.auditLogs.filter(function (log) {
+    // 数据权限：部门负责人只看本部门，超管看全部
+    if (ctx.deptName && log.dept !== ctx.deptName && log.dept !== '--') return false;
     if (s.keyword) {
       var kw = s.keyword.toLowerCase();
       if (log.operator.toLowerCase().indexOf(kw) === -1 && log.target.toLowerCase().indexOf(kw) === -1 && log.desc.toLowerCase().indexOf(kw) === -1) return false;

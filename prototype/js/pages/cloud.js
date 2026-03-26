@@ -83,17 +83,34 @@ function initCloudPage() {
   // Main accounts
   var mainContainer = document.getElementById('cloud-main-container');
   if (mainContainer) {
+    var ctx = getRoleContext();
+    // 关联/解绑主账号：仅超管和部门负责人可操作
+    var canManageMain = currentRole === 'superadmin' || currentRole === 'dept_head';
+    var mainAccounts = MockData.cloudAccounts.main;
+    if (ctx.deptId && currentRole !== 'superadmin') {
+      mainAccounts = mainAccounts.filter(function (a) { return a.dept === ctx.deptName; });
+    }
     var html = '<table class="ant-table"><thead><tr><th>部门</th><th>云厂商</th><th>主账号 / AK别名</th><th>绑定人</th><th>绑定时间</th><th>状态</th><th>操作</th></tr></thead><tbody>';
-    MockData.cloudAccounts.main.forEach(function (a) {
+    mainAccounts.forEach(function (a) {
       html += '<tr><td>' + esc(a.dept) + '</td>';
       if (a.status === '未关联') {
         html += '<td colspan="4" style="color:var(--text-secondary);">--</td>';
-        html += '<td><button class="ant-btn ant-btn-primary ant-btn-sm cloud-bind-main-btn" data-dept="' + esc(a.dept) + '">关联主账号</button></td></tr>';
+        html += '<td>';
+        if (canManageMain) {
+          html += '<button class="ant-btn ant-btn-primary ant-btn-sm cloud-bind-main-btn" data-dept="' + esc(a.dept) + '">关联主账号</button>';
+        } else {
+          html += '<span style="color:var(--text-secondary);">未关联</span>';
+        }
+        html += '</td></tr>';
       } else {
         html += '<td><span class="ant-tag ant-tag-blue">' + esc(a.vendor) + '</span></td>';
         html += '<td>' + esc(a.account) + '</td><td>' + esc(a.bindUser) + '</td><td>' + esc(a.bindTime) + '</td>';
         html += '<td><span class="ant-badge-status-dot ant-badge-status-success"></span>正常</td>';
-        html += '<td><a class="ant-btn-link cloud-main-detail-btn" data-dept="' + esc(a.dept) + '">详情</a> <a class="ant-btn-link cloud-unbind-btn" data-dept="' + esc(a.dept) + '" style="color:#ff4d4f;">解绑</a></td></tr>';
+        html += '<td><a class="ant-btn-link cloud-main-detail-btn" data-dept="' + esc(a.dept) + '">详情</a>';
+        if (canManageMain) {
+          html += ' <a class="ant-btn-link cloud-unbind-btn" data-dept="' + esc(a.dept) + '" style="color:#ff4d4f;">解绑</a>';
+        }
+        html += '</td></tr>';
       }
     });
     html += '</tbody></table>';
@@ -182,6 +199,16 @@ function renderCloudSub() {
   if (deptF) {
     data = data.filter(function (s) { return s.dept === deptF; });
   }
+  // 角色数据过滤：普通成员和组长只看自己的子账号
+  var ctx = getRoleContext();
+  if (currentRole === 'member') {
+    data = data.filter(function (s) { return s.owner === ctx.name || s.applicant === ctx.username; });
+  } else if (currentRole === 'group_leader1' || currentRole === 'group_leader2') {
+    // 组长只看自己的子账号
+    data = data.filter(function (s) { return s.owner === ctx.name || s.applicant === ctx.username; });
+  } else if (currentRole === 'dept_head') {
+    data = data.filter(function (s) { return s.dept === ctx.deptName; });
+  }
   var html = '<table class="ant-table"><thead><tr><th>子账号名称</th><th>归属人</th><th>所属部门</th><th>所属主账号</th><th>权限包</th><th>有效期类型</th><th>创建时间</th><th>状态</th><th>操作</th></tr></thead><tbody>';
   if (data.length === 0) {
     html += '<tr><td colspan="9" style="text-align:center;color:var(--text-secondary);padding:32px;">暂无数据</td></tr>';
@@ -197,9 +224,10 @@ function renderCloudSub() {
     html += '<td>' + esc(s.createTime) + '</td>';
     html += '<td><span class="ant-badge-status-dot ant-badge-status-' + s.statusClass + '"></span>' + esc(s.status) + '</td>';
     html += '<td><a class="ant-btn-link cloud-sub-detail-btn" data-name="' + esc(s.name) + '">详情</a>';
-    if (s.status === '正常') html += ' <a class="ant-btn-link cloud-sub-reset-pwd-btn" data-name="' + esc(s.name) + '">重置密码</a>';
-    if (s.status === '正常') html += ' <a class="ant-btn-link cloud-reclaim-btn" data-name="' + esc(s.name) + '">回收</a>';
-    if (s.status === '已回收') html += ' <a class="ant-btn-link cloud-destroy-btn" data-name="' + esc(s.name) + '" style="color:#ff4d4f;">销毁</a>';
+    var canManageSub = currentRole === 'superadmin' || currentRole === 'dept_head' || s.owner === ctx.name || s.applicant === ctx.username;
+    if (s.status === '正常' && canManageSub) html += ' <a class="ant-btn-link cloud-sub-reset-pwd-btn" data-name="' + esc(s.name) + '">重置密码</a>';
+    if (s.status === '正常' && canManageSub) html += ' <a class="ant-btn-link cloud-reclaim-btn" data-name="' + esc(s.name) + '">回收</a>';
+    if (s.status === '已回收' && canManageSub) html += ' <a class="ant-btn-link cloud-destroy-btn" data-name="' + esc(s.name) + '" style="color:#ff4d4f;">销毁</a>';
     html += '</td></tr>';
   });
   html += '</tbody></table>';

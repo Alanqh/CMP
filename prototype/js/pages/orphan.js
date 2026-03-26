@@ -14,7 +14,10 @@ function initOrphanPage() {
 
 function renderUngroupedResources() {
   var s = state.orphan;
+  var ctx = getRoleContext();
   var data = MockData.ungroupedResources.filter(function (r) {
+    // 数据权限：部门负责人只看本部门的未归组资源
+    if (ctx.deptName && r.dept !== ctx.deptName) return false;
     if (s.keyword) {
       var kw = s.keyword.toLowerCase();
       if (r.name.toLowerCase().indexOf(kw) === -1 && r.resId.toLowerCase().indexOf(kw) === -1) return false;

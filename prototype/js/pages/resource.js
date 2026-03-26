@@ -164,7 +164,13 @@ function getResourceGroup(type) {
 
 function renderResources() {
   var s = state.resource;
+  // 角色数据范围过滤
+  var ctx = getRoleContext();
   var data = MockData.resources.filter(function (r) {
+    // 数据权限：按角色的 orgIds 过滤
+    if (ctx.orgIds && ctx.orgIds.indexOf(r.groupId) === -1) return false;
+    // 普通成员：只看有权限的资源（perm 字段存在）
+    if (currentRole === 'member' && !r.perm) return false;
     if (s.keyword) {
       var kw = s.keyword.toLowerCase();
       if (r.name.toLowerCase().indexOf(kw) === -1 && r.resId.toLowerCase().indexOf(kw) === -1) return false;
@@ -211,6 +217,10 @@ function renderResources() {
     var allOps = [];
     // 固定操作：详情始终显示
     allOps.push({ label: '详情', cls: 'resource-detail-btn', attrs: 'data-res="' + esc(r.name) + '"' });
+    // reporter权限只读，不显示其他操作
+    if (r.perm === 'reporter') {
+      return '<a class="ant-btn-link resource-detail-btn" data-res="' + esc(r.name) + '">详情</a>';
+    }
     // 授权（master时）
     if (r.perm === 'master') allOps.push({ label: '授权', cls: 'resource-action-btn', attrs: 'data-res="' + esc(r.name) + '" data-action="授权"' });
     // 从资源目录获取操作

@@ -5,6 +5,20 @@
 // 部门配置页
 // =============================================
 function initDeptConfigPage() {
+  var ctx = getRoleContext();
+
+  // 部门负责人：锁定到自己部门，隐藏选择器，显示标签
+  if (currentRole === 'dept_head' && ctx.deptId) {
+    state.deptConfig.selectedDept = ctx.deptId;
+    var selectorWrap = document.getElementById('dept-config-selector-wrap');
+    if (selectorWrap) selectorWrap.style.display = 'none';
+    var deptLabel = document.getElementById('dept-config-dept-label');
+    if (deptLabel) {
+      deptLabel.style.display = '';
+      deptLabel.textContent = ctx.deptName;
+    }
+  }
+
   var deptSelect = document.getElementById('dept-config-dept-select');
   if (deptSelect) {
     deptSelect.value = state.deptConfig.selectedDept;
@@ -27,11 +41,12 @@ function initDeptConfigPage() {
 
 function renderDeptConfig() {
   var deptId = state.deptConfig.selectedDept;
-  var cfg = MockData.deptConfig[deptId];
-  if (!cfg) return;
   var tab = state.deptConfig.activeTab;
   var container = document.getElementById('dept-config-content');
   if (!container) return;
+  if (tab === 'member-roles') { renderDeptMemberRoles(container, deptId); return; }
+  var cfg = MockData.deptConfig[deptId];
+  if (!cfg) return;
   if (tab === 'account') renderDeptAccount(container, cfg, deptId);
   else if (tab === 'template') renderDeptTemplates(container, cfg, deptId);
   else if (tab === 'approval') renderDeptApproval(container, cfg, deptId);
@@ -1498,6 +1513,159 @@ function renderDeptTicketHandlers(container, cfg, deptId) {
         showMessage('工单类别「' + th.categoryName + '」已删除', 'success');
         renderDeptTicketHandlers(container, cfg, deptId);
       };
+    };
+  });
+}
+
+// =============================================
+// 部门配置 — 成员角色分配（部门负责人专属）
+// =============================================
+function renderDeptMemberRoles(container, deptId) {
+  var orgIds = MockData.getOrgAndChildIds(deptId);
+  var deptMembers = MockData.members.filter(function (m) {
+    return orgIds.indexOf(m.orgId) !== -1;
+  });
+
+  // 获取成员当前角色列表
+  function getMemberRoles(username) {
+    var roles = [];
+    MockData.roles.forEach(function (r) {
+      if (r.users) r.users.forEach(function (ru) {
+        if (ru.username === username) roles.push(r);
+      });
+    });
+    return roles;
+  }
+
+  // 构建表格
+  var html = '<div class="ant-card"><div class="ant-card-head" style="display:flex;align-items:center;justify-content:space-between;">';
+  html += '<span>成员角色分配</span>';
+  html += '<span style="font-size:13px;font-weight:normal;color:var(--text-secondary);">共 ' + deptMembers.length + ' 名成员</span>';
+  html += '</div><div class="ant-card-body">';
+  html += '<div class="ant-alert ant-alert-info" style="margin-bottom:16px;">为本部门成员分配功能角色，控制成员在平台上可访问的功能模块和数据范围。角色由超级管理员创建和维护。</div>';
+  html += '<table class="ant-table"><thead><tr><th>姓名</th><th>账号</th><th>所属组/职位</th><th>已分配角色</th><th>操作</th></tr></thead><tbody>';
+
+  if (deptMembers.length === 0) {
+    html += '<tr><td colspan="5" style="text-align:center;color:var(--text-secondary);padding:32px;">暂无成员数据</td></tr>';
+  }
+
+  deptMembers.forEach(function (m) {
+    var roles = getMemberRoles(m.username);
+    html += '<tr>';
+    html += '<td><span style="font-weight:500;">' + esc(m.name) + '</span></td>';
+    html += '<td style="color:var(--text-secondary);font-size:13px;">' + esc(m.username) + '@sohu-inc.com</td>';
+    html += '<td><span class="ant-tag ant-tag-' + (m.role === '部门负责人' ? 'red' : m.role === '组长' ? 'orange' : 'default') + '">' + esc(m.role) + '</span>';
+    html += ' <span style="font-size:12px;color:var(--text-secondary);">' + esc(m.orgName) + '</span></td>';
+    html += '<td>';
+    if (roles.length === 0) {
+      html += '<span style="color:var(--text-secondary);font-size:13px;">未分配角色</span>';
+    } else {
+      roles.slice(0, 3).forEach(function (r) {
+        html += '<span class="ant-tag ant-tag-blue" style="margin-bottom:2px;">' + esc(r.name) + '</span> ';
+      });
+      if (roles.length > 3) {
+        html += '<span class="ant-tag ant-tag-default" title="' + esc(roles.slice(3).map(function(r){return r.name;}).join('、')) + '">+' + (roles.length - 3) + '</span>';
+      }
+    }
+    html += '</td>';
+    html += '<td><a class="ant-btn-link dept-member-assign-role-btn" data-username="' + esc(m.username) + '">分配角色</a></td>';
+    html += '</tr>';
+  });
+
+  html += '</tbody></table></div></div>';
+  container.innerHTML = html;
+
+  // 绑定分配角色按钮
+  container.querySelectorAll('.dept-member-assign-role-btn').forEach(function (btn) {
+    btn.onclick = function () {
+      var username = btn.getAttribute('data-username');
+      var member = null;
+      for (var i = 0; i < MockData.members.length; i++) {
+        if (MockData.members[i].username === username) { member = MockData.members[i]; break; }
+      }
+      if (!member) return;
+
+      loadAndShowModal('user/assign-role', function () {
+        var nameEl = document.getElementById('assign-role-user-name');
+        if (nameEl) nameEl.textContent = member.name + ' (' + member.username + '@sohu-inc.com)';
+
+        // 获取该用户当前已有角色
+        var currentRoles = {};
+        MockData.roles.forEach(function (r) {
+          if (r.users) r.users.forEach(function (ru) {
+            if (ru.username === username) currentRoles[r.name] = true;
+          });
+        });
+
+        function renderRoleList(keyword) {
+          var listEl = document.getElementById('assign-role-list');
+          if (!listEl) return;
+          // 部门负责人只能分配非超管专属角色
+          var roles = MockData.roles.filter(function (r) {
+            if (r.superOnly) return false;
+            if (keyword) return r.name.indexOf(keyword) !== -1;
+            return true;
+          });
+          if (roles.length === 0) {
+            listEl.innerHTML = '<div style="text-align:center;color:var(--text-secondary);padding:24px 0;">暂无匹配角色</div>';
+            return;
+          }
+          var html = '';
+          roles.forEach(function (r) {
+            var checked = currentRoles[r.name] ? ' checked' : '';
+            var typeClass = r.typeColor === 'red' ? 'ant-tag-red' : r.typeColor === 'orange' ? 'ant-tag-orange' : 'ant-tag-blue';
+            html += '<label class="assign-role-item' + (currentRoles[r.name] ? ' is-checked' : '') + '">';
+            html += '<input type="checkbox" name="assign-role-cb" value="' + esc(r.name) + '"' + checked + ' style="margin-right:8px;accent-color:var(--primary-color);">';
+            html += '<span class="assign-role-item-name">' + esc(r.name) + '</span>';
+            html += '<span class="ant-tag ' + typeClass + '" style="margin-left:6px;flex-shrink:0;">' + esc(r.type) + '</span>';
+            html += '<span class="assign-role-item-scope">' + esc(r.scope) + '</span>';
+            html += '</label>';
+          });
+          listEl.innerHTML = html;
+          listEl.querySelectorAll('input[type="checkbox"]').forEach(function (cb) {
+            cb.onchange = function () {
+              if (cb.checked) currentRoles[cb.value] = true;
+              else delete currentRoles[cb.value];
+              var countEl = document.getElementById('assign-role-count');
+              if (countEl) countEl.textContent = Object.keys(currentRoles).length;
+              cb.closest('label').classList.toggle('is-checked', cb.checked);
+            };
+          });
+        }
+
+        var countEl = document.getElementById('assign-role-count');
+        if (countEl) countEl.textContent = Object.keys(currentRoles).length;
+
+        var searchEl = document.getElementById('assign-role-search');
+        if (searchEl) {
+          searchEl.value = '';
+          searchEl.oninput = function () { renderRoleList(searchEl.value.trim()); };
+        }
+        renderRoleList('');
+
+        var confirmBtn = document.getElementById('assign-role-confirm-btn');
+        if (confirmBtn) {
+          confirmBtn.onclick = function () {
+            // 从所有非超管角色中移除该用户（超管角色由超管自行管理）
+            MockData.roles.forEach(function (r) {
+              if (!r.superOnly && r.users) {
+                r.users = r.users.filter(function (ru) { return ru.username !== username; });
+              }
+            });
+            // 添加到选中的角色
+            MockData.roles.forEach(function (r) {
+              if (!r.superOnly && currentRoles[r.name]) {
+                if (!r.users) r.users = [];
+                r.users.push({ name: member.name, username: username, dept: member.orgName });
+                r.userCount = r.users.length;
+              }
+            });
+            hideModal();
+            showMessage('已为「' + member.name + '」更新角色分配', 'success');
+            renderDeptMemberRoles(container, deptId);
+          };
+        }
+      });
     };
   });
 }

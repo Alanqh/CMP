@@ -4,7 +4,9 @@
 // ===== 初始化 =====
 function init() {
   initSidebar();
-  loadPage('org');
+  initRoleSwitcher();
+  // 应用初始角色权限（超管，所有菜单可见）
+  applyRolePermissions('superadmin');
 }
 
 if (document.readyState === 'loading') {

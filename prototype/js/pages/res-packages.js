@@ -24,6 +24,15 @@ function renderResPackages(keyword) {
   if (!tableContainer) return;
 
   var packages = MockData.resourcePackages || [];
+  // 数据权限：非超管只看自己创建的包或被授权的包
+  if (currentRole !== 'superadmin') {
+    var ctx = getRoleContext();
+    packages = packages.filter(function (pkg) {
+      if (pkg.creatorUsername === ctx.username) return true;
+      if ((pkg.users || []).some(function (u) { return u.username === ctx.username; })) return true;
+      return false;
+    });
+  }
 
   var filtered = packages.filter(function (pkg) {
     if (keyword) {
@@ -93,7 +102,10 @@ function renderResPackages(keyword) {
 // 获取当前用户有 master 权限的资源列表（排除已选的）
 function getMasterResources(excludeIds) {
   excludeIds = excludeIds || [];
+  var ctx = getRoleContext();
   return (MockData.resources || []).filter(function (r) {
+    // 先应用角色数据权限
+    if (ctx.orgIds && ctx.orgIds.indexOf(r.groupId) === -1) return false;
     return r.perm === 'master' && excludeIds.indexOf(r.resId) === -1;
   });
 }
