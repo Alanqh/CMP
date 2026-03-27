@@ -358,3 +358,151 @@ function renderCloudSub() {
   });
 
 }
+
+// =============================================
+// 资源信息 Tab
+// =============================================
+
+function initCloudResourceTab() {
+  var accountSelect = document.getElementById('cloud-res-account');
+  var regionSelect  = document.getElementById('cloud-res-region');
+  var refreshBtn    = document.getElementById('cloud-res-refresh-btn');
+  var syncTimeEl    = document.getElementById('cloud-res-sync-time');
+  if (!accountSelect || !regionSelect) return;
+
+  // 填充云账号下拉（仅已关联账号）
+  accountSelect.innerHTML = '';
+  var boundAccounts = MockData.cloudAccounts.main.filter(function (a) { return a.status === '正常'; });
+  boundAccounts.forEach(function (a) {
+    var alias = a.account.split(' ')[0];
+    accountSelect.innerHTML += '<option value="' + esc(alias) + '">' +
+      esc(a.dept) + ' — ' + esc(alias) + '</option>';
+  });
+
+  // 根据所选账号填充地域下拉，并默认选中该账号的 region
+  function updateRegionSelect() {
+    var alias = accountSelect.value;
+    var acct  = null;
+    for (var i = 0; i < MockData.cloudAccounts.main.length; i++) {
+      if (MockData.cloudAccounts.main[i].account.split(' ')[0] === alias) {
+        acct = MockData.cloudAccounts.main[i]; break;
+      }
+    }
+    regionSelect.innerHTML = '';
+    ALIYUN_REGIONS.forEach(function (r) {
+      regionSelect.innerHTML += '<option value="' + esc(r.code) + '">' +
+        esc(r.name) + '</option>';
+    });
+    if (acct && acct.region) regionSelect.value = acct.region;
+    renderAzTable(alias, regionSelect.value);
+  }
+
+  accountSelect.onchange = function () { updateRegionSelect(); };
+  regionSelect.onchange  = function () { renderAzTable(accountSelect.value, regionSelect.value); };
+
+  if (refreshBtn) {
+    refreshBtn.onclick = function () {
+      renderAzTable(accountSelect.value, regionSelect.value);
+      showMessage('可用区数据已刷新', 'success');
+    };
+  }
+
+  if (syncTimeEl && MockData.cloudResources) {
+    syncTimeEl.textContent = '上次同步：' + MockData.cloudResources.syncTime;
+  }
+
+  if (boundAccounts.length > 0) updateRegionSelect();
+}
+
+function renderAzTable(accountAlias, region) {
+  var container = document.getElementById('cloud-res-az-container');
+  if (!container) return;
+
+  var zones = [];
+  if (MockData.cloudResources && MockData.cloudResources.zones) {
+    zones = MockData.cloudResources.zones.filter(function (z) {
+      return z.accountAlias === accountAlias && z.region === region;
+    });
+  }
+
+  if (zones.length === 0) {
+    container.innerHTML = '<table class="ant-table"><thead><tr><th>可用区名称</th><th>可用区 Code</th><th>ECS 规格族</th><th>操作</th></tr></thead><tbody>' +
+      '<tr><td colspan="4" style="text-align:center;color:var(--text-secondary);padding:32px;">暂无可用区数据</td></tr>' +
+      '</tbody></table>';
+    return;
+  }
+
+  var html = '<table class="ant-table"><thead><tr>' +
+    '<th>可用区名称</th><th>可用区 Code</th><th>ECS 规格族</th><th>操作</th>' +
+    '</tr></thead><tbody>';
+  zones.forEach(function (z) {
+    html += '<tr>';
+    html += '<td>' + esc(z.azName) + '</td>';
+    html += '<td><code style="background:#f5f5f5;padding:2px 6px;border-radius:3px;font-size:12px;">' +
+      esc(z.azCode) + '</code></td>';
+    html += '<td>' + z.specFamilies.length + ' 个规格族</td>';
+    html += '<td><a class="ant-btn-link cloud-az-spec-btn" data-azcode="' + esc(z.azCode) + '"' +
+      ' data-account="' + esc(accountAlias) + '" data-region="' + esc(region) + '">查看规格族</a></td>';
+    html += '</tr>';
+  });
+  html += '</tbody></table>';
+  container.innerHTML = html;
+
+  container.querySelectorAll('.cloud-az-spec-btn').forEach(function (btn) {
+    btn.onclick = function () {
+      showSpecFamiliesModal(
+        btn.getAttribute('data-azcode'),
+        btn.getAttribute('data-account'),
+        btn.getAttribute('data-region')
+      );
+    };
+  });
+}
+
+function showSpecFamiliesModal(azCode, accountAlias, region) {
+  var zone = null;
+  if (MockData.cloudResources && MockData.cloudResources.zones) {
+    for (var i = 0; i < MockData.cloudResources.zones.length; i++) {
+      if (MockData.cloudResources.zones[i].azCode === azCode) {
+        zone = MockData.cloudResources.zones[i]; break;
+      }
+    }
+  }
+  if (!zone) return;
+
+  loadAndShowModal('cloud/az-spec-families', function () {
+    var titleEl   = document.getElementById('az-spec-title');
+    var contextEl = document.getElementById('az-spec-context');
+    var bodyEl    = document.getElementById('az-spec-body');
+
+    if (titleEl) titleEl.textContent = 'ECS 规格族 — ' + zone.azName + '（' + zone.azCode + '）';
+
+    if (contextEl) {
+      var regionName = region;
+      ALIYUN_REGIONS.forEach(function (r) { if (r.code === region) regionName = r.name; });
+      contextEl.textContent = '云账号：' + accountAlias +
+        '  |  地域：' + regionName + '  |  可用区：' + azCode;
+    }
+
+    if (!bodyEl) return;
+    var familyColors  = ['#e6f7ff', '#f6ffed', '#fff7e6', '#f9f0ff', '#fff1f0'];
+    var borderColors  = ['#91d5ff', '#b7eb8f', '#ffd591', '#d3adf7', '#ffa39e'];
+    var textColors    = ['#1890ff', '#52c41a', '#fa8c16', '#722ed1', '#f5222d'];
+    var html = '';
+    zone.specFamilies.forEach(function (sf, idx) {
+      var ci = idx % familyColors.length;
+      html += '<div style="margin-bottom:16px;">';
+      html += '<div style="font-weight:500;color:#333;margin-bottom:8px;">' +
+        esc(sf.family) + ' — ' + esc(sf.desc) + '</div>';
+      html += '<div style="display:flex;flex-wrap:wrap;gap:6px;">';
+      sf.specs.forEach(function (spec) {
+        html += '<span style="background:' + familyColors[ci] +
+          ';border:1px solid ' + borderColors[ci] +
+          ';padding:3px 10px;border-radius:3px;font-size:12px;color:' +
+          textColors[ci] + ';">' + esc(spec) + '</span>';
+      });
+      html += '</div></div>';
+    });
+    bodyEl.innerHTML = html;
+  });
+}
