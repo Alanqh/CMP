@@ -1,6 +1,25 @@
 'use strict';
 // CMP 原型 - 云账号页
 
+var ALIYUN_REGIONS = [
+  { code: 'cn-hangzhou',    name: '华东1（杭州）' },
+  { code: 'cn-shanghai',    name: '华东2（上海）' },
+  { code: 'cn-beijing',     name: '华北2（北京）' },
+  { code: 'cn-shenzhen',    name: '华南1（深圳）' },
+  { code: 'cn-chengdu',     name: '西南1（成都）' },
+  { code: 'cn-zhangjiakou', name: '华北3（张家口）' }
+];
+
+function initBindMainRegion() {
+  var sel = document.getElementById('bind-cloud-region');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">请选择地域</option>';
+  ALIYUN_REGIONS.forEach(function (r) {
+    sel.innerHTML += '<option value="' + esc(r.code) + '">' +
+      esc(r.name) + ' ' + esc(r.code) + '</option>';
+  });
+}
+
 // =============================================
 // 云账号页
 // =============================================
@@ -62,22 +81,30 @@ function renderPermPkgList() {
 function initCloudPage() {
   var container = document.getElementById('page-container');
 
-  // 恢复上次的 Tab 状态
-  if (state.cloud.activeTab === 'sub') {
-    var mainTab = document.getElementById('cloud-tab-main');
-    var subTab = document.getElementById('cloud-tab-sub');
-    if (mainTab) mainTab.style.display = 'none';
-    if (subTab) subTab.style.display = '';
-    var tabs = container.querySelectorAll('.ant-tabs-tab');
-    if (tabs.length >= 2) { tabs[0].classList.remove('active'); tabs[1].classList.add('active'); }
+  var ALL_CLOUD_TAB_PANELS = ['cloud-tab-main', 'cloud-tab-sub', 'cloud-tab-resource'];
+
+  function showCloudTab(showId) {
+    ALL_CLOUD_TAB_PANELS.forEach(function (panelId) {
+      var el = document.getElementById(panelId);
+      if (el) el.style.display = panelId === showId ? '' : 'none';
+    });
+    container.querySelectorAll('.ant-tabs-tab').forEach(function (t) {
+      t.classList.toggle('active', t.getAttribute('data-tab-show') === showId);
+    });
+    if (showId === 'cloud-tab-sub') state.cloud.activeTab = 'sub';
+    else if (showId === 'cloud-tab-resource') { state.cloud.activeTab = 'resource'; initCloudResourceTab(); }
+    else state.cloud.activeTab = 'main';
   }
 
-  // 记录 Tab 切换
+  // 恢复上次 Tab 状态
+  if (state.cloud.activeTab === 'sub') showCloudTab('cloud-tab-sub');
+  else if (state.cloud.activeTab === 'resource') showCloudTab('cloud-tab-resource');
+
+  // 接管三 Tab 切换
   container.querySelectorAll('.ant-tabs-tab').forEach(function (tab) {
-    var origOnclick = tab.onclick;
-    tab.addEventListener('click', function () {
-      state.cloud.activeTab = tab.getAttribute('data-tab-show') === 'cloud-tab-sub' ? 'sub' : 'main';
-    });
+    tab.onclick = function () {
+      showCloudTab(tab.getAttribute('data-tab-show'));
+    };
   });
 
   // Main accounts
@@ -121,7 +148,9 @@ function initCloudPage() {
       btn.onclick = function () {
         var dept = btn.getAttribute('data-dept');
         window._bindCloudDept = dept;
-        loadAndShowModal('cloud/bind-main');
+        loadAndShowModal('cloud/bind-main', function () {
+          initBindMainRegion();
+        });
       };
     });
 
