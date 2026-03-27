@@ -233,6 +233,19 @@ function renderDeptTemplateEdit(container, cfg, tplIdx) {
   // 初始化部门级覆盖配置
   if (!deptTpl.fieldOverrides) deptTpl.fieldOverrides = {};
 
+  // 查找部门云账号关联的地域（用于固化 RegionId 字段）
+  var deptRegion = '';
+  var deptRegionName = '';
+  if (cfg.cloudAccount) {
+    for (var ri = 0; ri < MockData.cloudAccounts.main.length; ri++) {
+      if (MockData.cloudAccounts.main[ri].account === cfg.cloudAccount) {
+        deptRegion = MockData.cloudAccounts.main[ri].region || '';
+        deptRegionName = MockData.cloudAccounts.main[ri].regionName || deptRegion;
+        break;
+      }
+    }
+  }
+
   var resLabel = deptTpl.subRes ? deptTpl.resType + ' / ' + deptTpl.subRes : deptTpl.resType;
   var html = '<div style="margin-bottom:16px;">';
   html += '<a class="ant-btn-link dept-tpl-back-btn" style="font-size:14px;">&larr; 返回模板列表</a>';
@@ -269,6 +282,24 @@ function renderDeptTemplateEdit(container, cfg, tplIdx) {
     html += '</tr></thead><tbody>';
     group.fields.forEach(function (field) {
       var key = gIdx + '|' + field.param;
+
+      // RegionId 固化为云账号地域，不允许部门修改
+      if (field.param === 'RegionId') {
+        html += '<tr style="background:#f0f7ff;">';
+        html += '<td><code style="font-size:11px;word-break:break-all;color:#722ed1;">RegionId</code></td>';
+        html += '<td style="font-size:13px;">地域</td>';
+        html += '<td style="text-align:center;"><span class="ant-tag ant-tag-red" style="font-size:10px;">必填</span></td>';
+        html += '<td style="text-align:center;"><span class="ant-tag ant-tag-default" style="font-size:11px;">select</span></td>';
+        html += '<td style="font-size:11px;"><span style="color:#595959;">接口获取</span></td>';
+        html += '<td style="text-align:center;"><label class="toggle-switch"><input type="checkbox" disabled checked /><span class="toggle-slider"></span></label></td>';
+        html += '<td style="font-size:12px;color:#1890ff;">' + (deptRegionName ? esc(deptRegionName) : '<span style="color:#bfbfbf;font-size:11px;">未关联账号</span>') + '</td>';
+        html += '<td><div style="display:flex;align-items:center;gap:6px;">';
+        html += '<span class="ant-tag" style="font-size:11px;background:#e6f7ff;border-color:#91caff;color:#0958d9;">云账号地域</span>';
+        html += '<span style="font-size:12px;color:#888;">固定，不可修改</span>';
+        html += '</div></td>';
+        html += '</tr>';
+        return;
+      }
       var override = deptTpl.fieldOverrides[key] || {};
       var show = override.show !== undefined ? override.show : true;
       var isRequired = !!field.required;
