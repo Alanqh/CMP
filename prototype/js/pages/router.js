@@ -382,9 +382,10 @@ function handleModalSubmit(name) {
         MockData.cloudAccounts.main[i].bindTime = new Date().toLocaleString('zh-CN').replace(/\//g, '/');
         MockData.cloudAccounts.main[i].status = '正常';
         MockData.cloudAccounts.main[i].region = regionSelect.value;
-        MockData.cloudAccounts.main[i].regionName = regionSelect.options[regionSelect.selectedIndex]
+        var optText = regionSelect.options[regionSelect.selectedIndex]
           ? regionSelect.options[regionSelect.selectedIndex].textContent.trim()
-          : regionSelect.value;
+          : '';
+        MockData.cloudAccounts.main[i].regionName = optText.replace(' ' + regionSelect.value, '').trim();
         break;
       }
     }
