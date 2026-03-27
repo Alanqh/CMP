@@ -1,0 +1,104 @@
+<h2>可用区查询功能放在哪里？</h2>
+<p class="subtitle">这个功能用于查看「云账号 + 地域 → 可用区列表 → 每个可用区的 ECS 规格族」，它的入口在哪？</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>云账号页新增第三个 Tab「资源信息」</h3>
+      <p>在现有「主账号管理 / 子账号管理」旁边加一个 Tab，集中展示可用区和规格族数据。</p>
+      <div class="mockup" style="margin-top:10px;">
+        <div class="mockup-header">云账号管理页</div>
+        <div class="mockup-body" style="font-size:12px;">
+          <div style="display:flex;gap:0;border-bottom:1px solid #eee;margin-bottom:10px;">
+            <div style="padding:6px 14px;color:#888;border-bottom:2px solid transparent;">主账号管理</div>
+            <div style="padding:6px 14px;color:#888;border-bottom:2px solid transparent;">子账号管理</div>
+            <div style="padding:6px 14px;color:#1890ff;border-bottom:2px solid #1890ff;font-weight:500;">资源信息 ← 新增</div>
+          </div>
+          <div style="display:flex;gap:8px;margin-bottom:8px;">
+            <select class="mock-input" style="width:140px;font-size:11px;"><option>基础架构部 - infra-main</option></select>
+            <select class="mock-input" style="width:140px;font-size:11px;"><option>华东1（杭州）</option></select>
+            <button class="mock-button" style="font-size:11px;">查询</button>
+          </div>
+          <table style="width:100%;border-collapse:collapse;font-size:11px;">
+            <tr style="background:#fafafa;">
+              <th style="padding:4px 8px;text-align:left;border:1px solid #eee;">可用区名称</th>
+              <th style="padding:4px 8px;text-align:left;border:1px solid #eee;">可用区 Code</th>
+              <th style="padding:4px 8px;text-align:left;border:1px solid #eee;">操作</th>
+            </tr>
+            <tr>
+              <td style="padding:4px 8px;border:1px solid #eee;">杭州 可用区G</td>
+              <td style="padding:4px 8px;border:1px solid #eee;">cn-hangzhou-g</td>
+              <td style="padding:4px 8px;border:1px solid #eee;color:#1890ff;">查看规格族</td>
+            </tr>
+            <tr>
+              <td style="padding:4px 8px;border:1px solid #eee;">杭州 可用区H</td>
+              <td style="padding:4px 8px;border:1px solid #eee;">cn-hangzhou-h</td>
+              <td style="padding:4px 8px;border:1px solid #eee;color:#1890ff;">查看规格族</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>主账号详情弹窗内展开显示</h3>
+      <p>点击主账号「详情」时，弹窗下半部分展示可用区信息。地域切换后动态刷新列表。</p>
+      <div class="mockup" style="margin-top:10px;">
+        <div class="mockup-header">主账号详情弹窗（扩展）</div>
+        <div class="mockup-body" style="font-size:12px;">
+          <div style="margin-bottom:4px;display:flex;justify-content:space-between;"><span style="color:#666;">所属部门</span><span>基础架构部</span></div>
+          <div style="margin-bottom:4px;display:flex;justify-content:space-between;"><span style="color:#666;">绑定人</span><span>张明远</span></div>
+          <div style="margin-bottom:4px;display:flex;justify-content:space-between;"><span style="color:#666;">默认地域</span><span>华东1（杭州）</span></div>
+          <hr style="margin:8px 0;border:none;border-top:1px solid #f0f0f0;">
+          <div style="font-weight:500;margin-bottom:6px;">可用区信息
+            <select class="mock-input" style="font-size:11px;width:130px;margin-left:8px;"><option>华东1（杭州）</option></select>
+          </div>
+          <table style="width:100%;border-collapse:collapse;font-size:11px;">
+            <tr style="background:#fafafa;">
+              <th style="padding:3px 6px;text-align:left;border:1px solid #eee;">可用区</th>
+              <th style="padding:3px 6px;text-align:left;border:1px solid #eee;">Code</th>
+              <th style="padding:3px 6px;text-align:left;border:1px solid #eee;">规格族</th>
+            </tr>
+            <tr><td style="padding:3px 6px;border:1px solid #eee;">可用区G</td><td style="padding:3px 6px;border:1px solid #eee;">cn-hangzhou-g</td><td style="padding:3px 6px;border:1px solid #eee;color:#1890ff;">展开 ▼</td></tr>
+            <tr><td style="padding:3px 6px;border:1px solid #eee;">可用区H</td><td style="padding:3px 6px;border:1px solid #eee;">cn-hangzhou-h</td><td style="padding:3px 6px;border:1px solid #eee;color:#1890ff;">展开 ▼</td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>主账号列表行内「查看可用区」入口</h3>
+      <p>主账号表格操作列加「可用区」按钮，点击后弹出专用弹窗（含地域切换、可用区列表、规格族展开）。</p>
+      <div class="mockup" style="margin-top:10px;">
+        <div class="mockup-header">主账号管理 Tab（表格操作列）</div>
+        <div class="mockup-body" style="font-size:12px;">
+          <table style="width:100%;border-collapse:collapse;font-size:11px;">
+            <tr style="background:#fafafa;">
+              <th style="padding:4px 6px;border:1px solid #eee;">部门</th>
+              <th style="padding:4px 6px;border:1px solid #eee;">主账号</th>
+              <th style="padding:4px 6px;border:1px solid #eee;">状态</th>
+              <th style="padding:4px 6px;border:1px solid #eee;">操作</th>
+            </tr>
+            <tr>
+              <td style="padding:4px 6px;border:1px solid #eee;">基础架构部</td>
+              <td style="padding:4px 6px;border:1px solid #eee;">infra-main</td>
+              <td style="padding:4px 6px;border:1px solid #eee;">正常</td>
+              <td style="padding:4px 6px;border:1px solid #eee;">
+                <span style="color:#1890ff;">详情</span>
+                <span style="color:#1890ff;margin-left:8px;border:1px solid #1890ff;padding:1px 5px;border-radius:3px;font-weight:500;">可用区 ← 新增</span>
+                <span style="color:#ff4d4f;margin-left:8px;">解绑</span>
+              </td>
+            </tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

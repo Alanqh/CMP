@@ -18,7 +18,8 @@
       "Bash(where gh:*)",
       "Bash(winget list:*)",
       "Bash(python:*)",
-      "Bash(grep -n \"opType: ''''申请''''\" js/mock/config.js)"
+      "Bash(grep -n \"opType: ''''申请''''\" js/mock/config.js)",
+      "Bash(bash \"C:/Users/qinghualv/.claude/plugins/cache/claude-plugins-official/superpowers/5.0.6/skills/brainstorming/scripts/start-server.sh\" --project-dir \"C:/Users/qinghualv/Documents/Obsidian Vault/DemandDesign/CMP\")"
     ]
   }
 }

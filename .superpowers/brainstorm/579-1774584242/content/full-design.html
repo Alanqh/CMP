@@ -1,0 +1,151 @@
+<h2>完整设计方案预览</h2>
+<p class="subtitle">两处改动：① 关联弹窗 Step 2 加地域字段；② 云账号页新增「资源信息」Tab</p>
+
+<div style="display:flex;flex-direction:column;gap:24px;">
+
+  <!-- 改动1 -->
+  <div class="section">
+    <div style="font-size:13px;font-weight:600;color:#333;margin-bottom:10px;">改动 1 — 关联主账号弹窗 Step 2（新增「默认地域」字段）</div>
+    <div class="mockup">
+      <div class="mockup-header">关联主账号 — Step 2：填写 AccessKey</div>
+      <div class="mockup-body" style="font-size:13px;">
+        <div style="background:#fffbe6;border:1px solid #ffe58f;border-radius:4px;padding:8px 12px;color:#d48806;font-size:12px;margin-bottom:16px;">
+          ⚠ 关联后，该账号下已有的存量子账号将默认归属给部门负责人，由负责人统一分配。
+        </div>
+        <div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:12px;">
+          <span style="width:130px;padding-top:6px;color:#333;font-size:13px;"><span style="color:#ff4d4f;">*</span> 账号别名</span>
+          <div style="flex:1;">
+            <input class="mock-input" style="width:100%;" placeholder="请输入账号别名，如 infra-main" readonly>
+            <div style="font-size:12px;color:#888;margin-top:3px;">用于在平台中标识该主账号</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;">
+          <span style="width:130px;color:#333;font-size:13px;"><span style="color:#ff4d4f;">*</span> AccessKey ID</span>
+          <input class="mock-input" style="flex:1;" placeholder="请输入 AccessKey ID" readonly>
+        </div>
+        <div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:12px;">
+          <span style="width:130px;padding-top:6px;color:#333;font-size:13px;"><span style="color:#ff4d4f;">*</span> AccessKey Secret</span>
+          <div style="flex:1;">
+            <input class="mock-input" style="width:100%;" placeholder="请输入 AccessKey Secret" readonly>
+            <div style="font-size:12px;color:#888;margin-top:3px;">密钥将加密存储，仅用于调用云厂商 API</div>
+          </div>
+        </div>
+        <!-- 新增字段高亮 -->
+        <div style="display:flex;gap:8px;align-items:flex-start;border:2px solid #1890ff;border-radius:6px;padding:10px 12px;background:#f0f7ff;">
+          <span style="width:130px;padding-top:4px;color:#1890ff;font-size:13px;font-weight:500;"><span style="color:#ff4d4f;">*</span> 默认地域</span>
+          <div style="flex:1;">
+            <select class="mock-input" style="width:100%;">
+              <option>华东1（杭州）cn-hangzhou</option>
+              <option>华东2（上海）cn-shanghai</option>
+              <option>华北2（北京）cn-beijing</option>
+              <option>华南1（深圳）cn-shenzhen</option>
+            </select>
+            <div style="font-size:12px;color:#1890ff;margin-top:3px;">平台将从该地域自动同步可用区及 ECS 规格族信息</div>
+          </div>
+          <span style="background:#1890ff;color:#fff;font-size:10px;padding:1px 6px;border-radius:8px;white-space:nowrap;align-self:flex-start;margin-top:4px;">新增</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 改动2 -->
+  <div class="section">
+    <div style="font-size:13px;font-weight:600;color:#333;margin-bottom:10px;">改动 2 — 云账号页新增「资源信息」Tab</div>
+    <div class="mockup">
+      <div class="mockup-header">云账号管理</div>
+      <div class="mockup-body" style="font-size:13px;">
+        <!-- Tabs -->
+        <div style="display:flex;gap:0;border-bottom:1px solid #f0f0f0;margin-bottom:16px;">
+          <div style="padding:8px 16px;color:#888;font-size:13px;">主账号管理</div>
+          <div style="padding:8px 16px;color:#888;font-size:13px;">子账号管理</div>
+          <div style="padding:8px 16px;color:#1890ff;font-size:13px;font-weight:500;border-bottom:2px solid #1890ff;">
+            资源信息
+            <span style="background:#1890ff;color:#fff;font-size:10px;padding:1px 6px;border-radius:8px;margin-left:6px;">新增</span>
+          </div>
+        </div>
+
+        <!-- 过滤栏 -->
+        <div style="display:flex;gap:10px;align-items:center;margin-bottom:12px;">
+          <select class="mock-input" style="width:190px;font-size:12px;"><option>基础架构部 — infra-main</option></select>
+          <select class="mock-input" style="width:170px;font-size:12px;"><option>华东1（杭州）cn-hangzhou</option></select>
+          <div style="flex:1;"></div>
+          <span style="font-size:11px;color:#888;">上次同步：2026-03-27 10:30:00</span>
+          <button class="mock-button" style="font-size:12px;">↻ 手动刷新</button>
+        </div>
+
+        <!-- 可用区表格 -->
+        <table style="width:100%;border-collapse:collapse;font-size:12px;">
+          <thead>
+            <tr style="background:#fafafa;">
+              <th style="padding:8px 12px;text-align:left;border:1px solid #f0f0f0;color:#666;">可用区名称</th>
+              <th style="padding:8px 12px;text-align:left;border:1px solid #f0f0f0;color:#666;">可用区 Code</th>
+              <th style="padding:8px 12px;text-align:left;border:1px solid #f0f0f0;color:#666;">ECS 规格族</th>
+              <th style="padding:8px 12px;text-align:left;border:1px solid #f0f0f0;color:#666;">操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="padding:8px 12px;border:1px solid #f0f0f0;">杭州 可用区G</td>
+              <td style="padding:8px 12px;border:1px solid #f0f0f0;font-family:monospace;color:#555;">cn-hangzhou-g</td>
+              <td style="padding:8px 12px;border:1px solid #f0f0f0;">12 个规格族</td>
+              <td style="padding:8px 12px;border:1px solid #f0f0f0;"><span style="color:#1890ff;cursor:pointer;">查看规格族</span></td>
+            </tr>
+            <tr style="background:#fafafa;">
+              <td style="padding:8px 12px;border:1px solid #f0f0f0;">杭州 可用区H</td>
+              <td style="padding:8px 12px;border:1px solid #f0f0f0;font-family:monospace;color:#555;">cn-hangzhou-h</td>
+              <td style="padding:8px 12px;border:1px solid #f0f0f0;">10 个规格族</td>
+              <td style="padding:8px 12px;border:1px solid #f0f0f0;"><span style="color:#1890ff;cursor:pointer;">查看规格族</span></td>
+            </tr>
+            <tr>
+              <td style="padding:8px 12px;border:1px solid #f0f0f0;">杭州 可用区I</td>
+              <td style="padding:8px 12px;border:1px solid #f0f0f0;font-family:monospace;color:#555;">cn-hangzhou-i</td>
+              <td style="padding:8px 12px;border:1px solid #f0f0f0;">9 个规格族</td>
+              <td style="padding:8px 12px;border:1px solid #f0f0f0;"><span style="color:#1890ff;cursor:pointer;">查看规格族</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- 弹窗预览 -->
+  <div class="section">
+    <div style="font-size:13px;font-weight:600;color:#333;margin-bottom:10px;">改动 2 续 — 「查看规格族」弹窗</div>
+    <div class="mockup">
+      <div class="mockup-header">ECS 规格族 — 杭州 可用区G（cn-hangzhou-g）</div>
+      <div class="mockup-body" style="font-size:12px;">
+        <div style="background:#f5f5f5;padding:6px 10px;border-radius:4px;margin-bottom:12px;font-size:11px;color:#666;">
+          云账号：infra-main &nbsp;|&nbsp; 地域：华东1（杭州）&nbsp;|&nbsp; 可用区：cn-hangzhou-g
+        </div>
+        <div style="margin-bottom:12px;">
+          <div style="font-weight:500;color:#333;margin-bottom:6px;">ecs.g8a — 通用型 g8a</div>
+          <div style="display:flex;flex-wrap:wrap;gap:4px;">
+            <span style="background:#e6f7ff;border:1px solid #91d5ff;padding:2px 8px;border-radius:3px;font-size:11px;color:#1890ff;">ecs.g8a.large</span>
+            <span style="background:#e6f7ff;border:1px solid #91d5ff;padding:2px 8px;border-radius:3px;font-size:11px;color:#1890ff;">ecs.g8a.xlarge</span>
+            <span style="background:#e6f7ff;border:1px solid #91d5ff;padding:2px 8px;border-radius:3px;font-size:11px;color:#1890ff;">ecs.g8a.2xlarge</span>
+            <span style="background:#e6f7ff;border:1px solid #91d5ff;padding:2px 8px;border-radius:3px;font-size:11px;color:#1890ff;">ecs.g8a.4xlarge</span>
+          </div>
+        </div>
+        <div style="margin-bottom:12px;">
+          <div style="font-weight:500;color:#333;margin-bottom:6px;">ecs.c8a — 计算型 c8a</div>
+          <div style="display:flex;flex-wrap:wrap;gap:4px;">
+            <span style="background:#f6ffed;border:1px solid #b7eb8f;padding:2px 8px;border-radius:3px;font-size:11px;color:#52c41a;">ecs.c8a.large</span>
+            <span style="background:#f6ffed;border:1px solid #b7eb8f;padding:2px 8px;border-radius:3px;font-size:11px;color:#52c41a;">ecs.c8a.xlarge</span>
+            <span style="background:#f6ffed;border:1px solid #b7eb8f;padding:2px 8px;border-radius:3px;font-size:11px;color:#52c41a;">ecs.c8a.2xlarge</span>
+          </div>
+        </div>
+        <div>
+          <div style="font-weight:500;color:#333;margin-bottom:6px;">ecs.r8a — 内存型 r8a</div>
+          <div style="display:flex;flex-wrap:wrap;gap:4px;">
+            <span style="background:#fff7e6;border:1px solid #ffd591;padding:2px 8px;border-radius:3px;font-size:11px;color:#fa8c16;">ecs.r8a.large</span>
+            <span style="background:#fff7e6;border:1px solid #ffd591;padding:2px 8px;border-radius:3px;font-size:11px;color:#fa8c16;">ecs.r8a.xlarge</span>
+          </div>
+        </div>
+        <div style="margin-top:14px;text-align:right;border-top:1px solid #f0f0f0;padding-top:10px;">
+          <button class="mock-button" style="font-size:12px;">关闭</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>

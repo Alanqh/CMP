@@ -1,0 +1,90 @@
+<h2>关联主账号时，地域字段放在哪里？</h2>
+<p class="subtitle">当前弹窗分两步：Step 1 创建专用子账号 → Step 2 填写 AccessKey。地域字段要插入哪个位置？</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>加在 Step 2（填写 AccessKey 同一步）</h3>
+      <p>在账号别名、AK ID、AK Secret 下方新增「默认地域」下拉框。步骤数不变，信息更集中。</p>
+      <div class="mockup" style="margin-top:10px;">
+        <div class="mockup-header">Step 2 — 填写 AccessKey（修改后）</div>
+        <div class="mockup-body" style="font-size:12px;">
+          <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
+            <span style="width:110px;color:#666;">* 账号别名</span>
+            <input class="mock-input" style="flex:1;" placeholder="请输入账号别名" readonly>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
+            <span style="width:110px;color:#666;">* AccessKey ID</span>
+            <input class="mock-input" style="flex:1;" placeholder="请输入 AK ID" readonly>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
+            <span style="width:110px;color:#666;">* AccessKey Secret</span>
+            <input class="mock-input" style="flex:1;" placeholder="请输入 AK Secret" readonly>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;border:2px solid #1890ff;border-radius:4px;padding:6px 8px;background:#f0f7ff;">
+            <span style="width:110px;color:#1890ff;font-weight:500;">* 默认地域</span>
+            <select class="mock-input" style="flex:1;">
+              <option>华东1（杭州）cn-hangzhou</option>
+            </select>
+          </div>
+          <div style="font-size:11px;color:#888;margin-top:4px;margin-left:118px;">平台将从该地域同步可用区、规格族等资源信息</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>新增 Step 3（地域配置独立成一步）</h3>
+      <p>在完成 AK 验证后，新增第三步专门配置地域。强调地域配置的重要性，也方便后续扩展为多地域。</p>
+      <div class="mockup" style="margin-top:10px;">
+        <div class="mockup-header">Step 3 — 配置地域（新增步骤）</div>
+        <div class="mockup-body" style="font-size:12px;">
+          <div style="background:#f0f5ff;border:1px solid #adc6ff;border-radius:4px;padding:8px 10px;margin-bottom:12px;font-size:12px;color:#2f54eb;">
+            &#9432; 地域决定了平台同步可用区、ECS 规格族的范围，请选择您主要使用的地域。
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <span style="width:80px;color:#666;">* 默认地域</span>
+            <select class="mock-input" style="flex:1;">
+              <option>华东1（杭州）cn-hangzhou</option>
+            </select>
+          </div>
+          <div style="margin-top:12px;padding:8px;background:#fafafa;border-radius:4px;font-size:11px;color:#666;">
+            <b>关联后平台将自动同步：</b><br>
+            · 该地域下的可用区列表（含可用区 Code）<br>
+            · 每个可用区支持的 ECS 规格族
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>关联后在详情页配置（弹窗不改动）</h3>
+      <p>关联成功后，在主账号详情页新增「地域配置」区块，允许后续设置/修改。弹窗保持简洁，地域可延后配置。</p>
+      <div class="mockup" style="margin-top:10px;">
+        <div class="mockup-header">主账号详情（新增地域区块）</div>
+        <div class="mockup-body" style="font-size:12px;">
+          <div style="margin-bottom:6px;display:flex;justify-content:space-between;">
+            <span style="color:#666;">所属部门</span><span>基础架构部</span>
+          </div>
+          <div style="margin-bottom:6px;display:flex;justify-content:space-between;">
+            <span style="color:#666;">云厂商</span><span style="color:#1890ff;">阿里云</span>
+          </div>
+          <div style="margin-bottom:6px;display:flex;justify-content:space-between;">
+            <span style="color:#666;">绑定人</span><span>张明远</span>
+          </div>
+          <hr style="margin:8px 0;border:none;border-top:1px solid #f0f0f0;">
+          <div style="border:2px solid #1890ff;border-radius:4px;padding:8px;background:#f0f7ff;">
+            <div style="font-weight:500;color:#1890ff;margin-bottom:6px;">地域配置 <span style="font-size:11px;font-weight:400;color:#fa8c16;">⚠ 尚未配置</span></div>
+            <button class="mock-button" style="font-size:11px;padding:2px 10px;">+ 配置默认地域</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

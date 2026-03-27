@@ -1,0 +1,84 @@
+<h2>点击「查看规格族」后如何展示？</h2>
+<p class="subtitle">用户在可用区列表里点击「查看规格族」，规格族数据以哪种方式呈现？</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>行内展开（表格行下方插入子内容）</h3>
+      <p>点击后当前行展开，下方插入该可用区的规格族列表。再次点击收起。页面不跳转，所有信息在同一屏内。</p>
+      <div class="mockup" style="margin-top:10px;">
+        <div class="mockup-header">资源信息 Tab — 行内展开</div>
+        <div class="mockup-body" style="font-size:12px;">
+          <table style="width:100%;border-collapse:collapse;font-size:11px;">
+            <tr style="background:#fafafa;">
+              <th style="padding:4px 8px;border:1px solid #eee;">可用区名称</th>
+              <th style="padding:4px 8px;border:1px solid #eee;">可用区 Code</th>
+              <th style="padding:4px 8px;border:1px solid #eee;">操作</th>
+            </tr>
+            <tr>
+              <td style="padding:4px 8px;border:1px solid #eee;">杭州 可用区G</td>
+              <td style="padding:4px 8px;border:1px solid #eee;">cn-hangzhou-g</td>
+              <td style="padding:4px 8px;border:1px solid #eee;color:#1890ff;">▲ 收起规格族</td>
+            </tr>
+            <tr style="background:#f6f9ff;">
+              <td colspan="3" style="padding:8px 16px;border:1px solid #d6e4ff;">
+                <div style="font-size:11px;color:#555;margin-bottom:4px;font-weight:500;">ecs.g8a — 通用型 g8a</div>
+                <div style="display:flex;flex-wrap:wrap;gap:4px;">
+                  <span style="background:#e6f7ff;border:1px solid #91d5ff;padding:1px 7px;border-radius:10px;font-size:10px;color:#1890ff;">ecs.g8a.large</span>
+                  <span style="background:#e6f7ff;border:1px solid #91d5ff;padding:1px 7px;border-radius:10px;font-size:10px;color:#1890ff;">ecs.g8a.xlarge</span>
+                  <span style="background:#e6f7ff;border:1px solid #91d5ff;padding:1px 7px;border-radius:10px;font-size:10px;color:#1890ff;">ecs.g8a.2xlarge</span>
+                </div>
+                <div style="font-size:11px;color:#555;margin:6px 0 4px;font-weight:500;">ecs.c8a — 计算型 c8a</div>
+                <div style="display:flex;flex-wrap:wrap;gap:4px;">
+                  <span style="background:#f6ffed;border:1px solid #b7eb8f;padding:1px 7px;border-radius:10px;font-size:10px;color:#52c41a;">ecs.c8a.large</span>
+                  <span style="background:#f6ffed;border:1px solid #b7eb8f;padding:1px 7px;border-radius:10px;font-size:10px;color:#52c41a;">ecs.c8a.xlarge</span>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:4px 8px;border:1px solid #eee;">杭州 可用区H</td>
+              <td style="padding:4px 8px;border:1px solid #eee;">cn-hangzhou-h</td>
+              <td style="padding:4px 8px;border:1px solid #eee;color:#1890ff;">▼ 查看规格族</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>弹窗展示规格族详情</h3>
+      <p>点击后弹出专用弹窗，标题显示「xxx 可用区 — ECS 规格族」，内容为规格族分组列表。弹窗可以展示更多信息。</p>
+      <div class="mockup" style="margin-top:10px;">
+        <div class="mockup-header">弹窗：杭州 可用区G — ECS 规格族</div>
+        <div class="mockup-body" style="font-size:12px;">
+          <div style="background:#f5f5f5;padding:6px 10px;border-radius:4px;margin-bottom:10px;font-size:11px;color:#666;">
+            云账号：infra-main &nbsp;|&nbsp; 地域：华东1（杭州）&nbsp;|&nbsp; 可用区：cn-hangzhou-g
+          </div>
+          <div style="margin-bottom:8px;">
+            <div style="font-weight:500;color:#333;margin-bottom:4px;">ecs.g8a — 通用型 g8a（8 个规格）</div>
+            <div style="display:flex;flex-wrap:wrap;gap:4px;">
+              <span style="background:#e6f7ff;border:1px solid #91d5ff;padding:2px 8px;border-radius:3px;font-size:11px;">ecs.g8a.large</span>
+              <span style="background:#e6f7ff;border:1px solid #91d5ff;padding:2px 8px;border-radius:3px;font-size:11px;">ecs.g8a.xlarge</span>
+              <span style="background:#e6f7ff;border:1px solid #91d5ff;padding:2px 8px;border-radius:3px;font-size:11px;">ecs.g8a.2xlarge</span>
+              <span style="background:#e6f7ff;border:1px solid #91d5ff;padding:2px 8px;border-radius:3px;font-size:11px;">ecs.g8a.4xlarge</span>
+            </div>
+          </div>
+          <div>
+            <div style="font-weight:500;color:#333;margin-bottom:4px;">ecs.c8a — 计算型 c8a（6 个规格）</div>
+            <div style="display:flex;flex-wrap:wrap;gap:4px;">
+              <span style="background:#f6ffed;border:1px solid #b7eb8f;padding:2px 8px;border-radius:3px;font-size:11px;">ecs.c8a.large</span>
+              <span style="background:#f6ffed;border:1px solid #b7eb8f;padding:2px 8px;border-radius:3px;font-size:11px;">ecs.c8a.xlarge</span>
+            </div>
+          </div>
+          <div style="margin-top:10px;text-align:right;">
+            <button class="mock-button" style="font-size:11px;">关闭</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
