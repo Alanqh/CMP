@@ -370,6 +370,8 @@ function handleModalSubmit(name) {
     if (!alias || !alias.value.trim()) { showMessage('请填写账号别名', 'warning'); return; }
     if (!ak || !ak.value.trim()) { showMessage('请填写 AccessKey ID', 'warning'); return; }
     if (!sk || !sk.value.trim()) { showMessage('请填写 AccessKey Secret', 'warning'); return; }
+    var regionSelect = document.getElementById('bind-cloud-region');
+    if (!regionSelect || !regionSelect.value) { showMessage('请选择默认地域', 'warning'); return; }
     var dept = window._bindCloudDept;
     // 更新 mock 数据
     for (var i = 0; i < MockData.cloudAccounts.main.length; i++) {
@@ -379,6 +381,10 @@ function handleModalSubmit(name) {
         MockData.cloudAccounts.main[i].bindUser = '部门负责人';
         MockData.cloudAccounts.main[i].bindTime = new Date().toLocaleString('zh-CN').replace(/\//g, '/');
         MockData.cloudAccounts.main[i].status = '正常';
+        MockData.cloudAccounts.main[i].region = regionSelect.value;
+        MockData.cloudAccounts.main[i].regionName = regionSelect.options[regionSelect.selectedIndex]
+          ? regionSelect.options[regionSelect.selectedIndex].textContent.trim()
+          : regionSelect.value;
         break;
       }
     }
@@ -398,6 +404,8 @@ function handleModalSubmit(name) {
           MockData.cloudAccounts.main[i].bindUser = '';
           MockData.cloudAccounts.main[i].bindTime = '';
           MockData.cloudAccounts.main[i].status = '未关联';
+          MockData.cloudAccounts.main[i].region = '';
+          MockData.cloudAccounts.main[i].regionName = '';
           break;
         }
       }
