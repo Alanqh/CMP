@@ -6,6 +6,7 @@
     <div class="ant-tabs-nav">
       <span class="ant-tabs-tab active" data-tab-show="cloud-tab-main" data-tab-hide="cloud-tab-sub">主账号管理</span>
       <span class="ant-tabs-tab" data-tab-show="cloud-tab-sub" data-tab-hide="cloud-tab-main">子账号管理</span>
+      <span class="ant-tabs-tab" data-tab-show="cloud-tab-resource">资源信息</span>
     </div>
   </div>
 </div>
@@ -26,6 +27,16 @@
         <select class="ant-select" id="cloud-sub-status" style="min-width:120px;"><option value="">全部状态</option><option value="正常">正常</option><option value="审批中">审批中</option><option value="已回收">已回收</option></select>
       </div>
       <div id="cloud-sub-container"></div>
+    </div>
+    <div id="cloud-tab-resource" style="display:none;">
+      <div class="filter-bar" style="margin-bottom:12px;align-items:center;">
+        <select class="ant-select" id="cloud-res-account" style="min-width:220px;"></select>
+        <select class="ant-select" id="cloud-res-region" style="min-width:190px;"></select>
+        <div style="flex:1;"></div>
+        <span id="cloud-res-sync-time" style="font-size:13px;color:var(--text-secondary);margin-right:8px;"></span>
+        <button class="ant-btn ant-btn-sm" id="cloud-res-refresh-btn">↻ 手动刷新</button>
+      </div>
+      <div id="cloud-res-az-container"></div>
     </div>
   </div>
 </div>
