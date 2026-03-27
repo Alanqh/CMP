@@ -360,27 +360,26 @@ function renderCloudSub() {
 }
 
 // =============================================
-// 资源信息 Tab
+// 可用区列表 Tab
 // =============================================
 
 function initCloudResourceTab() {
   var accountSelect = document.getElementById('cloud-res-account');
-  var regionSelect  = document.getElementById('cloud-res-region');
   var refreshBtn    = document.getElementById('cloud-res-refresh-btn');
   var syncTimeEl    = document.getElementById('cloud-res-sync-time');
-  if (!accountSelect || !regionSelect) return;
+  if (!accountSelect) return;
 
-  // 填充云账号下拉（仅已关联账号）
+  // 填充云账号下拉（仅已关联账号，显示部门 — 别名 [地域]）
   accountSelect.innerHTML = '';
   var boundAccounts = MockData.cloudAccounts.main.filter(function (a) { return a.status === '正常'; });
   boundAccounts.forEach(function (a) {
     var alias = a.account.split(' ')[0];
     accountSelect.innerHTML += '<option value="' + esc(alias) + '">' +
-      esc(a.dept) + ' — ' + esc(alias) + '</option>';
+      esc(a.dept) + ' — ' + esc(alias) +
+      (a.regionName ? '（' + esc(a.regionName) + '）' : '') + '</option>';
   });
 
-  // 根据所选账号填充地域下拉，并默认选中该账号的 region
-  function updateRegionSelect() {
+  function renderForSelected() {
     var alias = accountSelect.value;
     var acct  = null;
     for (var i = 0; i < MockData.cloudAccounts.main.length; i++) {
@@ -388,21 +387,14 @@ function initCloudResourceTab() {
         acct = MockData.cloudAccounts.main[i]; break;
       }
     }
-    regionSelect.innerHTML = '';
-    ALIYUN_REGIONS.forEach(function (r) {
-      regionSelect.innerHTML += '<option value="' + esc(r.code) + '">' +
-        esc(r.name) + '</option>';
-    });
-    if (acct && acct.region) regionSelect.value = acct.region;
-    renderAzTable(alias, regionSelect.value);
+    renderAzTable(alias, acct ? acct.region : '');
   }
 
-  accountSelect.onchange = function () { updateRegionSelect(); };
-  regionSelect.onchange  = function () { renderAzTable(accountSelect.value, regionSelect.value); };
+  accountSelect.onchange = function () { renderForSelected(); };
 
   if (refreshBtn) {
     refreshBtn.onclick = function () {
-      renderAzTable(accountSelect.value, regionSelect.value);
+      renderForSelected();
       showMessage('可用区数据已刷新', 'success');
     };
   }
@@ -411,7 +403,7 @@ function initCloudResourceTab() {
     syncTimeEl.textContent = '上次同步：' + MockData.cloudResources.syncTime;
   }
 
-  if (boundAccounts.length > 0) updateRegionSelect();
+  if (boundAccounts.length > 0) renderForSelected();
 }
 
 function renderAzTable(accountAlias, region) {
