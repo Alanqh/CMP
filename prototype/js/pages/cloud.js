@@ -415,8 +415,8 @@ function initCloudResourceTab() {
 }
 
 function renderAzTable(accountAlias, region) {
-  var container = document.getElementById('cloud-res-az-container');
-  if (!container) return;
+  var azContainer = document.getElementById('cloud-res-az-container');
+  if (!azContainer) return;
 
   var zones = [];
   if (MockData.cloudResources && MockData.cloudResources.zones) {
@@ -426,7 +426,7 @@ function renderAzTable(accountAlias, region) {
   }
 
   if (zones.length === 0) {
-    container.innerHTML = '<table class="ant-table"><thead><tr><th>可用区名称</th><th>可用区 Code</th><th>ECS 规格族</th><th>操作</th></tr></thead><tbody>' +
+    azContainer.innerHTML = '<table class="ant-table"><thead><tr><th>可用区名称</th><th>可用区 Code</th><th>ECS 规格族</th><th>操作</th></tr></thead><tbody>' +
       '<tr><td colspan="4" style="text-align:center;color:var(--text-secondary);padding:32px;">暂无可用区数据</td></tr>' +
       '</tbody></table>';
     return;
@@ -446,9 +446,9 @@ function renderAzTable(accountAlias, region) {
     html += '</tr>';
   });
   html += '</tbody></table>';
-  container.innerHTML = html;
+  azContainer.innerHTML = html;
 
-  container.querySelectorAll('.cloud-az-spec-btn').forEach(function (btn) {
+  azContainer.querySelectorAll('.cloud-az-spec-btn').forEach(function (btn) {
     btn.onclick = function () {
       showSpecFamiliesModal(
         btn.getAttribute('data-azcode'),
@@ -463,7 +463,9 @@ function showSpecFamiliesModal(azCode, accountAlias, region) {
   var zone = null;
   if (MockData.cloudResources && MockData.cloudResources.zones) {
     for (var i = 0; i < MockData.cloudResources.zones.length; i++) {
-      if (MockData.cloudResources.zones[i].azCode === azCode) {
+      if (MockData.cloudResources.zones[i].azCode === azCode &&
+          MockData.cloudResources.zones[i].accountAlias === accountAlias &&
+          MockData.cloudResources.zones[i].region === region) {
         zone = MockData.cloudResources.zones[i]; break;
       }
     }
