@@ -31,6 +31,7 @@ MockData.cloudAccounts = {
 
 MockData.cloudResources = {
   syncTime: '2026-03-27 10:30:00',
+  // accountAlias matches cloudAccounts.main[].account.split(' ')[0]
   zones: [
     {
       accountAlias: 'infra-main', region: 'cn-hangzhou',
