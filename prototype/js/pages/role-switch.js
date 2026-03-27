@@ -26,8 +26,8 @@ var ROLE_CONFIG = {
     name: '张明远',
     dataScope: '本部门（基础架构部）',
     pages: ['org', 'user', 'dept-config', 'cloud', 'project',
-            'resource', 'res-packages', 'orphan',
-            'apply-records', 'review-records', 'ticket', 'audit']
+            'res-catalog', 'resource', 'res-packages', 'orphan',
+            'apply-records', 'review-records', 'ticket']
   },
   group_leader1: {
     label: '一级组组长',
@@ -36,7 +36,7 @@ var ROLE_CONFIG = {
     username: 'lisy',
     name: '李思远',
     dataScope: '本组（容器平台组）',
-    pages: ['org', 'cloud', 'project', 'resource', 'res-packages',
+    pages: ['org', 'cloud', 'project', 'res-catalog', 'resource', 'res-packages',
             'apply-records', 'review-records', 'ticket']
   },
   group_leader2: {
@@ -46,7 +46,7 @@ var ROLE_CONFIG = {
     username: 'chenty',
     name: '陈天宇',
     dataScope: '本组（K8s运维小组）',
-    pages: ['org', 'cloud', 'project', 'resource', 'res-packages',
+    pages: ['org', 'cloud', 'project', 'res-catalog', 'resource', 'res-packages',
             'apply-records', 'review-records', 'ticket']
   },
   member: {
@@ -56,7 +56,8 @@ var ROLE_CONFIG = {
     username: 'wanghr',
     name: '王浩然',
     dataScope: '仅个人数据',
-    pages: ['cloud', 'resource', 'res-packages', 'apply-records', 'ticket']
+    pages: ['cloud', 'project', 'res-catalog', 'resource', 'res-packages',
+            'apply-records', 'ticket']
   }
 };
 

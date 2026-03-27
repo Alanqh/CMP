@@ -64,12 +64,16 @@ function renderOrgDetail(org) {
   var typeLabel = { dept: '部门', group: '一级组', subgroup: '二级组' };
   var childCount = org.children ? org.children.length : 0;
   var childLabel = org.type === 'dept' ? (childCount + ' 个一级组') : (childCount > 0 ? (childCount + ' 个下级组') : '无');
-  // 编辑/删除权限：超管可操作所有；部门负责人只能操作组（不能操作部门）；组长无权
-  var canManageOrg = currentRole === 'superadmin' || (currentRole === 'dept_head' && org.type !== 'dept');
+  // 编辑权限：超管可操作所有；部门负责人可编辑组（不能编辑部门）；组长无权
+  // 删除权限：仅超管
+  var canEdit = currentRole === 'superadmin' || (currentRole === 'dept_head' && org.type !== 'dept');
+  var canDelete = currentRole === 'superadmin';
   var html = '<div class="ant-card"><div class="ant-card-head"><span id="org-detail-title">' + esc(org.name) + '</span>';
-  if (canManageOrg) {
-    html += '<div class="btn-group"><button class="ant-btn-link" id="btn-edit-org" data-org-id="' + org.id + '">编辑</button>';
-    html += '<button class="ant-btn-link" id="btn-delete-org" data-org-id="' + org.id + '" style="color:#ff4d4f;">删除</button></div>';
+  if (canEdit || canDelete) {
+    html += '<div class="btn-group">';
+    if (canEdit) html += '<button class="ant-btn-link" id="btn-edit-org" data-org-id="' + org.id + '">编辑</button>';
+    if (canDelete) html += '<button class="ant-btn-link" id="btn-delete-org" data-org-id="' + org.id + '" style="color:#ff4d4f;">删除</button>';
+    html += '</div>';
   }
   html += '</div>';
   html += '<div class="ant-card-body" style="padding:0;"><div class="ant-descriptions">';
@@ -104,9 +108,8 @@ function renderOrgDetail(org) {
 function renderOrgMembers(orgId, keyword, page) {
   var orgIds = MockData.getOrgAndChildIds(orgId);
   var isDeptSelected = orgId.indexOf('dept-') === 0;
-  // 添加成员按钮权限：部门节点仅超管；组节点超管/部门负责人可操作
-  var canAddMember = currentRole === 'superadmin' ||
-    (!isDeptSelected && currentRole === 'dept_head');
+  // 添加成员按钮权限：部门节点和组节点，超管/部门负责人均可操作
+  var canAddMember = currentRole === 'superadmin' || currentRole === 'dept_head';
   var filtered = MockData.members.filter(function (m) {
     if (m.orgId === 'unassigned') return false;
     if (orgIds.indexOf(m.orgId) === -1) return false;

@@ -8,16 +8,20 @@ function initResCatalogPage() {
   renderResCatalog();
   var syncBtn = document.getElementById('catalog-sync-btn');
   if (syncBtn) {
-    syncBtn.onclick = function () {
-      syncBtn.disabled = true;
-      syncBtn.textContent = '同步中...';
-      setTimeout(function () {
-        syncBtn.disabled = false;
-        syncBtn.textContent = '同步刷新';
-        showMessage('资源目录已与后端同步', 'success');
-        renderResCatalog();
-      }, 800);
-    };
+    if (currentRole !== 'superadmin') {
+      syncBtn.style.display = 'none';
+    } else {
+      syncBtn.onclick = function () {
+        syncBtn.disabled = true;
+        syncBtn.textContent = '同步中...';
+        setTimeout(function () {
+          syncBtn.disabled = false;
+          syncBtn.textContent = '同步刷新';
+          showMessage('资源目录已与后端同步', 'success');
+          renderResCatalog();
+        }, 800);
+      };
+    }
   }
 }
 

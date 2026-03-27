@@ -117,11 +117,11 @@ function initCloudPage() {
     if (ctx.deptId && currentRole !== 'superadmin') {
       mainAccounts = mainAccounts.filter(function (a) { return a.dept === ctx.deptName; });
     }
-    var html = '<table class="ant-table"><thead><tr><th>部门</th><th>云厂商</th><th>主账号 / AK别名</th><th>绑定人</th><th>绑定时间</th><th>状态</th><th>操作</th></tr></thead><tbody>';
+    var html = '<table class="ant-table"><thead><tr><th>部门</th><th>云厂商</th><th>主账号 / AK别名</th><th>绑定人</th><th>绑定时间</th><th>指定地域</th><th>状态</th><th>操作</th></tr></thead><tbody>';
     mainAccounts.forEach(function (a) {
       html += '<tr><td>' + esc(a.dept) + '</td>';
       if (a.status === '未关联') {
-        html += '<td colspan="4" style="color:var(--text-secondary);">--</td>';
+        html += '<td colspan="5" style="color:var(--text-secondary);">--</td>';
         html += '<td>';
         if (canManageMain) {
           html += '<button class="ant-btn ant-btn-primary ant-btn-sm cloud-bind-main-btn" data-dept="' + esc(a.dept) + '">关联主账号</button>';
@@ -132,6 +132,7 @@ function initCloudPage() {
       } else {
         html += '<td><span class="ant-tag ant-tag-blue">' + esc(a.vendor) + '</span></td>';
         html += '<td>' + esc(a.account) + '</td><td>' + esc(a.bindUser) + '</td><td>' + esc(a.bindTime) + '</td>';
+        html += '<td>' + (a.regionName ? esc(a.regionName) : '<span style="color:var(--text-secondary);">--</span>') + '</td>';
         html += '<td><span class="ant-badge-status-dot ant-badge-status-success"></span>正常</td>';
         html += '<td><a class="ant-btn-link cloud-main-detail-btn" data-dept="' + esc(a.dept) + '">详情</a>';
         if (canManageMain) {
