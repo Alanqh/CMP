@@ -65,9 +65,11 @@ function renderOrgDetail(org) {
   var childCount = org.children ? org.children.length : 0;
   var childLabel = org.type === 'dept' ? (childCount + ' 个一级组') : (childCount > 0 ? (childCount + ' 个下级组') : '无');
   // 编辑权限：超管可操作所有；部门负责人可编辑组（不能编辑部门）；组长无权
-  // 删除权限：仅超管
+  // 删除权限：部门仅超管可删除，组仅部门负责人及以上可删除
   var canEdit = currentRole === 'superadmin' || (currentRole === 'dept_head' && org.type !== 'dept');
-  var canDelete = currentRole === 'superadmin';
+  var canDelete = org.type === 'dept'
+    ? (currentRole === 'superadmin')
+    : (currentRole === 'superadmin' || currentRole === 'dept_head');
   var html = '<div class="ant-card"><div class="ant-card-head"><span id="org-detail-title">' + esc(org.name) + '</span>';
   if (canEdit || canDelete) {
     html += '<div class="btn-group">';
@@ -108,8 +110,32 @@ function renderOrgDetail(org) {
 function renderOrgMembers(orgId, keyword, page) {
   var orgIds = MockData.getOrgAndChildIds(orgId);
   var isDeptSelected = orgId.indexOf('dept-') === 0;
-  // 添加成员按钮权限：部门节点和组节点，超管/部门负责人均可操作
-  var canAddMember = currentRole === 'superadmin' || currentRole === 'dept_head';
+  var isGroupSelected = !isDeptSelected;
+  // 添加/移除成员按钮权限:
+  // - 为部门添加/移除成员: 仅部门负责人及以上权限可操作
+  // - 为一级组或二级组添加/移除成员: 部门负责人可操作;一级组组长只能操作自己组以及自己组的下级组;二级组组长只能操作自己组
+  var canManageMember = false;
+  var ctx = getRoleContext();
+  if (isDeptSelected) {
+    // 部门添加/移除成员: 超管或部门负责人
+    canManageMember = currentRole === 'superadmin' || currentRole === 'dept_head';
+  } else {
+    // 组添加/移除成员
+    if (currentRole === 'superadmin' || currentRole === 'dept_head') {
+      // 超管和部门负责人可以为任何组添加/移除成员
+      canManageMember = true;
+    } else if (currentRole === 'group_leader1' || currentRole === 'group_leader2') {
+      // 一级组组长: 可以操作自己组以及自己组的下级组
+      // 二级组组长: 只能操作自己组
+      var selectedOrg = MockData.findOrg(orgId);
+      if (selectedOrg && ctx.rootOrgId) {
+        var rootAndChildIds = MockData.getOrgAndChildIds(ctx.rootOrgId);
+        if (rootAndChildIds.indexOf(orgId) !== -1) {
+          canManageMember = true;
+        }
+      }
+    }
+  }
   var filtered = MockData.members.filter(function (m) {
     if (m.orgId === 'unassigned') return false;
     if (orgIds.indexOf(m.orgId) === -1) return false;
@@ -119,15 +145,23 @@ function renderOrgMembers(orgId, keyword, page) {
     }
     return true;
   });
+
+  // 排序：按加入时间顺序排列，但部门负责人始终在第一个
+  filtered.sort(function(a, b) {
+    if (a.role === '部门负责人' && b.role !== '部门负责人') return -1;
+    if (a.role !== '部门负责人' && b.role === '部门负责人') return 1;
+    return a.joinDate.localeCompare(b.joinDate);
+  });
+
   var total = filtered.length;
   var start = (page - 1) * PAGE_SIZE;
   var pageData = filtered.slice(start, start + PAGE_SIZE);
   var roleColors = { '部门负责人': 'orange', '组长': 'cyan', '成员': 'default' };
 
   var html = '<div class="ant-card"><div class="ant-card-head"><span>成员列表</span>';
-  html += '<div class="btn-group"><div class="ant-input-search"><input id="org-member-search" placeholder="搜索成员..." value="' + esc(keyword) + '" />';
+  html += '<div class="btn-group"><div class="ant-input-search"><input id="org-member-search" placeholder="搜索姓名/邮箱..." value="' + esc(keyword) + '" />';
   html += '<button class="ant-input-search-button">&#128269;</button></div>';
-  if (canAddMember) html += '<button class="ant-btn ant-btn-primary ant-btn-sm" id="btn-add-member" data-org-id="' + esc(orgId) + '">+ 添加成员</button>';
+  if (canManageMember) html += '<button class="ant-btn ant-btn-primary ant-btn-sm" id="btn-add-member" data-org-id="' + esc(orgId) + '">+ 添加成员</button>';
   html += '</div></div>';
   html += '<table class="ant-table"><thead><tr><th>姓名</th><th>邮箱</th><th>所属组</th><th>角色</th><th>加入时间</th><th>操作</th></tr></thead><tbody>';
   if (pageData.length === 0) {
@@ -136,27 +170,48 @@ function renderOrgMembers(orgId, keyword, page) {
   for (var i = 0; i < pageData.length; i++) {
     var m = pageData[i];
     var roleColor = roleColors[m.role] || 'default';
+    var memberOrgId = m.orgId;
+    var isMemberInSelectedDeptNoGroup = isDeptSelected && memberOrgId === orgId;
+    var isMemberInSelectedDeptHasGroup = isDeptSelected && memberOrgId !== orgId;
+    var isMemberInSelectedGroup = isGroupSelected;
+
     html += '<tr><td>' + esc(m.name) + '</td><td>' + esc(email(m.username)) + '</td>';
     html += '<td><span class="ant-tag ant-tag-blue">' + esc(MockData.getOrgPath(m.orgId, orgId)) + '</span></td>';
     html += '<td><span class="ant-tag ant-tag-' + roleColor + '">' + esc(m.role) + '</span></td>';
     html += '<td>' + esc(m.joinDate) + '</td>';
-    var isDirectDeptMember = isDeptSelected && m.orgId === orgId && m.role !== '部门负责人';
     html += '<td>';
-    if (m.role === '部门负责人') {
-      html += '<span style="color:#999;">--</span>';
-    } else if (isDirectDeptMember) {
-      // 部门直属层：归组/移出部门仅超管和部门负责人
-      if (currentRole === 'superadmin' || currentRole === 'dept_head') {
-        html += '<a class="ant-btn-link assign-to-group-btn" data-username="' + esc(m.username) + '" data-member-name="' + esc(m.name) + '" style="color:#faad14;">归组</a>';
-        html += ' <a class="ant-btn-link remove-member-btn" data-username="' + esc(m.username) + '" data-member-name="' + esc(m.name) + '" data-org-type="dept" style="color:#ff4d4f;">移出部门</a>';
+
+    if (isDeptSelected) {
+      // 部门成员列表
+      if (m.role === '部门负责人') {
+        // 角色为部门负责人：无任何操作
+        html += '<span style="color:#999;">--</span>';
+      } else if (isMemberInSelectedDeptNoGroup) {
+        // 在部门但没有组的普通成员：归组、移出部门
+        if (canManageMember) {
+          html += '<a class="ant-btn-link assign-to-group-btn" data-username="' + esc(m.username) + '" data-member-name="' + esc(m.name) + '" style="color:#faad14;">归组</a>';
+          html += ' <a class="ant-btn-link remove-member-btn" data-username="' + esc(m.username) + '" data-member-name="' + esc(m.name) + '" data-org-type="dept" style="color:#ff4d4f;">移出部门</a>';
+        }
+      } else if (isMemberInSelectedDeptHasGroup) {
+        // 在部门有组的成员：调组、移出组
+        if (canManageMember) {
+          html += '<a class="ant-btn-link transfer-group-btn" data-username="' + esc(m.username) + '" data-member-name="' + esc(m.name) + '">调组</a>';
+          html += ' <a class="ant-btn-link remove-member-btn" data-username="' + esc(m.username) + '" data-member-name="' + esc(m.name) + '" data-org-type="group" style="color:#ff4d4f;">移出组</a>';
+        }
       }
     } else {
-      // 组内成员：调组/移出组仅超管、部门负责人可操作（涉及跨组人员流动）
-      if (currentRole === 'superadmin' || currentRole === 'dept_head') {
-        html += '<a class="ant-btn-link transfer-group-btn" data-username="' + esc(m.username) + '" data-member-name="' + esc(m.name) + '">调组</a>';
-        html += ' <a class="ant-btn-link remove-member-btn" data-username="' + esc(m.username) + '" data-member-name="' + esc(m.name) + '" data-org-type="group" style="color:#ff4d4f;">移出组</a>';
+      // 一级组、二级组成员列表
+      if (m.role === '组长') {
+        // 组长：无任何操作
+        html += '<span style="color:#999;">--</span>';
+      } else {
+        // 成员：移出组
+        if (canManageMember) {
+          html += '<a class="ant-btn-link remove-member-btn" data-username="' + esc(m.username) + '" data-member-name="' + esc(m.name) + '" data-org-type="group" style="color:#ff4d4f;">移出组</a>';
+        }
       }
     }
+
     html += '</td></tr>';
   }
   html += '</tbody></table><div id="org-members-pagination"></div></div>';
@@ -433,11 +488,11 @@ function bindMemberActions() {
         var msgEl = document.getElementById('remove-member-msg');
         var extraEl = document.getElementById('remove-member-extra');
         if (orgType === 'dept') {
-          if (msgEl) msgEl.textContent = '确定将成员「' + memberName + '」移出当前部门吗？';
-          if (extraEl) extraEl.textContent = '移出后该成员将变为未分配状态，需超级管理员重新分配。';
+          if (msgEl) msgEl.textContent = '确定将成员【' + memberName + '】移出当前部门吗？';
+          if (extraEl) extraEl.textContent = '移出后该成员将变为未分配状态。';
         } else {
-          if (msgEl) msgEl.textContent = '确定将成员「' + memberName + '」移出当前组吗？';
-          if (extraEl) extraEl.textContent = '移出后该成员将回到部门直属，可由部门负责人重新归组。';
+          if (msgEl) msgEl.textContent = '确定将成员【' + memberName + '】移出当前组吗？';
+          if (extraEl) extraEl.textContent = '移出后该成员将回到部门直属。';
         }
       });
     };
@@ -452,35 +507,63 @@ function bindMemberActions() {
       if (!org) return;
       var isDept = org.type === 'dept';
       window._addMemberOrgId = orgId;
+      window._addMemberIsDept = isDept;
       loadAndShowModal('org/add-member', function () {
         var tipEl = document.getElementById('add-member-tip');
         var sel = document.getElementById('add-member-select');
-        if (isDept) {
-          if (tipEl) tipEl.innerHTML = '&#9432; 仅展示未归属任何部门的成员，如需添加新用户请前往「用户管理」创建。';
-          if (sel) {
-            sel.innerHTML = '<option value="">请选择成员...</option>';
+        var searchInput = document.getElementById('add-member-search');
+
+        function renderMemberList(keyword) {
+          if (!sel) return;
+          var html = '<option value="">请选择成员...</option>';
+          if (isDept) {
+            // 为部门添加成员: 平台非分配成员
             MockData.members.forEach(function (m) {
               if (m.orgId === 'unassigned') {
-                sel.innerHTML += '<option value="' + esc(m.username) + '">' + esc(m.name) + ' (' + esc(email(m.username)) + ')</option>';
+                if (keyword) {
+                  var kw = keyword.toLowerCase();
+                  if (m.name.toLowerCase().indexOf(kw) === -1 && m.username.toLowerCase().indexOf(kw) === -1) {
+                    return;
+                  }
+                }
+                html += '<option value="' + esc(m.username) + '">' + esc(m.name) + ' (' + esc(email(m.username)) + ')</option>';
               }
             });
-          }
-        } else {
-          // 组级：列出本部门内未归组的成员
-          var parentDeptId = null;
-          for (var i = 0; i < MockData.orgs.length; i++) {
-            var ids = MockData.getOrgAndChildIds(MockData.orgs[i].id);
-            if (ids.indexOf(orgId) !== -1) { parentDeptId = MockData.orgs[i].id; break; }
-          }
-          if (tipEl) tipEl.innerHTML = '&#9432; 仅展示本部门内未分配到任何组的成员。';
-          if (sel) {
-            sel.innerHTML = '<option value="">请选择成员...</option>';
+          } else {
+            // 为组添加成员: 当前部门内未分组用户
+            var parentDeptId = null;
+            for (var i = 0; i < MockData.orgs.length; i++) {
+              var ids = MockData.getOrgAndChildIds(MockData.orgs[i].id);
+              if (ids.indexOf(orgId) !== -1) { parentDeptId = MockData.orgs[i].id; break; }
+            }
             MockData.members.forEach(function (m) {
               if (m.orgId === parentDeptId && m.role !== '部门负责人') {
-                sel.innerHTML += '<option value="' + esc(m.username) + '">' + esc(m.name) + ' (' + esc(email(m.username)) + ')</option>';
+                if (keyword) {
+                  var kw = keyword.toLowerCase();
+                  if (m.name.toLowerCase().indexOf(kw) === -1 && m.username.toLowerCase().indexOf(kw) === -1) {
+                    return;
+                  }
+                }
+                html += '<option value="' + esc(m.username) + '">' + esc(m.name) + ' (' + esc(email(m.username)) + ')</option>';
               }
             });
           }
+          sel.innerHTML = html;
+        }
+
+        if (isDept) {
+          if (tipEl) tipEl.innerHTML = '&#9432; 仅展示平台非分配成员，选择用户后添加至当前部门。同一用户只能属于一个部门。';
+        } else {
+          if (tipEl) tipEl.innerHTML = '&#9432; 仅展示当前部门内未分组用户列表，选择用户后添加至当前组。同一用户只能属于一个组。';
+        }
+
+        renderMemberList('');
+
+        if (searchInput) {
+          searchInput.value = '';
+          searchInput.oninput = function () {
+            renderMemberList(searchInput.value.trim());
+          };
         }
       });
     };
@@ -509,12 +592,20 @@ function bindEditOrgBtn() {
       if (!org) return;
       window._deleteOrgId = orgId;
       var label = org.type === 'dept' ? '部门' : '组';
+      var memberCount = MockData.countMembers(orgId);
       var childCount = org.children ? org.children.length : 0;
       loadAndShowModal('org/confirm-delete', function () {
         var msgEl = document.getElementById('confirm-delete-msg');
         var extraEl = document.getElementById('confirm-delete-extra');
         if (msgEl) msgEl.textContent = '确定要删除' + label + '「' + org.name + '」吗？';
-        if (extraEl) extraEl.textContent = childCount > 0 ? '该' + label + '下有 ' + childCount + ' 个子组，将一并删除。' : '此操作不可撤销。';
+        if (extraEl) {
+          var extraText = '该' + label + '下有 ' + memberCount + ' 名成员，删除后成员将上浮至父级';
+          if (childCount > 0) {
+            extraText += '，下级组也会同步删除';
+          }
+          extraText += '。若' + label + '下有资源，则资源转为"未归组资源"由部门负责人统一处理。';
+          extraEl.textContent = extraText;
+        }
       });
     };
   }

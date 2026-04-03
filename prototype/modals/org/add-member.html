@@ -1,12 +1,21 @@
 <div class="ant-modal-overlay" style="display:none;">
-  <div class="ant-modal" style="width:480px;">
+  <div class="ant-modal" style="width:520px;">
     <div class="ant-modal-header">添加成员 <button class="ant-modal-close">&times;</button></div>
     <div class="ant-modal-body">
       <div id="add-member-tip" style="background:#e6f7ff;border:1px solid #91d5ff;border-radius:4px;padding:8px 12px;color:#1890ff;font-size:13px;margin-bottom:16px;"></div>
+      <div class="ant-form-item" style="margin-bottom:12px;">
+        <div class="ant-form-label">搜索</div>
+        <div class="ant-form-control">
+          <div class="ant-input-search">
+            <input id="add-member-search" placeholder="搜索姓名/用户名..." />
+            <button class="ant-input-search-button">&#128269;</button>
+          </div>
+        </div>
+      </div>
       <div class="ant-form-item" style="margin-bottom:0;">
         <div class="ant-form-label"><span class="required">*</span>选择成员</div>
         <div class="ant-form-control">
-          <select class="ant-select" id="add-member-select" style="width:100%;max-width:400px;">
+          <select class="ant-select" id="add-member-select" style="width:100%;max-width:440px;">
             <option value="">请选择成员...</option>
           </select>
         </div>
