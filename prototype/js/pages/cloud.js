@@ -66,16 +66,6 @@ function renderPermPkgList() {
   }
 
   selectEl.onchange = function () { showPkgDetail(selectEl.value); };
-
-  // 有效期类型切换：长期持有时隐藏有效期限
-  var durationLimitItem = document.getElementById('sub-duration-limit-item');
-  document.querySelectorAll('input[name="sub-duration"]').forEach(function (radio) {
-    radio.onchange = function () {
-      if (durationLimitItem) {
-        durationLimitItem.style.display = radio.value === 'temp' ? '' : 'none';
-      }
-    };
-  });
 }
 
 function initCloudPage() {
@@ -134,9 +124,9 @@ function initCloudPage() {
         html += '<td>' + esc(a.account) + '</td><td>' + esc(a.bindUser) + '</td><td>' + esc(a.bindTime) + '</td>';
         html += '<td>' + (a.regionName ? esc(a.regionName) : '<span style="color:var(--text-secondary);">--</span>') + '</td>';
         html += '<td><span class="ant-badge-status-dot ant-badge-status-success"></span>正常</td>';
-        html += '<td><a class="ant-btn-link cloud-main-detail-btn" data-dept="' + esc(a.dept) + '">详情</a>';
+        html += '<td>';
         if (canManageMain) {
-          html += ' <a class="ant-btn-link cloud-unbind-btn" data-dept="' + esc(a.dept) + '" style="color:#ff4d4f;">解绑</a>';
+          html += '<a class="ant-btn-link cloud-unbind-btn" data-dept="' + esc(a.dept) + '" style="color:#ff4d4f;">解绑</a>';
         }
         html += '</td></tr>';
       }
@@ -168,30 +158,6 @@ function initCloudPage() {
           if (titleEl) titleEl.textContent = '确认解绑';
           if (msgEl) msgEl.textContent = '确定要解绑「' + dept + '」的主账号吗？';
           if (extraEl) extraEl.textContent = '解绑后该部门将无法通过平台管理云上资源，已有资源不受影响。';
-        });
-      };
-    });
-
-    // 绑定主账号详情按钮
-    mainContainer.querySelectorAll('.cloud-main-detail-btn').forEach(function (btn) {
-      btn.onclick = function () {
-        var dept = btn.getAttribute('data-dept');
-        var account = null;
-        for (var i = 0; i < MockData.cloudAccounts.main.length; i++) {
-          if (MockData.cloudAccounts.main[i].dept === dept) { account = MockData.cloudAccounts.main[i]; break; }
-        }
-        if (!account) return;
-        loadAndShowModal('cloud/view-detail', function () {
-          var titleEl = document.getElementById('cloud-detail-title');
-          if (titleEl) titleEl.textContent = '主账号详情 - ' + dept;
-          var bodyEl = document.getElementById('cloud-detail-body');
-          if (bodyEl) bodyEl.innerHTML =
-            '<div class="ant-descriptions-row"><div class="ant-descriptions-label">所属部门</div><div class="ant-descriptions-content">' + esc(account.dept) + '</div></div>' +
-            '<div class="ant-descriptions-row"><div class="ant-descriptions-label">云厂商</div><div class="ant-descriptions-content"><span class="ant-tag ant-tag-blue">' + esc(account.vendor) + '</span></div></div>' +
-            '<div class="ant-descriptions-row"><div class="ant-descriptions-label">主账号 / AK</div><div class="ant-descriptions-content">' + esc(account.account) + '</div></div>' +
-            '<div class="ant-descriptions-row"><div class="ant-descriptions-label">绑定人</div><div class="ant-descriptions-content">' + esc(account.bindUser) + '</div></div>' +
-            '<div class="ant-descriptions-row"><div class="ant-descriptions-label">绑定时间</div><div class="ant-descriptions-content">' + esc(account.bindTime) + '</div></div>' +
-            '<div class="ant-descriptions-row"><div class="ant-descriptions-label">状态</div><div class="ant-descriptions-content"><span class="ant-badge-status-dot ant-badge-status-success"></span>正常</div></div>';
         });
       };
     });
