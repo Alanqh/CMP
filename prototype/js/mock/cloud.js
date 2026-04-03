@@ -6,10 +6,16 @@ MockData.cloudAccounts = {
     { dept: '基础架构部', vendor: '阿里云', account: 'infra-main (LTAI****7F2Q)',
       region: 'cn-hangzhou', regionName: '华东1（杭州）',
       bindUser: '张明远', bindTime: '2025/08/20 15:30:00', status: '正常' },
+    { dept: '基础架构部', vendor: '腾讯云', account: '', bindUser: '', bindTime: '',
+      region: '', regionName: '', status: '未绑定' },
+    { dept: '业务研发部', vendor: '阿里云', account: '', bindUser: '', bindTime: '',
+      region: '', regionName: '', status: '未绑定' },
     { dept: '业务研发部', vendor: '腾讯云', account: 'biz-prod (AKID****8X9K)',
       region: 'ap-guangzhou', regionName: '广州',
       bindUser: '刘佳琪', bindTime: '2025/09/10 11:20:00', status: '正常' },
-    { dept: '数据平台部', vendor: '', account: '', bindUser: '', bindTime: '',
+    { dept: '数据平台部', vendor: '阿里云', account: '', bindUser: '', bindTime: '',
+      region: '', regionName: '', status: '未绑定' },
+    { dept: '数据平台部', vendor: '腾讯云', account: '', bindUser: '', bindTime: '',
       region: '', regionName: '', status: '未绑定' }
   ],
   sub: [

@@ -26,10 +26,10 @@
           <span style="font-size:13px;"><span style="color:#ff4d4f;">*</span> 云厂商</span>
           <select class="ant-select" id="bind-cloud-vendor" style="width:180px;">
             <option value="aliyun">阿里云</option>
+            <option value="tencent">腾讯云</option>
             <option value="aws" disabled>AWS（敬请期待）</option>
             <option value="azure" disabled>Azure（敬请期待）</option>
             <option value="huawei" disabled>华为云（敬请期待）</option>
-            <option value="tencent" disabled>腾讯云（敬请期待）</option>
           </select>
         </div>
 
@@ -42,62 +42,13 @@
             </div>
             <button id="bind-copy-btn" class="ant-btn ant-btn-sm" onclick="bindMainCopyPolicy()" style="height:26px;font-size:12px;padding:0 10px;">复制</button>
           </div>
-          <pre id="bind-policy-json" style="background:#1e2127;color:#abb2bf;padding:14px 16px;border-radius:6px;font-size:12px;line-height:1.65;overflow-x:auto;overflow-y:auto;margin:0;max-height:200px;white-space:pre;">{
-  "Version": "1",
-  "Statement": [
-    {
-      "Sid": "ResourceManagement",
-      "Effect": "Allow",
-      "Action": [
-        "ecs:*",
-        "vpc:*",
-        "rds:*",
-        "cs:*",
-        "slb:Describe*",
-        "slb:Create*",
-        "slb:Delete*",
-        "slb:Set*",
-        "slb:Add*",
-        "slb:Remove*"
-      ],
-      "Resource": "*"
-    },
-    {
-      "Sid": "SubAccountManagement",
-      "Effect": "Allow",
-      "Action": [
-        "ram:ListUsers",
-        "ram:CreateUser",
-        "ram:DeleteUser",
-        "ram:GetUser",
-        "ram:UpdateUser",
-        "ram:ListAccessKeys",
-        "ram:CreateAccessKey",
-        "ram:DeleteAccessKey",
-        "ram:UpdateAccessKey",
-        "ram:AttachPolicyToUser",
-        "ram:DetachPolicyFromUser",
-        "ram:ListPoliciesForUser",
-        "ram:CreatePolicy",
-        "ram:GetPolicy",
-        "ram:ListPolicies"
-      ],
-      "Resource": "*"
-    }
-  ]
-}</pre>
+          <pre id="bind-policy-json" style="background:#1e2127;color:#abb2bf;padding:14px 16px;border-radius:6px;font-size:12px;line-height:1.65;overflow-x:auto;overflow-y:auto;margin:0;max-height:200px;white-space:pre;"></pre>
         </div>
 
         <!-- 操作步骤说明 -->
         <div style="background:#fafafa;border:1px solid #f0f0f0;border-radius:4px;padding:12px 16px;">
           <div style="font-size:13px;font-weight:500;margin-bottom:8px;color:#333;">操作步骤</div>
-          <ol style="margin:0;padding-left:20px;font-size:12px;color:#595959;line-height:2.1;">
-            <li>登录<b>阿里云控制台</b> &rarr; RAM 访问控制 &rarr; 用户，点击「创建用户」</li>
-            <li>填写登录名（如 <code style="background:#f0f0f0;padding:0 4px;border-radius:2px;">cmp-service</code>），访问方式选择「OpenAPI 调用访问」</li>
-            <li>进入该用户 &rarr; 权限管理 &rarr; 添加权限 &rarr; 自定义策略 &rarr; 新建策略，粘贴上方 JSON</li>
-            <li>在用户详情页「AccessKey」处创建密钥，保存 <b>AccessKey ID</b> 和 <b>AccessKey Secret</b></li>
-            <li>点击「下一步」，填写密钥信息完成绑定</li>
-          </ol>
+          <div id="bind-steps-content"></div>
         </div>
       </div>
 

@@ -374,15 +374,11 @@ function handleModalSubmit(name) {
     var regionSelect = document.getElementById('bind-cloud-region');
     if (!regionSelect || !regionSelect.value) { showMessage('请选择默认地域', 'warning'); return; }
     var dept = window._bindCloudDept;
-    // 更新 mock 数据
+    var targetVendor = window._bindCloudVendor;
+    // 更新 mock 数据：找到对应部门和厂商的记录
     for (var i = 0; i < MockData.cloudAccounts.main.length; i++) {
-      if (MockData.cloudAccounts.main[i].dept === dept) {
-        var vendor = '阿里云';
-        if (vendorSelect && vendorSelect.value) {
-          var vendorText = vendorSelect.options[vendorSelect.selectedIndex] ? vendorSelect.options[vendorSelect.selectedIndex].textContent : '阿里云';
-          vendor = vendorText;
-        }
-        MockData.cloudAccounts.main[i].vendor = vendor;
+      if (MockData.cloudAccounts.main[i].dept === dept && MockData.cloudAccounts.main[i].vendor === targetVendor) {
+        var vendor = targetVendor;
         MockData.cloudAccounts.main[i].account = alias.value.trim() + ' (' + ak.value.trim().substring(0, 4) + '****)';
         MockData.cloudAccounts.main[i].bindUser = '部门负责人';
         MockData.cloudAccounts.main[i].bindTime = new Date().toLocaleString('zh-CN').replace(/\//g, '/');
@@ -396,17 +392,17 @@ function handleModalSubmit(name) {
       }
     }
     hideModal();
-    showMessage('已成功绑定「' + dept + '」的主账号', 'success');
-    MockData.auditLogs.unshift({ time: new Date().toLocaleString('zh-CN').replace(/\//g, '/'), operator: '部门负责人', dept: dept, opType: '云账号', opTypeColor: 'green', target: alias.value.trim(), desc: '绑定部门主账号', ip: '10.128.0.10' });
+    showMessage('已成功绑定「' + dept + '」的' + targetVendor + '主账号', 'success');
+    MockData.auditLogs.unshift({ time: new Date().toLocaleString('zh-CN').replace(/\//g, '/'), operator: '部门负责人', dept: dept, opType: '云账号', opTypeColor: 'green', target: alias.value.trim(), desc: '绑定部门' + targetVendor + '主账号', ip: '10.128.0.10' });
     pageCache = {};
     if (currentPage === 'cloud') loadPage('cloud');
   } else if (name === 'cloud/confirm-action') {
     var action = window._cloudConfirmAction;
     if (action === 'unbind') {
       var dept = window._cloudConfirmDept;
+      var vendor = window._cloudConfirmVendor;
       for (var i = 0; i < MockData.cloudAccounts.main.length; i++) {
-        if (MockData.cloudAccounts.main[i].dept === dept) {
-          MockData.cloudAccounts.main[i].vendor = '';
+        if (MockData.cloudAccounts.main[i].dept === dept && MockData.cloudAccounts.main[i].vendor === vendor) {
           MockData.cloudAccounts.main[i].account = '';
           MockData.cloudAccounts.main[i].bindUser = '';
           MockData.cloudAccounts.main[i].bindTime = '';
@@ -417,8 +413,8 @@ function handleModalSubmit(name) {
         }
       }
       hideModal();
-      showMessage('已解绑「' + dept + '」的主账号', 'success');
-      MockData.auditLogs.unshift({ time: new Date().toLocaleString('zh-CN').replace(/\//g, '/'), operator: '部门负责人', dept: dept, opType: '云账号', opTypeColor: 'green', target: dept, desc: '解绑主账号', ip: '10.128.0.10' });
+      showMessage('已解绑「' + dept + '」的' + vendor + '主账号', 'success');
+      MockData.auditLogs.unshift({ time: new Date().toLocaleString('zh-CN').replace(/\//g, '/'), operator: '部门负责人', dept: dept, opType: '云账号', opTypeColor: 'green', target: dept, desc: '解绑' + vendor + '主账号', ip: '10.128.0.10' });
       pageCache = {};
       if (currentPage === 'cloud') loadPage('cloud');
     } else if (action === 'reclaim') {

@@ -10,14 +10,34 @@ var ALIYUN_REGIONS = [
   { code: 'cn-zhangjiakou', name: '华北3（张家口）' }
 ];
 
+var TENCENT_REGIONS = [
+  { code: 'ap-guangzhou',   name: '广州' },
+  { code: 'ap-shanghai',    name: '上海' },
+  { code: 'ap-beijing',     name: '北京' },
+  { code: 'ap-shenzhen',    name: '深圳' },
+  { code: 'ap-chengdu',     name: '成都' },
+  { code: 'ap-chongqing',   name: '重庆' }
+];
+
 function initBindMainRegion() {
   var sel = document.getElementById('bind-cloud-region');
+  var vendorSel = document.getElementById('bind-cloud-vendor');
   if (!sel) return;
-  sel.innerHTML = '<option value="">请选择地域</option>';
-  ALIYUN_REGIONS.forEach(function (r) {
-    sel.innerHTML += '<option value="' + esc(r.code) + '">' +
-      esc(r.name) + ' ' + esc(r.code) + '</option>';
-  });
+
+  function updateRegionOptions() {
+    var vendor = vendorSel ? vendorSel.value : 'aliyun';
+    var regions = vendor === 'tencent' ? TENCENT_REGIONS : ALIYUN_REGIONS;
+    sel.innerHTML = '<option value="">请选择地域</option>';
+    regions.forEach(function (r) {
+      sel.innerHTML += '<option value="' + esc(r.code) + '">' +
+        esc(r.name) + ' ' + esc(r.code) + '</option>';
+    });
+  }
+
+  updateRegionOptions();
+  if (vendorSel) {
+    vendorSel.onchange = updateRegionOptions;
+  }
 }
 
 // =============================================
@@ -129,30 +149,45 @@ function initCloudPage() {
     if (ctx.deptId && currentRole !== 'superadmin') {
       mainAccounts = mainAccounts.filter(function (a) { return a.dept === ctx.deptName; });
     }
-    var html = '<table class="ant-table"><thead><tr><th>部门</th><th>云厂商</th><th>主账号 / AK别名</th><th>绑定人</th><th>绑定时间</th><th>指定地域</th><th>状态</th><th>操作</th></tr></thead><tbody>';
+    // 按部门分组
+    var deptGroups = {};
     mainAccounts.forEach(function (a) {
-      html += '<tr><td>' + esc(a.dept) + '</td>';
-      if (a.status === '未绑定') {
-        html += '<td colspan="5" style="color:var(--text-secondary);">--</td>';
-        html += '<td>';
-        if (canManageMain) {
-          html += '<button class="ant-btn ant-btn-primary ant-btn-sm cloud-bind-main-btn" data-dept="' + esc(a.dept) + '">绑定主账号</button>';
+      if (!deptGroups[a.dept]) deptGroups[a.dept] = [];
+      deptGroups[a.dept].push(a);
+    });
+    var html = '<table class="ant-table"><thead><tr><th>部门</th><th>云厂商</th><th>主账号 / AK别名</th><th>绑定人</th><th>绑定时间</th><th>指定地域</th><th>状态</th><th>操作</th></tr></thead><tbody>';
+    Object.keys(deptGroups).forEach(function (deptName) {
+      var accounts = deptGroups[deptName];
+      var firstRow = true;
+      accounts.forEach(function (a) {
+        html += '<tr>';
+        if (firstRow) {
+          html += '<td rowspan="' + accounts.length + '" style="vertical-align:middle;font-weight:500;">' + esc(deptName) + '</td>';
+          firstRow = false;
+        }
+        if (a.status === '未绑定') {
+          var vendorColor = getVendorTagColor(a.vendor);
+          html += '<td><span class="ant-tag ' + vendorColor + '" style="opacity:0.6;">' + esc(a.vendor) + '</span></td>';
+          html += '<td colspan="4" style="color:var(--text-secondary);">--</td>';
+          html += '<td><span style="color:var(--text-secondary);">未绑定</span></td>';
+          html += '<td>';
+          if (canManageMain) {
+            html += '<button class="ant-btn ant-btn-primary ant-btn-sm cloud-bind-main-btn" data-dept="' + esc(a.dept) + '" data-vendor="' + esc(a.vendor) + '">绑定</button>';
+          }
+          html += '</td></tr>';
         } else {
-          html += '<span style="color:var(--text-secondary);">未绑定</span>';
+          var vendorColor = getVendorTagColor(a.vendor);
+          html += '<td><span class="ant-tag ' + vendorColor + '">' + esc(a.vendor) + '</span></td>';
+          html += '<td>' + esc(a.account) + '</td><td>' + esc(a.bindUser) + '</td><td>' + esc(a.bindTime) + '</td>';
+          html += '<td>' + (a.regionName ? esc(a.regionName) : '<span style="color:var(--text-secondary);">--</span>') + '</td>';
+          html += '<td><span class="ant-badge-status-dot ant-badge-status-success"></span>正常</td>';
+          html += '<td><a class="ant-btn-link cloud-main-detail-btn" data-dept="' + esc(a.dept) + '" data-vendor="' + esc(a.vendor) + '">详情</a>';
+          if (canManageMain) {
+            html += ' <a class="ant-btn-link cloud-unbind-btn" data-dept="' + esc(a.dept) + '" data-vendor="' + esc(a.vendor) + '" style="color:#ff4d4f;">解绑</a>';
+          }
+          html += '</td></tr>';
         }
-        html += '</td></tr>';
-      } else {
-        var vendorColor = getVendorTagColor(a.vendor);
-        html += '<td><span class="ant-tag ' + vendorColor + '">' + esc(a.vendor) + '</span></td>';
-        html += '<td>' + esc(a.account) + '</td><td>' + esc(a.bindUser) + '</td><td>' + esc(a.bindTime) + '</td>';
-        html += '<td>' + (a.regionName ? esc(a.regionName) : '<span style="color:var(--text-secondary);">--</span>') + '</td>';
-        html += '<td><span class="ant-badge-status-dot ant-badge-status-success"></span>正常</td>';
-        html += '<td><a class="ant-btn-link cloud-main-detail-btn" data-dept="' + esc(a.dept) + '">详情</a>';
-        if (canManageMain) {
-          html += ' <a class="ant-btn-link cloud-unbind-btn" data-dept="' + esc(a.dept) + '" style="color:#ff4d4f;">解绑</a>';
-        }
-        html += '</td></tr>';
-      }
+      });
     });
     html += '</tbody></table>';
     mainContainer.innerHTML = html;
@@ -161,9 +196,26 @@ function initCloudPage() {
     mainContainer.querySelectorAll('.cloud-bind-main-btn').forEach(function (btn) {
       btn.onclick = function () {
         var dept = btn.getAttribute('data-dept');
+        var vendor = btn.getAttribute('data-vendor');
         window._bindCloudDept = dept;
+        window._bindCloudVendor = vendor;
         loadAndShowModal('cloud/bind-main', function () {
           initBindMainRegion();
+          // 预设云厂商并禁用选择
+          var vendorSelect = document.getElementById('bind-cloud-vendor');
+          if (vendorSelect) {
+            vendorSelect.value = vendor.toLowerCase() === '阿里云' ? 'aliyun' :
+                                  vendor.toLowerCase() === '腾讯云' ? 'tencent' :
+                                  vendor.toLowerCase() === 'aws' ? 'aws' :
+                                  vendor.toLowerCase() === 'azure' ? 'azure' :
+                                  vendor.toLowerCase() === '华为云' ? 'huawei' : 'aliyun';
+            vendorSelect.disabled = true;
+            // 添加提示
+            var hint = document.createElement('div');
+            hint.style.cssText = 'font-size:12px;color:#888;margin-top:4px;';
+            hint.textContent = '当前部门仅可绑定一个 ' + vendor + ' 账号';
+            vendorSelect.parentNode.appendChild(hint);
+          }
         });
       };
     });
@@ -172,15 +224,17 @@ function initCloudPage() {
     mainContainer.querySelectorAll('.cloud-unbind-btn').forEach(function (btn) {
       btn.onclick = function () {
         var dept = btn.getAttribute('data-dept');
+        var vendor = btn.getAttribute('data-vendor');
         window._cloudConfirmAction = 'unbind';
         window._cloudConfirmDept = dept;
+        window._cloudConfirmVendor = vendor;
         loadAndShowModal('cloud/confirm-action', function () {
           var titleEl = document.getElementById('cloud-confirm-title');
           var msgEl = document.getElementById('cloud-confirm-msg');
           var extraEl = document.getElementById('cloud-confirm-extra');
           if (titleEl) titleEl.textContent = '确认解绑';
-          if (msgEl) msgEl.textContent = '确定要解绑「' + dept + '」的主账号吗？';
-          if (extraEl) extraEl.textContent = '解绑后该部门将无法通过平台管理云上资源，已有资源不受影响。';
+          if (msgEl) msgEl.textContent = '确定要解绑「' + dept + '」的' + vendor + '主账号吗？';
+          if (extraEl) extraEl.textContent = '解绑后该部门将无法通过平台管理' + vendor + '云上资源，已有资源不受影响。';
         });
       };
     });
@@ -189,14 +243,15 @@ function initCloudPage() {
     mainContainer.querySelectorAll('.cloud-main-detail-btn').forEach(function (btn) {
       btn.onclick = function () {
         var dept = btn.getAttribute('data-dept');
+        var vendor = btn.getAttribute('data-vendor');
         var account = null;
         for (var i = 0; i < MockData.cloudAccounts.main.length; i++) {
-          if (MockData.cloudAccounts.main[i].dept === dept) { account = MockData.cloudAccounts.main[i]; break; }
+          if (MockData.cloudAccounts.main[i].dept === dept && MockData.cloudAccounts.main[i].vendor === vendor) { account = MockData.cloudAccounts.main[i]; break; }
         }
         if (!account) return;
         loadAndShowModal('cloud/view-detail', function () {
           var titleEl = document.getElementById('cloud-detail-title');
-          if (titleEl) titleEl.textContent = '主账号详情 - ' + dept;
+          if (titleEl) titleEl.textContent = '主账号详情 - ' + dept + ' - ' + vendor;
           var bodyEl = document.getElementById('cloud-detail-body');
           var vendorColor = getVendorTagColor(account.vendor);
           if (bodyEl) bodyEl.innerHTML =
