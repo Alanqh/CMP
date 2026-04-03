@@ -152,10 +152,7 @@ function bindUserActions() {
           var listEl = document.getElementById('assign-role-list');
           if (!listEl) return;
           var roles = MockData.roles.filter(function (r) {
-            // 只有超管可以分配超管角色
-            if (r.superOnly && currentRole !== 'superadmin') return false;
-            // 权限控制：超管可分配平台级和部门级；部门负责人只能分配部门级
-            if (currentRole !== 'superadmin' && r.type === '平台级') return false;
+            if (r.superOnly) return false;
             if (keyword) return r.name.indexOf(keyword) !== -1;
             return true;
           });

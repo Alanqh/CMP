@@ -1,6 +1,6 @@
 <div class="ant-modal-overlay" style="display:none;">
   <div class="ant-modal" style="width:600px;max-height:90vh;overflow-y:auto;">
-    <div class="ant-modal-header">绑定主账号 <button class="ant-modal-close">&times;</button></div>
+    <div class="ant-modal-header">关联主账号 <button class="ant-modal-close">&times;</button></div>
 
     <!-- 步骤 Tab -->
     <div style="padding:0 24px;border-bottom:1px solid #f0f0f0;display:flex;background:#fff;">
@@ -19,17 +19,13 @@
       <!-- ========== STEP 1 ========== -->
       <div id="bind-step-1">
         <div style="background:#f0f5ff;border:1px solid #adc6ff;border-radius:4px;padding:10px 12px;margin-bottom:16px;font-size:13px;color:#2f54eb;line-height:1.6;">
-          &#9432; 建议先在云厂商控制台创建一个<b>专用子账号</b>，并授予以下最小权限策略，再使用该账号的 AccessKey 进行绑定，遵循最小权限原则。
+          &#9432; 建议先在云厂商控制台创建一个<b>专用子账号</b>，并授予以下最小权限策略，再使用该账号的 AccessKey 进行关联，遵循最小权限原则。
         </div>
 
         <div style="margin-bottom:12px;display:flex;align-items:center;gap:8px;">
           <span style="font-size:13px;"><span style="color:#ff4d4f;">*</span> 云厂商</span>
           <select class="ant-select" id="bind-cloud-vendor" style="width:180px;">
             <option value="aliyun">阿里云</option>
-            <option value="tencent">腾讯云</option>
-            <option value="aws" disabled>AWS（敬请期待）</option>
-            <option value="azure" disabled>Azure（敬请期待）</option>
-            <option value="huawei" disabled>华为云（敬请期待）</option>
           </select>
         </div>
 
@@ -42,20 +38,69 @@
             </div>
             <button id="bind-copy-btn" class="ant-btn ant-btn-sm" onclick="bindMainCopyPolicy()" style="height:26px;font-size:12px;padding:0 10px;">复制</button>
           </div>
-          <pre id="bind-policy-json" style="background:#1e2127;color:#abb2bf;padding:14px 16px;border-radius:6px;font-size:12px;line-height:1.65;overflow-x:auto;overflow-y:auto;margin:0;max-height:200px;white-space:pre;"></pre>
+          <pre id="bind-policy-json" style="background:#1e2127;color:#abb2bf;padding:14px 16px;border-radius:6px;font-size:12px;line-height:1.65;overflow-x:auto;overflow-y:auto;margin:0;max-height:200px;white-space:pre;">{
+  "Version": "1",
+  "Statement": [
+    {
+      "Sid": "ResourceManagement",
+      "Effect": "Allow",
+      "Action": [
+        "ecs:*",
+        "vpc:*",
+        "rds:*",
+        "cs:*",
+        "slb:Describe*",
+        "slb:Create*",
+        "slb:Delete*",
+        "slb:Set*",
+        "slb:Add*",
+        "slb:Remove*"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "SubAccountManagement",
+      "Effect": "Allow",
+      "Action": [
+        "ram:ListUsers",
+        "ram:CreateUser",
+        "ram:DeleteUser",
+        "ram:GetUser",
+        "ram:UpdateUser",
+        "ram:ListAccessKeys",
+        "ram:CreateAccessKey",
+        "ram:DeleteAccessKey",
+        "ram:UpdateAccessKey",
+        "ram:AttachPolicyToUser",
+        "ram:DetachPolicyFromUser",
+        "ram:ListPoliciesForUser",
+        "ram:CreatePolicy",
+        "ram:GetPolicy",
+        "ram:ListPolicies"
+      ],
+      "Resource": "*"
+    }
+  ]
+}</pre>
         </div>
 
         <!-- 操作步骤说明 -->
         <div style="background:#fafafa;border:1px solid #f0f0f0;border-radius:4px;padding:12px 16px;">
           <div style="font-size:13px;font-weight:500;margin-bottom:8px;color:#333;">操作步骤</div>
-          <div id="bind-steps-content"></div>
+          <ol style="margin:0;padding-left:20px;font-size:12px;color:#595959;line-height:2.1;">
+            <li>登录<b>阿里云控制台</b> → RAM 访问控制 → 用户，点击「创建用户」</li>
+            <li>填写登录名（如 <code style="background:#f0f0f0;padding:0 4px;border-radius:2px;">cmp-service</code>），访问方式选择「OpenAPI 调用访问」</li>
+            <li>进入该用户 → 权限管理 → 添加权限 → 自定义策略 → 新建策略，粘贴上方 JSON</li>
+            <li>在用户详情页「AccessKey」处创建密钥，保存 <b>AccessKey ID</b> 和 <b>AccessKey Secret</b></li>
+            <li>点击「下一步」，填写密钥信息完成关联</li>
+          </ol>
         </div>
       </div>
 
       <!-- ========== STEP 2 ========== -->
       <div id="bind-step-2" style="display:none;">
         <div class="ant-alert ant-alert-warning" style="margin-bottom:16px;background:#fffbe6;border:1px solid #ffe58f;border-radius:4px;padding:8px 12px;color:#d48806;font-size:13px;">
-          &#9888; 绑定后，该账号下已有的存量子账号将默认归属给部门负责人，由负责人统一分配。
+          &#9888; 关联后，该账号下已有的存量子账号将默认归属给部门负责人，由负责人统一分配。
         </div>
         <div class="ant-form-item">
           <div class="ant-form-label"><span class="required">*</span>账号别名</div>
@@ -92,9 +137,9 @@
     <div class="ant-modal-footer">
       <button class="ant-btn" data-close-modal>取消</button>
       <button id="bind-btn-next" class="ant-btn" data-no-close onclick="bindMainStep(2)"
-        style="background:#1890ff;color:#fff;border-color:#1890ff;">下一步：填写 AccessKey &rarr;</button>
-      <button id="bind-btn-back" class="ant-btn" data-no-close onclick="bindMainStep(1)" style="display:none;">&larr; 上一步</button>
-      <button id="bind-btn-confirm" class="ant-btn ant-btn-primary" style="display:none;">确认绑定</button>
+        style="background:#1890ff;color:#fff;border-color:#1890ff;">下一步：填写 AccessKey →</button>
+      <button id="bind-btn-back" class="ant-btn" data-no-close onclick="bindMainStep(1)" style="display:none;">← 上一步</button>
+      <button id="bind-btn-confirm" class="ant-btn ant-btn-primary" style="display:none;">确认关联</button>
     </div>
   </div>
 </div>

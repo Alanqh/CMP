@@ -89,7 +89,7 @@ function renderOrgDetail(org) {
     html += '<div class="ant-descriptions-row"><div class="ant-descriptions-label">成员匹配规则</div><div class="ant-descriptions-content">' + (org.matchRule ? '<code style="background:#f5f5f5;padding:2px 8px;border:1px solid #d9d9d9;border-radius:2px;font-size:13px;">' + esc(org.matchRule) + '</code>' : '<span style="color:var(--text-secondary);">未配置</span>') + '<div style="font-size:11px;color:#999;margin-top:2px;">提示：填写成员在ERP系统中的部门，支持通配符*，多条规则用英文逗号分隔，匹配后自动归组，优先归到下级组</div></div></div>';
   }
   if (org.type === 'dept') {
-    html += '<div class="ant-descriptions-row"><div class="ant-descriptions-label">绑定云账号</div><div class="ant-descriptions-content">' + (org.cloudAccount ? '<span class="ant-tag ant-tag-blue">' + esc(org.cloudAccount) + '</span>' : '--') + '</div></div>';
+    html += '<div class="ant-descriptions-row"><div class="ant-descriptions-label">关联云账号</div><div class="ant-descriptions-content">' + (org.cloudAccount ? '<span class="ant-tag ant-tag-blue">' + esc(org.cloudAccount) + '</span>' : '--') + '</div></div>';
 
     var projs = org.projects || [];
     var projsHtml = '';

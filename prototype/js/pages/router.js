@@ -62,7 +62,7 @@ function hideModal() {
   if (overlay) overlay.style.display = 'none';
 }
 
-// ===== 绑定主账号弹窗 步骤切换 =====
+// ===== 关联主账号弹窗 步骤切换 =====
 window.bindMainStep = function (step) {
   var s1 = document.getElementById('bind-step-1');
   var s2 = document.getElementById('bind-step-2');
@@ -370,15 +370,13 @@ function handleModalSubmit(name) {
     if (!alias || !alias.value.trim()) { showMessage('请填写账号别名', 'warning'); return; }
     if (!ak || !ak.value.trim()) { showMessage('请填写 AccessKey ID', 'warning'); return; }
     if (!sk || !sk.value.trim()) { showMessage('请填写 AccessKey Secret', 'warning'); return; }
-    var vendorSelect = document.getElementById('bind-cloud-vendor');
     var regionSelect = document.getElementById('bind-cloud-region');
     if (!regionSelect || !regionSelect.value) { showMessage('请选择默认地域', 'warning'); return; }
     var dept = window._bindCloudDept;
-    var targetVendor = window._bindCloudVendor;
-    // 更新 mock 数据：找到对应部门和厂商的记录
+    // 更新 mock 数据
     for (var i = 0; i < MockData.cloudAccounts.main.length; i++) {
-      if (MockData.cloudAccounts.main[i].dept === dept && MockData.cloudAccounts.main[i].vendor === targetVendor) {
-        var vendor = targetVendor;
+      if (MockData.cloudAccounts.main[i].dept === dept) {
+        MockData.cloudAccounts.main[i].vendor = '阿里云';
         MockData.cloudAccounts.main[i].account = alias.value.trim() + ' (' + ak.value.trim().substring(0, 4) + '****)';
         MockData.cloudAccounts.main[i].bindUser = '部门负责人';
         MockData.cloudAccounts.main[i].bindTime = new Date().toLocaleString('zh-CN').replace(/\//g, '/');
@@ -392,29 +390,29 @@ function handleModalSubmit(name) {
       }
     }
     hideModal();
-    showMessage('已成功绑定「' + dept + '」的' + targetVendor + '主账号', 'success');
-    MockData.auditLogs.unshift({ time: new Date().toLocaleString('zh-CN').replace(/\//g, '/'), operator: '部门负责人', dept: dept, opType: '云账号', opTypeColor: 'green', target: alias.value.trim(), desc: '绑定部门' + targetVendor + '主账号', ip: '10.128.0.10' });
+    showMessage('已成功关联「' + dept + '」的主账号', 'success');
+    MockData.auditLogs.unshift({ time: new Date().toLocaleString('zh-CN').replace(/\//g, '/'), operator: '部门负责人', dept: dept, opType: '云账号', opTypeColor: 'green', target: alias.value.trim(), desc: '关联部门主账号', ip: '10.128.0.10' });
     pageCache = {};
     if (currentPage === 'cloud') loadPage('cloud');
   } else if (name === 'cloud/confirm-action') {
     var action = window._cloudConfirmAction;
     if (action === 'unbind') {
       var dept = window._cloudConfirmDept;
-      var vendor = window._cloudConfirmVendor;
       for (var i = 0; i < MockData.cloudAccounts.main.length; i++) {
-        if (MockData.cloudAccounts.main[i].dept === dept && MockData.cloudAccounts.main[i].vendor === vendor) {
+        if (MockData.cloudAccounts.main[i].dept === dept) {
+          MockData.cloudAccounts.main[i].vendor = '';
           MockData.cloudAccounts.main[i].account = '';
           MockData.cloudAccounts.main[i].bindUser = '';
           MockData.cloudAccounts.main[i].bindTime = '';
-          MockData.cloudAccounts.main[i].status = '未绑定';
+          MockData.cloudAccounts.main[i].status = '未关联';
           MockData.cloudAccounts.main[i].region = '';
           MockData.cloudAccounts.main[i].regionName = '';
           break;
         }
       }
       hideModal();
-      showMessage('已解绑「' + dept + '」的' + vendor + '主账号', 'success');
-      MockData.auditLogs.unshift({ time: new Date().toLocaleString('zh-CN').replace(/\//g, '/'), operator: '部门负责人', dept: dept, opType: '云账号', opTypeColor: 'green', target: dept, desc: '解绑' + vendor + '主账号', ip: '10.128.0.10' });
+      showMessage('已解绑「' + dept + '」的主账号', 'success');
+      MockData.auditLogs.unshift({ time: new Date().toLocaleString('zh-CN').replace(/\//g, '/'), operator: '部门负责人', dept: dept, opType: '云账号', opTypeColor: 'green', target: dept, desc: '解绑主账号', ip: '10.128.0.10' });
       pageCache = {};
       if (currentPage === 'cloud') loadPage('cloud');
     } else if (action === 'reclaim') {
@@ -453,7 +451,7 @@ function handleModalSubmit(name) {
       showMessage('请输入角色名称', 'warning');
       return;
     }
-    var roleType = '部门级';
+    var roleType = '业务线级';
     var roleTypeColor = 'orange';
     var roleDesc = document.getElementById('modal-role-desc');
     // 收集权限配置

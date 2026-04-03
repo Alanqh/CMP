@@ -9,7 +9,7 @@ MockData.roles = [
     ],
     permissions: {}
   },
-  { name: '运维负责人', type: '部门级', typeColor: 'orange', scope: '资源管理 - 目录配置、表单模板、审核流程管理（仅所在部门）', userCount: 3, createTime: '--', builtin: true, superOnly: false,
+  { name: '运维负责人', type: '业务线级', typeColor: 'orange', scope: '资源管理 - 目录配置、表单模板、审核流程管理（仅所在部门）', userCount: 3, createTime: '--', builtin: true, superOnly: false,
     users: [
       { name: '李思远', username: 'lisy', dept: '基础架构部' },
       { name: '马丽华', username: 'malh', dept: '业务研发部' },
@@ -21,7 +21,7 @@ MockData.roles = [
       '工单管理': ['查看', '创建']
     }
   },
-  { name: '审核人', type: '部门级', typeColor: 'orange', scope: '工单审核、资源申请审批（仅所在部门）', userCount: 3, createTime: '--', builtin: true, superOnly: false,
+  { name: '审核人', type: '业务线级', typeColor: 'orange', scope: '工单审核、资源申请审批（仅所在部门）', userCount: 3, createTime: '--', builtin: true, superOnly: false,
     users: [
       { name: '赵雪晴', username: 'zhaoxq', dept: '基础架构部' },
       { name: '林志强', username: 'linzq', dept: '业务研发部' },
@@ -32,7 +32,7 @@ MockData.roles = [
       '资源管理': ['查看', '审批']
     }
   },
-  { name: '工单处理人', type: '部门级', typeColor: 'orange', scope: '工单处理、工单转移（仅所在部门）', userCount: 4, createTime: '--', builtin: true, superOnly: false,
+  { name: '工单处理人', type: '业务线级', typeColor: 'orange', scope: '工单处理、工单转移（仅所在部门）', userCount: 4, createTime: '--', builtin: true, superOnly: false,
     users: [
       { name: '孙磊', username: 'sunlei', dept: '基础架构部' },
       { name: '陈天宇', username: 'chenty', dept: '基础架构部' },
@@ -261,7 +261,7 @@ MockData.applicationRecords = [
       { role: '直属领导', name: '黄晓燕', status: 'done', time: '2026/03/07 15:30:00', remark: '同意' },
       { role: '部门负责人', name: '刘佳琪', status: 'rejected', time: '2026/03/07 17:00:00', remark: '前端组暂不需要独立子账号，使用组共享账号即可' }
     ],
-    formData: { '申请类型': '子账号申请', '权限包': 'ECS 运维（ecs-ops）', '有效期': '长期持有', '绑定主账号': 'biz-prod (LTAI****k9Xm)', '用途说明': '前端构建部署使用' }
+    formData: { '申请类型': '子账号申请', '权限包': 'ECS 运维（ecs-ops）', '有效期': '长期持有', '关联主账号': 'biz-prod (LTAI****k9Xm)', '用途说明': '前端构建部署使用' }
   }
 ];
 
@@ -270,7 +270,7 @@ MockData.auditLogs = [
   { time: '2026/03/12 09:15:30', operator: '李思远', dept: '基础架构部', opType: '权限变更', opTypeColor: 'orange', target: '用户: 陈天宇', desc: '分配角色「部门运维」', ip: '10.128.0.42', before: '无角色', after: '部门运维' },
   { time: '2026/03/11 16:40:12', operator: '张明远', dept: '基础架构部', opType: '组织架构', opTypeColor: 'cyan', target: 'K8s运维小组', desc: '创建二级组', ip: '10.128.0.10', before: '--', after: '已创建' },
   { time: '2026/03/11 14:22:08', operator: '赵雪晴', dept: '基础架构部', opType: '资源操作', opTypeColor: 'blue', target: 'slb-prod-api-gw', desc: '变更 SLB 负载均衡配置', ip: '10.128.0.67', before: '4C8G', after: '8C16G' },
-  { time: '2026/03/11 11:05:33', operator: '张明远', dept: '基础架构部', opType: '云账号', opTypeColor: 'green', target: '阿里云 - infra-main', desc: '绑定部门主账号', ip: '10.128.0.10', before: '未绑定', after: '已绑定' },
+  { time: '2026/03/11 11:05:33', operator: '张明远', dept: '基础架构部', opType: '云账号', opTypeColor: 'green', target: '阿里云 - infra-main', desc: '关联部门主账号', ip: '10.128.0.10', before: '未关联', after: '已关联' },
   { time: '2026/03/10 17:30:00', operator: '系统', dept: '--', opType: '审核流程', opTypeColor: 'red', target: 'ERP-FLOW-001', desc: '审核通过 - 王浩然的 ECS 申请', ip: '--', before: '审核中', after: '已通过' },
   { time: '2026/03/10 15:20:11', operator: '刘佳琪', dept: '业务研发部', opType: '组织架构', opTypeColor: 'cyan', target: '前端组', desc: '指定黄晓燕为组长', ip: '10.128.1.20', before: '待指定', after: '黄晓燕' },
   { time: '2026/03/10 14:05:00', operator: '马丽华', dept: '业务研发部', opType: '工单操作', opTypeColor: 'purple', target: 'TK-20260310-003', desc: '创建权限类工单', ip: '10.128.1.35', before: '--', after: '待处理' },
