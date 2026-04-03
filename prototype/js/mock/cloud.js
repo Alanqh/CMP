@@ -10,7 +10,7 @@ MockData.cloudAccounts = {
       region: 'ap-guangzhou', regionName: '广州',
       bindUser: '刘佳琪', bindTime: '2025/09/10 11:20:00', status: '正常' },
     { dept: '数据平台部', vendor: '', account: '', bindUser: '', bindTime: '',
-      region: '', regionName: '', status: '未关联' }
+      region: '', regionName: '', status: '未绑定' }
   ],
   sub: [
     { name: 'wanghr-dev', vendor: '阿里云', ramUser: 'ram-wanghr-dev@1234567890.onaliyun.com', permPackageId: 'ecs-ops', durationType: '长期持有', createTime: '2025/10/01 09:00:00', status: '正常', statusClass: 'success', owner: '王浩然', ownerUsername: 'wanghr', mainAccount: 'infra-main (LTAI****7F2Q)', dept: '基础架构部',

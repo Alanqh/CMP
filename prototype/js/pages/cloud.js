@@ -123,7 +123,7 @@ function initCloudPage() {
   var mainContainer = document.getElementById('cloud-main-container');
   if (mainContainer) {
     var ctx = getRoleContext();
-    // 关联/解绑主账号：仅超管和部门负责人可操作
+    // 绑定/解绑主账号：仅超管和部门负责人可操作
     var canManageMain = currentRole === 'superadmin' || currentRole === 'dept_head';
     var mainAccounts = MockData.cloudAccounts.main;
     if (ctx.deptId && currentRole !== 'superadmin') {
@@ -132,13 +132,13 @@ function initCloudPage() {
     var html = '<table class="ant-table"><thead><tr><th>部门</th><th>云厂商</th><th>主账号 / AK别名</th><th>绑定人</th><th>绑定时间</th><th>指定地域</th><th>状态</th><th>操作</th></tr></thead><tbody>';
     mainAccounts.forEach(function (a) {
       html += '<tr><td>' + esc(a.dept) + '</td>';
-      if (a.status === '未关联') {
+      if (a.status === '未绑定') {
         html += '<td colspan="5" style="color:var(--text-secondary);">--</td>';
         html += '<td>';
         if (canManageMain) {
-          html += '<button class="ant-btn ant-btn-primary ant-btn-sm cloud-bind-main-btn" data-dept="' + esc(a.dept) + '">关联主账号</button>';
+          html += '<button class="ant-btn ant-btn-primary ant-btn-sm cloud-bind-main-btn" data-dept="' + esc(a.dept) + '">绑定主账号</button>';
         } else {
-          html += '<span style="color:var(--text-secondary);">未关联</span>';
+          html += '<span style="color:var(--text-secondary);">未绑定</span>';
         }
         html += '</td></tr>';
       } else {
@@ -157,7 +157,7 @@ function initCloudPage() {
     html += '</tbody></table>';
     mainContainer.innerHTML = html;
 
-    // 绑定关联主账号按钮
+    // 绑定主账号按钮
     mainContainer.querySelectorAll('.cloud-bind-main-btn').forEach(function (btn) {
       btn.onclick = function () {
         var dept = btn.getAttribute('data-dept');
@@ -385,7 +385,7 @@ function initCloudResourceTab() {
   var syncTimeEl    = document.getElementById('cloud-res-sync-time');
   if (!accountSelect) return;
 
-  // 填充云账号下拉（仅已关联账号，显示部门 — 别名 [地域]）
+  // 填充云账号下拉（仅已绑定账号，显示部门 — 别名 [地域]）
   accountSelect.innerHTML = '';
   var boundAccounts = MockData.cloudAccounts.main.filter(function (a) { return a.status === '正常'; });
   boundAccounts.forEach(function (a) {

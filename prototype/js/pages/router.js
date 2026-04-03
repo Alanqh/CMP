@@ -62,7 +62,7 @@ function hideModal() {
   if (overlay) overlay.style.display = 'none';
 }
 
-// ===== 关联主账号弹窗 步骤切换 =====
+// ===== 绑定主账号弹窗 步骤切换 =====
 window.bindMainStep = function (step) {
   var s1 = document.getElementById('bind-step-1');
   var s2 = document.getElementById('bind-step-2');
@@ -396,8 +396,8 @@ function handleModalSubmit(name) {
       }
     }
     hideModal();
-    showMessage('已成功关联「' + dept + '」的主账号', 'success');
-    MockData.auditLogs.unshift({ time: new Date().toLocaleString('zh-CN').replace(/\//g, '/'), operator: '部门负责人', dept: dept, opType: '云账号', opTypeColor: 'green', target: alias.value.trim(), desc: '关联部门主账号', ip: '10.128.0.10' });
+    showMessage('已成功绑定「' + dept + '」的主账号', 'success');
+    MockData.auditLogs.unshift({ time: new Date().toLocaleString('zh-CN').replace(/\//g, '/'), operator: '部门负责人', dept: dept, opType: '云账号', opTypeColor: 'green', target: alias.value.trim(), desc: '绑定部门主账号', ip: '10.128.0.10' });
     pageCache = {};
     if (currentPage === 'cloud') loadPage('cloud');
   } else if (name === 'cloud/confirm-action') {
@@ -410,7 +410,7 @@ function handleModalSubmit(name) {
           MockData.cloudAccounts.main[i].account = '';
           MockData.cloudAccounts.main[i].bindUser = '';
           MockData.cloudAccounts.main[i].bindTime = '';
-          MockData.cloudAccounts.main[i].status = '未关联';
+          MockData.cloudAccounts.main[i].status = '未绑定';
           MockData.cloudAccounts.main[i].region = '';
           MockData.cloudAccounts.main[i].regionName = '';
           break;

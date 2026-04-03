@@ -75,21 +75,21 @@ function renderDeptAccount(container, cfg, deptId) {
       if (v.indexOf('huawei') !== -1 || v.indexOf('华为云') !== -1) return 'ant-tag-red';
       return 'ant-tag-cyan';
     }
-    html += '<div class="ant-form-item"><div class="ant-form-label">当前关联主账号</div>';
+    html += '<div class="ant-form-item"><div class="ant-form-label">当前绑定主账号</div>';
     html += '<div class="ant-form-control" style="display:flex;align-items:center;gap:12px;">';
     if (accountInfo && accountInfo.vendor) {
       var vendorColor = getVendorTagColor(accountInfo.vendor);
       html += '<span class="ant-tag ' + vendorColor + '" style="font-size:14px;padding:4px 12px;">' + esc(accountInfo.vendor) + '</span>';
     }
     html += '<span class="ant-tag ant-tag-blue" style="font-size:14px;padding:4px 12px;">' + esc(cfg.cloudAccount) + '</span>';
-    html += '<span class="ant-tag ant-tag-green">已关联</span>';
+    html += '<span class="ant-tag ant-tag-green">已绑定</span>';
     html += '<button class="ant-btn ant-btn-danger" id="dept-config-unbind-btn" style="margin-left:auto;">解绑</button>';
     html += '</div></div>';
   } else {
-    html += '<div class="ant-form-item"><div class="ant-form-label">当前关联主账号</div>';
-    html += '<div class="ant-form-control"><span class="ant-tag ant-tag-default" style="font-size:14px;padding:4px 12px;">未关联</span></div></div>';
+    html += '<div class="ant-form-item"><div class="ant-form-label">当前绑定主账号</div>';
+    html += '<div class="ant-form-control"><span class="ant-tag ant-tag-default" style="font-size:14px;padding:4px 12px;">未绑定</span></div></div>';
     html += '<div class="ant-form-item"><div class="ant-form-label"></div>';
-    html += '<div class="ant-form-control"><button class="ant-btn ant-btn-primary" id="dept-config-bind-btn">关联主账号</button></div></div>';
+    html += '<div class="ant-form-control"><button class="ant-btn ant-btn-primary" id="dept-config-bind-btn">绑定主账号</button></div></div>';
   }
   html += '</div></div>';
   container.innerHTML = html;
@@ -99,7 +99,7 @@ function renderDeptAccount(container, cfg, deptId) {
     bindBtn.onclick = function () {
       loadAndShowModal('cloud/bind-main', function () {
         var header = document.querySelector('#modal-container .ant-modal-header');
-        if (header) header.childNodes[0].textContent = '关联主账号 ';
+        if (header) header.childNodes[0].textContent = '绑定主账号 ';
         var confirmBtn = document.querySelector('#modal-container .ant-btn-primary');
         if (confirmBtn) {
           confirmBtn.onclick = function () {
@@ -109,7 +109,7 @@ function renderDeptAccount(container, cfg, deptId) {
               cfg.cloudAccount = alias.value.trim() + ' (' + ak.value.trim().substring(0, 4) + '****)';
               cfg.cloudAccountBound = true;
               hideModal();
-              showMessage('主账号已关联为「' + cfg.cloudAccount + '」', 'success');
+              showMessage('主账号已绑定为「' + cfg.cloudAccount + '」', 'success');
               renderDeptConfig();
             } else {
               showMessage('请填写完整信息', 'error');
@@ -151,7 +151,7 @@ function renderDeptAccount(container, cfg, deptId) {
                 MockData.cloudAccounts.main[k].account = '';
                 MockData.cloudAccounts.main[k].bindUser = '';
                 MockData.cloudAccounts.main[k].bindTime = '';
-                MockData.cloudAccounts.main[k].status = '未关联';
+                MockData.cloudAccounts.main[k].status = '未绑定';
                 MockData.cloudAccounts.main[k].region = '';
                 MockData.cloudAccounts.main[k].regionName = '';
                 break;
@@ -304,7 +304,7 @@ function renderDeptTemplateEdit(container, cfg, tplIdx) {
   // 初始化部门级覆盖配置
   if (!deptTpl.fieldOverrides) deptTpl.fieldOverrides = {};
 
-  // 查找部门云账号关联的地域（用于固化 RegionId 字段）
+  // 查找部门云账号绑定的地域（用于固化 RegionId 字段）
   var deptRegion = '';
   var deptRegionName = '';
   if (cfg.cloudAccount) {
@@ -363,7 +363,7 @@ function renderDeptTemplateEdit(container, cfg, tplIdx) {
         html += '<td style="text-align:center;"><span class="ant-tag ant-tag-default" style="font-size:11px;">select</span></td>';
         html += '<td style="font-size:11px;"><span style="color:#595959;">接口获取</span></td>';
         html += '<td style="text-align:center;"><label class="toggle-switch"><input type="checkbox" disabled checked /><span class="toggle-slider"></span></label></td>';
-        html += '<td style="font-size:12px;color:#1890ff;">' + (deptRegionName ? esc(deptRegionName) : '<span style="color:#bfbfbf;font-size:11px;">未关联账号</span>') + '</td>';
+        html += '<td style="font-size:12px;color:#1890ff;">' + (deptRegionName ? esc(deptRegionName) : '<span style="color:#bfbfbf;font-size:11px;">未绑定账号</span>') + '</td>';
         html += '<td><div style="display:flex;align-items:center;gap:6px;">';
         html += '<span class="ant-tag" style="font-size:11px;background:#e6f7ff;border-color:#91caff;color:#0958d9;">云账号地域</span>';
         html += '<span style="font-size:12px;color:#888;">固定，不可修改</span>';
