@@ -49,16 +49,6 @@ function renderProjects() {
   var deptFilterEl2 = document.getElementById('project-dept-filter');
   if (deptFilterEl2) deptFilterEl2.style.display = (currentRole === 'superadmin') ? '' : 'none';
 
-  // Stats
-  var statsContainer = document.getElementById('project-stats');
-  if (statsContainer) {
-    var totalRes = 0; var depts = {};
-    data.forEach(function (p) { totalRes += p.resourceCount; depts[p.dept] = true; });
-    statsContainer.innerHTML = '<div class="stat-card"><div class="stat-value">' + data.length + '</div><div class="stat-label">项目总数</div></div>' +
-      '<div class="stat-card"><div class="stat-value">' + totalRes + '</div><div class="stat-label">关联资源总数</div></div>' +
-      '<div class="stat-card"><div class="stat-value">' + Object.keys(depts).length + '</div><div class="stat-label">涉及部门数</div></div>';
-  }
-
   // Table
   var tableContainer = document.getElementById('project-table-container');
   if (!tableContainer) return;

@@ -12,26 +12,28 @@ function initAuditPage() {
   if (typeFilter) typeFilter.onchange = function () { state.audit.typeFilter = typeFilter.value; state.audit.page = 1; renderAuditLogs(); };
   var deptFilter = document.getElementById('audit-dept-filter');
   if (deptFilter) {
-    if (currentRole !== 'superadmin') {
-      deptFilter.style.display = 'none';
-    } else {
-      deptFilter.onchange = function () { state.audit.deptFilter = deptFilter.value; state.audit.page = 1; renderAuditLogs(); };
-    }
+    deptFilter.onchange = function () { state.audit.deptFilter = deptFilter.value; state.audit.page = 1; renderAuditLogs(); };
   }
   var dateFrom = document.getElementById('audit-date-from');
   if (dateFrom) dateFrom.onchange = function () { state.audit.dateFrom = dateFrom.value; state.audit.page = 1; renderAuditLogs(); };
   var dateTo = document.getElementById('audit-date-to');
   if (dateTo) dateTo.onchange = function () { state.audit.dateTo = dateTo.value; state.audit.page = 1; renderAuditLogs(); };
-  var exportBtn = document.getElementById('audit-export-btn');
-  if (exportBtn) exportBtn.onclick = function () { showMessage('审计日志导出任务已提交，请稍后在下载中心查看', 'success'); };
 }
 
 function renderAuditLogs() {
   var s = state.audit;
   var ctx = getRoleContext();
+
+  // 仅超管可见审计日志
+  if (currentRole !== 'superadmin') {
+    var tableContainer = document.getElementById('audit-table-container');
+    if (tableContainer) {
+      tableContainer.innerHTML = '<div style="text-align:center;padding:60px;color:var(--text-secondary);">您无权限查看审计日志</div>';
+    }
+    return;
+  }
+
   var data = MockData.auditLogs.filter(function (log) {
-    // 数据权限：部门负责人只看本部门，超管看全部
-    if (ctx.deptName && log.dept !== ctx.deptName && log.dept !== '--') return false;
     if (s.keyword) {
       var kw = s.keyword.toLowerCase();
       if (log.operator.toLowerCase().indexOf(kw) === -1 && log.target.toLowerCase().indexOf(kw) === -1 && log.desc.toLowerCase().indexOf(kw) === -1) return false;
@@ -55,7 +57,7 @@ function renderAuditLogs() {
 
   var tableContainer = document.getElementById('audit-table-container');
   if (!tableContainer) return;
-  var html = '<table class="ant-table"><thead><tr><th>操作时间</th><th>操作人</th><th>所属部门</th><th>操作类型</th><th>操作对象</th><th>操作描述</th><th>变更前</th><th>变更后</th><th>来源IP</th><th>详情</th></tr></thead><tbody>';
+  var html = '<table class="ant-table"><thead><tr><th>操作时间</th><th>操作人</th><th>所属部门</th><th>操作类型</th><th>操作对象</th><th>操作描述</th><th>来源IP</th><th>变更前</th><th>变更后</th><th>详情</th></tr></thead><tbody>';
   if (pageData.length === 0) {
     html += '<tr><td colspan="10" style="text-align:center;color:var(--text-secondary);padding:32px;">暂无数据</td></tr>';
   }
@@ -64,9 +66,9 @@ function renderAuditLogs() {
     html += '<td>' + esc(log.operator) + '</td><td>' + esc(log.dept) + '</td>';
     html += '<td><span class="ant-tag ant-tag-' + log.opTypeColor + '">' + esc(log.opType) + '</span></td>';
     html += '<td>' + esc(log.target) + '</td><td>' + esc(log.desc) + '</td>';
+    html += '<td>' + esc(log.ip) + '</td>';
     html += '<td style="color:var(--text-secondary);font-size:12px;">' + (log.before ? esc(log.before) : '-') + '</td>';
     html += '<td style="color:var(--text-secondary);font-size:12px;">' + (log.after ? esc(log.after) : '-') + '</td>';
-    html += '<td>' + esc(log.ip) + '</td>';
     html += '<td><a class="ant-btn-link audit-detail-btn" data-idx="' + pageData.indexOf(log) + '">查看</a></td></tr>';
   });
   html += '</tbody></table><div id="audit-pagination"></div>';
@@ -91,9 +93,9 @@ function renderAuditLogs() {
             '<div class="ant-descriptions-row"><div class="ant-descriptions-label">操作类型</div><div class="ant-descriptions-content"><span class="ant-tag ant-tag-' + log.opTypeColor + '">' + esc(log.opType) + '</span></div></div>' +
             '<div class="ant-descriptions-row"><div class="ant-descriptions-label">操作对象</div><div class="ant-descriptions-content">' + esc(log.target) + '</div></div>' +
             '<div class="ant-descriptions-row"><div class="ant-descriptions-label">操作描述</div><div class="ant-descriptions-content">' + esc(log.desc) + '</div></div>' +
+            '<div class="ant-descriptions-row"><div class="ant-descriptions-label">来源IP</div><div class="ant-descriptions-content"><code>' + esc(log.ip) + '</code></div></div>' +
             '<div class="ant-descriptions-row"><div class="ant-descriptions-label">变更前</div><div class="ant-descriptions-content">' + (log.before ? esc(log.before) : '-') + '</div></div>' +
-            '<div class="ant-descriptions-row"><div class="ant-descriptions-label">变更后</div><div class="ant-descriptions-content">' + (log.after ? esc(log.after) : '-') + '</div></div>' +
-            '<div class="ant-descriptions-row"><div class="ant-descriptions-label">来源IP</div><div class="ant-descriptions-content"><code>' + esc(log.ip) + '</code></div></div>';
+            '<div class="ant-descriptions-row"><div class="ant-descriptions-label">变更后</div><div class="ant-descriptions-content">' + (log.after ? esc(log.after) : '-') + '</div></div>';
         }
       });
     };

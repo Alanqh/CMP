@@ -7,29 +7,6 @@
 function initUserPage() {
   var ctx = getRoleContext();
 
-  // 统计卡片（部门负责人显示本部门统计，超管显示全平台）
-  var statsEl = document.getElementById('user-stats');
-  if (statsEl) {
-    var scopedMembers = currentRole === 'dept_head'
-      ? MockData.members.filter(function (m) { return getMemberDeptId(m) === ctx.deptId; })
-      : MockData.members;
-    var totalUsers = scopedMembers.length;
-    var unassignedCount = currentRole === 'dept_head' ? 0 : MockData.members.filter(function (m) { return m.orgId === 'unassigned'; }).length;
-    var roleUsernames = {};
-    MockData.roles.forEach(function (r) {
-      if (r.users) r.users.forEach(function (u) {
-        if (currentRole !== 'dept_head' || getMemberDeptId(u) === ctx.deptId) roleUsernames[u.username] = true;
-      });
-    });
-    var roleAssignedCount = Object.keys(roleUsernames).length;
-    var deptCount = currentRole === 'dept_head' ? 1 : MockData.orgs.length;
-    statsEl.innerHTML =
-      '<div class="stat-card"><div class="stat-value">' + totalUsers + '</div><div class="stat-label">' + (currentRole === 'dept_head' ? '本部门用户' : '总用户数') + '</div></div>' +
-      '<div class="stat-card"><div class="stat-value">' + deptCount + '</div><div class="stat-label">' + (currentRole === 'dept_head' ? '部门' : '部门数') + '</div></div>' +
-      '<div class="stat-card"><div class="stat-value" style="color:#1890ff;">' + roleAssignedCount + '</div><div class="stat-label">已分配角色</div></div>' +
-      (currentRole !== 'dept_head' ? '<div class="stat-card"><div class="stat-value" style="color:#faad14;">' + unassignedCount + '</div><div class="stat-label">未分配部门</div></div>' : '');
-  }
-
   // 部门筛选下拉：超管可切换所有部门；部门负责人固定本部门（隐藏下拉）
   var deptFilter = document.getElementById('user-dept-filter');
   if (deptFilter) {
@@ -40,32 +17,6 @@ function initUserPage() {
       MockData.getAllDepts().forEach(function (d) {
         deptFilter.innerHTML += '<option value="' + esc(d) + '">' + esc(d) + '</option>';
       });
-    }
-  }
-
-  // 创建用户按钮：仅超管可见
-  var createBtn = document.getElementById('btn-create-user');
-  if (createBtn) {
-    if (currentRole !== 'superadmin') {
-      createBtn.style.display = 'none';
-    } else {
-      createBtn.style.display = '';
-      createBtn.onclick = function () {
-        loadAndShowModal('user/create-user', function () {
-          var orgSelect = document.getElementById('create-user-org');
-          if (orgSelect) {
-            var opts = '';
-            function buildOrgOptions(nodes, indent) {
-              for (var i = 0; i < nodes.length; i++) {
-                opts += '<option value="' + esc(nodes[i].id) + '">' + indent + esc(nodes[i].name) + '</option>';
-                if (nodes[i].children) buildOrgOptions(nodes[i].children, indent + '　　');
-              }
-            }
-            buildOrgOptions(MockData.orgs, '');
-            orgSelect.innerHTML = opts;
-          }
-        });
-      };
     }
   }
 
@@ -133,7 +84,7 @@ function renderUsers() {
   var tableContainer = document.getElementById('user-table-container');
   if (!tableContainer) return;
 
-  var html = '<table class="ant-table"><thead><tr><th>姓名</th><th>邮箱</th><th>所属部门</th><th>角色</th><th>创建时间</th><th>最后登录</th><th>操作</th></tr></thead><tbody>';
+  var html = '<table class="ant-table"><thead><tr><th>姓名</th><th>邮箱</th><th>组织</th><th>角色</th><th>创建时间</th><th>最后登录</th><th>操作</th></tr></thead><tbody>';
   if (pageData.length === 0) {
     html += '<tr><td colspan="7" style="text-align:center;color:var(--text-secondary);padding:32px;">暂无数据</td></tr>';
   }
@@ -163,7 +114,6 @@ function renderUsers() {
     html += '<td>' + esc(u.createTime || m.joinDate) + '</td>';
     html += '<td>' + esc(u.lastLogin || '--') + '</td>';
     html += '<td>';
-    html += '<a class="ant-btn-link edit-user-btn" data-username="' + esc(m.username) + '">编辑</a> ';
     html += '<a class="ant-btn-link assign-role-btn" data-username="' + esc(m.username) + '">分配角色</a>';
     html += '</td></tr>';
   }
@@ -177,24 +127,6 @@ function renderUsers() {
 }
 
 function bindUserActions() {
-  // 编辑用户
-  document.querySelectorAll('.edit-user-btn').forEach(function (btn) {
-    btn.onclick = function () {
-      var username = btn.getAttribute('data-username');
-      window._editUserUsername = username;
-      loadAndShowModal('user/edit-user', function () {
-        var member = null;
-        for (var i = 0; i < MockData.members.length; i++) {
-          if (MockData.members[i].username === username) { member = MockData.members[i]; break; }
-        }
-        var u = getUser(username) || {};
-        var nameInput = document.getElementById('edit-user-name');
-        var phoneInput = document.getElementById('edit-user-phone');
-        if (nameInput && member) nameInput.value = member.name;
-        if (phoneInput) phoneInput.value = u.phone || '';
-      });
-    };
-  });
   // 分配角色
   document.querySelectorAll('.assign-role-btn').forEach(function (btn) {
     btn.onclick = function () {
@@ -288,21 +220,6 @@ function bindUserActions() {
             renderUsers();
           };
         }
-      });
-    };
-  });
-  // 重置密码
-  document.querySelectorAll('.reset-pwd-btn').forEach(function (btn) {
-    btn.onclick = function () {
-      var username = btn.getAttribute('data-username');
-      window._resetPwdUsername = username;
-      var member = null;
-      for (var i = 0; i < MockData.members.length; i++) {
-        if (MockData.members[i].username === username) { member = MockData.members[i]; break; }
-      }
-      loadAndShowModal('user/confirm-reset-pwd', function () {
-        var msgEl = document.getElementById('reset-pwd-msg');
-        if (msgEl) msgEl.textContent = '确定要重置用户「' + (member ? member.name : username) + '」的密码吗？';
       });
     };
   });
