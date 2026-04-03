@@ -419,12 +419,20 @@ function bindMemberActions() {
       window._assignGroupUsername = username;
       window._assignGroupDeptOrg = deptOrg;
       loadAndShowModal('org/assign-group', function () {
-        var nameEl = document.getElementById('assign-group-member-name');
-        if (nameEl) nameEl.textContent = memberName;
+        var msgEl = document.getElementById('assign-group-msg');
+        if (msgEl) msgEl.innerHTML = '将成员【<strong>' + esc(memberName) + '</strong>】归入以下组：';
         var sel = document.getElementById('assign-group-select');
         if (sel) {
-          sel.innerHTML = '<option value="">请选择组...</option>';
-          deptOrg.children.forEach(function (c) { sel.innerHTML += '<option value="' + esc(c.name) + '">' + esc(c.name) + '</option>'; });
+          sel.innerHTML = '<option value="">请选择目标组...</option>';
+          // 从当前部门下的一级组、二级组中选择，二级组选项展示为：一级组-二级组
+          function collectGroups(nodes, parentName) {
+            for (var i = 0; i < nodes.length; i++) {
+              var label = parentName ? parentName + '-' + nodes[i].name : nodes[i].name;
+              sel.innerHTML += '<option value="' + esc(nodes[i].id) + '">' + esc(label) + '</option>';
+              if (nodes[i].children) collectGroups(nodes[i].children, parentName ? parentName + '-' + nodes[i].name : nodes[i].name);
+            }
+          }
+          collectGroups(deptOrg.children, '');
         }
       });
     };
@@ -440,6 +448,8 @@ function bindMemberActions() {
         if (MockData.members[i].username === username) { member = MockData.members[i]; break; }
       }
       if (!member) return;
+      // 获取成员当前所在组名称
+      var currentGroupName = MockData.getOrgPath(member.orgId, '');
       // 找到成员所在部门
       var deptOrg = null;
       function findParentDept(nodes) {
@@ -455,19 +465,20 @@ function bindMemberActions() {
       window._transferGroupUsername = username;
       window._transferGroupDeptOrg = deptOrg;
       loadAndShowModal('org/transfer-group', function () {
-        var nameEl = document.getElementById('transfer-group-member-name');
-        if (nameEl) nameEl.textContent = memberName;
+        var msgEl = document.getElementById('transfer-group-msg');
+        if (msgEl) msgEl.innerHTML = '将成员【<strong>' + esc(memberName) + '</strong>】从【<strong>' + esc(currentGroupName) + '</strong>】调入以下组：';
         var sel = document.getElementById('transfer-group-select');
         if (sel) {
           sel.innerHTML = '<option value="">请选择目标组...</option>';
           // 列出同部门下所有组（含子组），排除当前所在组
-          function collectGroups(nodes, prefix) {
+          // 二级组选项展示为：一级组-二级组
+          function collectGroups(nodes, parentName) {
             for (var i = 0; i < nodes.length; i++) {
-              var label = prefix ? prefix + ' - ' + nodes[i].name : nodes[i].name;
+              var label = parentName ? parentName + '-' + nodes[i].name : nodes[i].name;
               if (nodes[i].id !== member.orgId) {
                 sel.innerHTML += '<option value="' + esc(nodes[i].id) + '">' + esc(label) + '</option>';
               }
-              if (nodes[i].children) collectGroups(nodes[i].children, label);
+              if (nodes[i].children) collectGroups(nodes[i].children, parentName ? parentName + '-' + nodes[i].name : nodes[i].name);
             }
           }
           collectGroups(deptOrg.children, '');
