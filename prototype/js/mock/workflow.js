@@ -9,7 +9,7 @@ MockData.roles = [
     ],
     permissions: {}
   },
-  { name: '运维负责人', type: '业务线级', typeColor: 'orange', scope: '资源管理 - 目录配置、表单模板、审核流程管理（仅所在部门）', userCount: 3, createTime: '--', builtin: true, superOnly: false,
+  { name: '运维负责人', type: '部门级', typeColor: 'orange', scope: '资源管理 - 目录配置、表单模板、审核流程管理（仅所在部门）', userCount: 3, createTime: '--', builtin: true, superOnly: false,
     users: [
       { name: '李思远', username: 'lisy', dept: '基础架构部' },
       { name: '马丽华', username: 'malh', dept: '业务研发部' },
@@ -21,7 +21,7 @@ MockData.roles = [
       '工单管理': ['查看', '创建']
     }
   },
-  { name: '审核人', type: '业务线级', typeColor: 'orange', scope: '工单审核、资源申请审批（仅所在部门）', userCount: 3, createTime: '--', builtin: true, superOnly: false,
+  { name: '审核人', type: '部门级', typeColor: 'orange', scope: '工单审核、资源申请审批（仅所在部门）', userCount: 3, createTime: '--', builtin: true, superOnly: false,
     users: [
       { name: '赵雪晴', username: 'zhaoxq', dept: '基础架构部' },
       { name: '林志强', username: 'linzq', dept: '业务研发部' },
@@ -32,7 +32,7 @@ MockData.roles = [
       '资源管理': ['查看', '审批']
     }
   },
-  { name: '工单处理人', type: '业务线级', typeColor: 'orange', scope: '工单处理、工单转移（仅所在部门）', userCount: 4, createTime: '--', builtin: true, superOnly: false,
+  { name: '工单处理人', type: '部门级', typeColor: 'orange', scope: '工单处理、工单转移（仅所在部门）', userCount: 4, createTime: '--', builtin: true, superOnly: false,
     users: [
       { name: '孙磊', username: 'sunlei', dept: '基础架构部' },
       { name: '陈天宇', username: 'chenty', dept: '基础架构部' },

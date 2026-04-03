@@ -56,11 +56,35 @@ function renderDeptConfig() {
 function renderDeptAccount(container, cfg, deptId) {
   var html = '<div class="ant-card"><div class="ant-card-head"><span>主账号配置</span></div><div class="ant-card-body">';
   if (cfg.cloudAccountBound) {
+    // 从 cloudAccounts.main 中查找完整信息，包括 vendor
+    var accountInfo = null;
+    for (var i = 0; i < MockData.cloudAccounts.main.length; i++) {
+      if (MockData.cloudAccounts.main[i].account === cfg.cloudAccount) {
+        accountInfo = MockData.cloudAccounts.main[i];
+        break;
+      }
+    }
+    // 根据云厂商获取标签颜色
+    function getVendorTagColor(vendor) {
+      if (!vendor) return 'ant-tag-cyan';
+      var v = vendor.toLowerCase();
+      if (v.indexOf('aliyun') !== -1 || v.indexOf('阿里云') !== -1) return 'ant-tag-orange';
+      if (v.indexOf('tencent') !== -1 || v.indexOf('腾讯云') !== -1) return 'ant-tag-blue';
+      if (v.indexOf('aws') !== -1) return 'ant-tag-purple';
+      if (v.indexOf('azure') !== -1) return 'ant-tag-cyan';
+      if (v.indexOf('huawei') !== -1 || v.indexOf('华为云') !== -1) return 'ant-tag-red';
+      return 'ant-tag-cyan';
+    }
     html += '<div class="ant-form-item"><div class="ant-form-label">当前关联主账号</div>';
-    html += '<div class="ant-form-control"><span class="ant-tag ant-tag-blue" style="font-size:14px;padding:4px 12px;">' + esc(cfg.cloudAccount) + '</span>';
-    html += '<span class="ant-tag ant-tag-green" style="margin-left:8px;">已关联</span></div></div>';
-    html += '<div class="ant-form-item"><div class="ant-form-label"></div>';
-    html += '<div class="ant-form-control"><button class="ant-btn" id="dept-config-rebind-btn">重新关联</button></div></div>';
+    html += '<div class="ant-form-control" style="display:flex;align-items:center;gap:12px;">';
+    if (accountInfo && accountInfo.vendor) {
+      var vendorColor = getVendorTagColor(accountInfo.vendor);
+      html += '<span class="ant-tag ' + vendorColor + '" style="font-size:14px;padding:4px 12px;">' + esc(accountInfo.vendor) + '</span>';
+    }
+    html += '<span class="ant-tag ant-tag-blue" style="font-size:14px;padding:4px 12px;">' + esc(cfg.cloudAccount) + '</span>';
+    html += '<span class="ant-tag ant-tag-green">已关联</span>';
+    html += '<button class="ant-btn ant-btn-danger" id="dept-config-unbind-btn" style="margin-left:auto;">解绑</button>';
+    html += '</div></div>';
   } else {
     html += '<div class="ant-form-item"><div class="ant-form-label">当前关联主账号</div>';
     html += '<div class="ant-form-control"><span class="ant-tag ant-tag-default" style="font-size:14px;padding:4px 12px;">未关联</span></div></div>';
@@ -70,13 +94,12 @@ function renderDeptAccount(container, cfg, deptId) {
   html += '</div></div>';
   container.innerHTML = html;
   var bindBtn = document.getElementById('dept-config-bind-btn');
-  var rebindBtn = document.getElementById('dept-config-rebind-btn');
-  var targetBtn = bindBtn || rebindBtn;
-  if (targetBtn) {
-    targetBtn.onclick = function () {
+  var unbindBtn = document.getElementById('dept-config-unbind-btn');
+  if (bindBtn) {
+    bindBtn.onclick = function () {
       loadAndShowModal('cloud/bind-main', function () {
         var header = document.querySelector('#modal-container .ant-modal-header');
-        if (header) header.childNodes[0].textContent = cfg.cloudAccountBound ? '重新关联主账号 ' : '关联主账号 ';
+        if (header) header.childNodes[0].textContent = '关联主账号 ';
         var confirmBtn = document.querySelector('#modal-container .ant-btn-primary');
         if (confirmBtn) {
           confirmBtn.onclick = function () {
@@ -86,11 +109,59 @@ function renderDeptAccount(container, cfg, deptId) {
               cfg.cloudAccount = alias.value.trim() + ' (' + ak.value.trim().substring(0, 4) + '****)';
               cfg.cloudAccountBound = true;
               hideModal();
-              showMessage('主账号已' + (cfg.cloudAccountBound ? '重新' : '') + '关联为「' + cfg.cloudAccount + '」', 'success');
+              showMessage('主账号已关联为「' + cfg.cloudAccount + '」', 'success');
               renderDeptConfig();
             } else {
               showMessage('请填写完整信息', 'error');
             }
+          };
+        }
+      });
+    };
+  }
+  if (unbindBtn) {
+    unbindBtn.onclick = function () {
+      // 查找部门名称
+      var deptName = '';
+      for (var j = 0; j < MockData.cloudAccounts.main.length; j++) {
+        if (MockData.cloudAccounts.main[j].account === cfg.cloudAccount) {
+          deptName = MockData.cloudAccounts.main[j].dept;
+          break;
+        }
+      }
+      window._cloudConfirmAction = 'unbind';
+      window._cloudConfirmDept = deptName;
+      loadAndShowModal('cloud/confirm-action', function () {
+        var titleEl = document.getElementById('cloud-confirm-title');
+        var msgEl = document.getElementById('cloud-confirm-msg');
+        var extraEl = document.getElementById('cloud-confirm-extra');
+        if (titleEl) titleEl.textContent = '确认解绑';
+        if (msgEl) msgEl.textContent = '确定要解绑主账号吗？';
+        if (extraEl) extraEl.textContent = '解绑后该部门将无法通过平台管理云上资源，已有资源不受影响。';
+        var okBtn = document.getElementById('cloud-confirm-ok');
+        if (okBtn) okBtn.style.background = '#ff4d4f';
+        // 绑定确认按钮
+        var confirmBtn = document.querySelector('#modal-container .ant-btn-primary:not([id])') || document.getElementById('cloud-confirm-ok');
+        if (confirmBtn) {
+          confirmBtn.onclick = function () {
+            // 更新 mock 数据
+            for (var k = 0; k < MockData.cloudAccounts.main.length; k++) {
+              if (MockData.cloudAccounts.main[k].account === cfg.cloudAccount) {
+                MockData.cloudAccounts.main[k].vendor = '';
+                MockData.cloudAccounts.main[k].account = '';
+                MockData.cloudAccounts.main[k].bindUser = '';
+                MockData.cloudAccounts.main[k].bindTime = '';
+                MockData.cloudAccounts.main[k].status = '未关联';
+                MockData.cloudAccounts.main[k].region = '';
+                MockData.cloudAccounts.main[k].regionName = '';
+                break;
+              }
+            }
+            cfg.cloudAccount = '';
+            cfg.cloudAccountBound = false;
+            hideModal();
+            showMessage('已解绑主账号', 'success');
+            renderDeptConfig();
           };
         }
       });

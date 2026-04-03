@@ -83,6 +83,18 @@ function initCloudPage() {
 
   var ALL_CLOUD_TAB_PANELS = ['cloud-tab-main', 'cloud-tab-sub', 'cloud-tab-resource'];
 
+  // 根据云厂商获取标签颜色
+  function getVendorTagColor(vendor) {
+    if (!vendor) return 'ant-tag-cyan';
+    var v = vendor.toLowerCase();
+    if (v.indexOf('aliyun') !== -1 || v.indexOf('阿里云') !== -1) return 'ant-tag-orange';
+    if (v.indexOf('tencent') !== -1 || v.indexOf('腾讯云') !== -1) return 'ant-tag-blue';
+    if (v.indexOf('aws') !== -1) return 'ant-tag-purple';
+    if (v.indexOf('azure') !== -1) return 'ant-tag-cyan';
+    if (v.indexOf('huawei') !== -1 || v.indexOf('华为云') !== -1) return 'ant-tag-red';
+    return 'ant-tag-cyan';
+  }
+
   function showCloudTab(showId) {
     ALL_CLOUD_TAB_PANELS.forEach(function (panelId) {
       var el = document.getElementById(panelId);
@@ -130,7 +142,8 @@ function initCloudPage() {
         }
         html += '</td></tr>';
       } else {
-        html += '<td><span class="ant-tag ant-tag-blue">' + esc(a.vendor) + '</span></td>';
+        var vendorColor = getVendorTagColor(a.vendor);
+        html += '<td><span class="ant-tag ' + vendorColor + '">' + esc(a.vendor) + '</span></td>';
         html += '<td>' + esc(a.account) + '</td><td>' + esc(a.bindUser) + '</td><td>' + esc(a.bindTime) + '</td>';
         html += '<td>' + (a.regionName ? esc(a.regionName) : '<span style="color:var(--text-secondary);">--</span>') + '</td>';
         html += '<td><span class="ant-badge-status-dot ant-badge-status-success"></span>正常</td>';
@@ -185,9 +198,10 @@ function initCloudPage() {
           var titleEl = document.getElementById('cloud-detail-title');
           if (titleEl) titleEl.textContent = '主账号详情 - ' + dept;
           var bodyEl = document.getElementById('cloud-detail-body');
+          var vendorColor = getVendorTagColor(account.vendor);
           if (bodyEl) bodyEl.innerHTML =
             '<div class="ant-descriptions-row"><div class="ant-descriptions-label">所属部门</div><div class="ant-descriptions-content">' + esc(account.dept) + '</div></div>' +
-            '<div class="ant-descriptions-row"><div class="ant-descriptions-label">云厂商</div><div class="ant-descriptions-content"><span class="ant-tag ant-tag-blue">' + esc(account.vendor) + '</span></div></div>' +
+            '<div class="ant-descriptions-row"><div class="ant-descriptions-label">云厂商</div><div class="ant-descriptions-content"><span class="ant-tag ' + vendorColor + '">' + esc(account.vendor) + '</span></div></div>' +
             '<div class="ant-descriptions-row"><div class="ant-descriptions-label">主账号 / AK</div><div class="ant-descriptions-content">' + esc(account.account) + '</div></div>' +
             '<div class="ant-descriptions-row"><div class="ant-descriptions-label">绑定人</div><div class="ant-descriptions-content">' + esc(account.bindUser) + '</div></div>' +
             '<div class="ant-descriptions-row"><div class="ant-descriptions-label">绑定时间</div><div class="ant-descriptions-content">' + esc(account.bindTime) + '</div></div>' +
@@ -314,12 +328,13 @@ function renderCloudSub() {
         if (titleEl) titleEl.textContent = '子账号详情 - ' + name;
         var bodyEl = document.getElementById('cloud-detail-body');
         if (!bodyEl) return;
+        var subVendorColor = getVendorTagColor(sub.vendor);
         var html =
           '<div class="ant-descriptions-row"><div class="ant-descriptions-label">子账号名称</div><div class="ant-descriptions-content">' + esc(sub.name) + '</div></div>' +
           '<div class="ant-descriptions-row"><div class="ant-descriptions-label">归属人</div><div class="ant-descriptions-content">' + esc(sub.owner) + '</div></div>' +
           '<div class="ant-descriptions-row"><div class="ant-descriptions-label">所属部门</div><div class="ant-descriptions-content">' + esc(sub.dept || '--') + '</div></div>' +
           '<div class="ant-descriptions-row"><div class="ant-descriptions-label">所属主账号</div><div class="ant-descriptions-content">' + esc(sub.mainAccount || '--') + '</div></div>' +
-          '<div class="ant-descriptions-row"><div class="ant-descriptions-label">云厂商</div><div class="ant-descriptions-content"><span class="ant-tag ant-tag-blue">' + esc(sub.vendor) + '</span></div></div>' +
+          '<div class="ant-descriptions-row"><div class="ant-descriptions-label">云厂商</div><div class="ant-descriptions-content"><span class="ant-tag ' + subVendorColor + '">' + esc(sub.vendor) + '</span></div></div>' +
           '<div class="ant-descriptions-row"><div class="ant-descriptions-label">RAM用户名</div><div class="ant-descriptions-content">' + esc(sub.ramUser) + '</div></div>' +
           '<div class="ant-descriptions-row"><div class="ant-descriptions-label">权限包</div><div class="ant-descriptions-content"><span class="ant-tag ant-tag-' + subPkg.color + '">' + esc(subPkg.name) + '</span><div style="color:var(--text-secondary);font-size:12px;margin-top:4px;">' + esc(subPkg.description) + '</div></div></div>' +
           '<div class="ant-descriptions-row"><div class="ant-descriptions-label">关联策略</div><div class="ant-descriptions-content">' + subPkg.policies.map(function (p) { return '<code style="display:inline-block;margin:0 4px 4px 0;padding:1px 6px;background:#f5f5f5;border:1px solid #d9d9d9;border-radius:2px;font-size:12px;">' + esc(p) + '</code>'; }).join('') + '</div></div>' +

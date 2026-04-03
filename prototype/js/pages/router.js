@@ -370,13 +370,19 @@ function handleModalSubmit(name) {
     if (!alias || !alias.value.trim()) { showMessage('请填写账号别名', 'warning'); return; }
     if (!ak || !ak.value.trim()) { showMessage('请填写 AccessKey ID', 'warning'); return; }
     if (!sk || !sk.value.trim()) { showMessage('请填写 AccessKey Secret', 'warning'); return; }
+    var vendorSelect = document.getElementById('bind-cloud-vendor');
     var regionSelect = document.getElementById('bind-cloud-region');
     if (!regionSelect || !regionSelect.value) { showMessage('请选择默认地域', 'warning'); return; }
     var dept = window._bindCloudDept;
     // 更新 mock 数据
     for (var i = 0; i < MockData.cloudAccounts.main.length; i++) {
       if (MockData.cloudAccounts.main[i].dept === dept) {
-        MockData.cloudAccounts.main[i].vendor = '阿里云';
+        var vendor = '阿里云';
+        if (vendorSelect && vendorSelect.value) {
+          var vendorText = vendorSelect.options[vendorSelect.selectedIndex] ? vendorSelect.options[vendorSelect.selectedIndex].textContent : '阿里云';
+          vendor = vendorText;
+        }
+        MockData.cloudAccounts.main[i].vendor = vendor;
         MockData.cloudAccounts.main[i].account = alias.value.trim() + ' (' + ak.value.trim().substring(0, 4) + '****)';
         MockData.cloudAccounts.main[i].bindUser = '部门负责人';
         MockData.cloudAccounts.main[i].bindTime = new Date().toLocaleString('zh-CN').replace(/\//g, '/');
@@ -451,7 +457,7 @@ function handleModalSubmit(name) {
       showMessage('请输入角色名称', 'warning');
       return;
     }
-    var roleType = '业务线级';
+    var roleType = '部门级';
     var roleTypeColor = 'orange';
     var roleDesc = document.getElementById('modal-role-desc');
     // 收集权限配置

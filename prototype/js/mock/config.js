@@ -295,7 +295,7 @@ MockData.deptConfig = {
   },
   'dept-biz': {
     deptName: '业务研发部',
-    cloudAccount: 'biz-prod (LTAI****k9Xm)',
+    cloudAccount: 'biz-prod (AKID****8X9K)',
     cloudAccountBound: true,
     cloudAccountOptions: ['biz-prod', 'biz-staging', 'shared-services'],
     templates: [

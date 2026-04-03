@@ -11,9 +11,18 @@ function initRolePage() {
 function renderRoleList() {
   var container = document.getElementById('role-list-container');
   if (!container) return;
-  // 超管角色置顶，其余按原序排列
-  var allRoles = MockData.roles;
-  var html = '<table class="ant-table"><thead><tr><th>角色名称</th><th>类型</th><th>角色描述</th><th>已授权人数</th><th>操作</th></tr></thead><tbody>';
+
+  // 排序：角色名称字母顺序排序，但保持超管始终在第一个
+  var allRoles = MockData.roles.slice();
+  allRoles.sort(function(a, b) {
+    // 超管始终在第一个
+    if (a.superOnly && !b.superOnly) return -1;
+    if (!a.superOnly && b.superOnly) return 1;
+    // 其他按角色名称字母顺序
+    return a.name.localeCompare(b.name);
+  });
+
+  var html = '<table class="ant-table"><thead><tr><th>角色名称</th><th>角色类型</th><th>角色描述</th><th>已授权人数</th><th>操作</th></tr></thead><tbody>';
   allRoles.forEach(function (r) {
     html += '<tr><td>' + esc(r.name);
     if (r.superOnly) html += ' <span class="ant-tag ant-tag-red" style="font-size:11px;">超管可见</span>';
@@ -23,6 +32,7 @@ function renderRoleList() {
     html += '<td><a class="ant-btn-link role-view-users-btn" data-role-name="' + esc(r.name) + '" style="cursor:pointer;">' + r.userCount + ' 人</a></td>';
     html += '<td>';
     if (r.builtin && r.superOnly) {
+      // 超管角色无任何操作
       html += '<span style="color:#999;">--</span>';
     } else {
       html += '<a class="ant-btn-link role-edit-btn" data-role-name="' + esc(r.name) + '" title="仅超级管理员可编辑">编辑</a> ';
