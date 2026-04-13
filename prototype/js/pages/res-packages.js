@@ -1,9 +1,10 @@
 'use strict';
 // CMP 原型 - 资源包管理页
-// 资源包是个人维度的概念：
+// 常规设计：
+//   - 资源包是一组资源的集合（不带权限）
 //   - 只能将自己有 master 权限的资源放入包中
-//   - 包内每个资源可指定授权给他人的权限等级（master / developer / reporter）
-//   - 创建后可授权给其他用户
+//   - 授权用户时，指定该用户对整个资源包的权限等级（master / developer / reporter）
+//   - 同一个资源包，不同用户可以有不同的权限
 
 var PERM_COLORS = { master: 'red', developer: 'blue', reporter: 'default' };
 var PERM_LABELS = { master: 'master', developer: 'developer', reporter: 'reporter' };
@@ -50,16 +51,16 @@ function renderResPackages(keyword) {
   var html = '<table class="ant-table"><thead><tr><th>资源包名称</th><th>描述</th><th>创建人 / 时间</th><th>包含资源</th><th>已授权用户</th><th>操作</th></tr></thead><tbody>';
   filtered.forEach(function (pkg) {
     var resources = pkg.resources || [];
-    var resTags = resources.slice(0, 2).map(function (r) {
+    var resTags = resources.slice(0, 3).map(function (r) {
       return '<span class="ant-tag ant-tag-' + esc(r.typeColor || 'default') + '" style="margin-bottom:2px;">'
-        + esc(r.name) + ' <span class="ant-tag ant-tag-' + esc(PERM_COLORS[r.perm] || 'default') + '" style="font-size:10px;padding:0 4px;margin:0 0 0 2px;">' + esc(r.perm) + '</span></span>';
+        + esc(r.name) + '</span>';
     }).join('');
-    if (resources.length > 2) resTags += '<span style="font-size:12px;color:var(--text-secondary);">等 ' + resources.length + ' 个</span>';
+    if (resources.length > 3) resTags += '<span style="font-size:12px;color:var(--text-secondary);">等 ' + resources.length + ' 个</span>';
     if (!resTags) resTags = '<span style="color:var(--text-secondary);">暂无</span>';
 
     var users = pkg.users || [];
     var userTags = users.slice(0, 2).map(function (u) {
-      return '<span class="ant-tag">' + esc(u.name) + '</span>';
+      return '<span class="ant-tag">' + esc(u.name) + ' <span class="ant-tag ant-tag-' + esc(PERM_COLORS[u.perm] || 'default') + '" style="font-size:10px;padding:0 4px;margin:0 0 0 2px;">' + esc(u.perm) + '</span></span>';
     }).join('');
     if (users.length > 2) userTags += '<span style="font-size:12px;color:var(--text-secondary);">等 ' + users.length + ' 人</span>';
     if (!userTags) userTags = '<span style="color:var(--text-secondary);">暂无</span>';
@@ -133,12 +134,11 @@ function showNewResPackageModal() {
       listEl.innerHTML = '<div style="text-align:center;color:#bfbfbf;padding:24px;font-size:13px;">暂未添加资源</div>';
       return;
     }
-    var lHtml = '<table class="ant-table" style="margin:0;"><thead><tr><th>资源名称</th><th>类型</th><th>授权权限</th><th style="width:50px;"></th></tr></thead><tbody>';
+    var lHtml = '<table class="ant-table" style="margin:0;"><thead><tr><th>资源名称</th><th>类型</th><th style="width:50px;"></th></tr></thead><tbody>';
     pendingResources.forEach(function (r, i) {
       lHtml += '<tr>';
       lHtml += '<td>' + esc(r.name) + '</td>';
       lHtml += '<td><span class="ant-tag ant-tag-' + esc(r.typeColor) + '">' + esc(r.type) + '</span></td>';
-      lHtml += '<td><span class="ant-tag ant-tag-' + esc(PERM_COLORS[r.perm] || 'default') + '">' + esc(r.perm) + '</span></td>';
       lHtml += '<td><a style="color:#ff4d4f;cursor:pointer;" data-remove-idx="' + i + '">移除</a></td>';
       lHtml += '</tr>';
     });
@@ -169,12 +169,9 @@ function showNewResPackageModal() {
   html += '<div class="ant-form-control"><input class="ant-input" id="new-pkg-desc" placeholder="请输入描述（选填）" style="width:100%;"></div></div>';
   html += '</div>';
   html += '<div style="font-weight:500;font-size:14px;margin-bottom:4px;">添加资源</div>';
-  html += '<div style="font-size:12px;color:var(--text-secondary);margin-bottom:12px;">仅显示您有 master 权限的资源，可选择授权给他人的权限级别</div>';
+  html += '<div style="font-size:12px;color:var(--text-secondary);margin-bottom:12px;">仅显示您有 master 权限的资源</div>';
   html += '<div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;background:#fafafa;border:1px solid #f0f0f0;border-radius:6px;padding:12px;">';
   html += '<select class="ant-select" id="new-pkg-res-select" style="flex:1;">' + buildResSelectOptions([]) + '</select>';
-  html += '<select class="ant-select" id="new-pkg-res-perm" style="width:120px;">';
-  html += '<option value="reporter">reporter</option><option value="developer">developer</option><option value="master">master</option>';
-  html += '</select>';
   html += '<button class="ant-btn ant-btn-primary" id="new-pkg-res-add-btn" style="flex-shrink:0;">+ 添加</button>';
   html += '</div>';
   html += '<div id="new-pkg-res-list" style="min-height:80px;border:1px dashed #d9d9d9;border-radius:6px;overflow:hidden;">';
@@ -194,13 +191,11 @@ function showNewResPackageModal() {
     var sel = document.getElementById('new-pkg-res-select');
     if (!sel || !sel.value) return;
     var opt = sel.options[sel.selectedIndex];
-    var perm = document.getElementById('new-pkg-res-perm').value;
     pendingResources.push({
       resId: sel.value,
       name: opt.getAttribute('data-name'),
       type: opt.getAttribute('data-type'),
-      typeColor: opt.getAttribute('data-typecolor') || 'default',
-      perm: perm
+      typeColor: opt.getAttribute('data-typecolor') || 'default'
     });
     refreshResSelect();
     renderPendingRes();
@@ -257,26 +252,18 @@ function showResPackageEditModal(pkg) {
         + esc(r.name) + ' (' + esc(r.type) + ')</option>';
     });
     html += '</select>';
-    html += '<select class="ant-select" id="res-add-perm" style="width:120px;">';
-    html += '<option value="reporter">reporter</option><option value="developer">developer</option><option value="master">master</option>';
-    html += '</select>';
     html += '<button class="ant-btn ant-btn-primary" id="res-add-confirm-btn" style="flex-shrink:0;">+ 添加</button>';
     html += '</div>';
 
     if (!pkg.resources || pkg.resources.length === 0) {
       html += '<div style="text-align:center;color:var(--text-secondary);padding:24px;border:1px dashed #d9d9d9;border-radius:6px;">暂无资源，请添加</div>';
     } else {
-      html += '<table class="ant-table"><thead><tr><th>资源名称</th><th>资源ID</th><th>类型</th><th>授权权限</th><th>操作</th></tr></thead><tbody>';
+      html += '<table class="ant-table"><thead><tr><th>资源名称</th><th>资源ID</th><th>类型</th><th>操作</th></tr></thead><tbody>';
       pkg.resources.forEach(function (r, idx) {
         html += '<tr>';
         html += '<td>' + esc(r.name) + '</td>';
         html += '<td style="font-size:12px;color:var(--text-secondary);font-family:monospace;">' + esc(r.resId) + '</td>';
         html += '<td><span class="ant-tag ant-tag-' + esc(r.typeColor || 'default') + '">' + esc(r.type) + '</span></td>';
-        html += '<td><select class="ant-select res-perm-select" data-res-idx="' + idx + '" style="width:120px;">';
-        ['reporter', 'developer', 'master'].forEach(function (p) {
-          html += '<option value="' + p + '"' + (r.perm === p ? ' selected' : '') + '>' + p + '</option>';
-        });
-        html += '</select></td>';
         html += '<td><a class="ant-btn-link res-remove-btn" data-res-idx="' + idx + '" style="color:#ff4d4f;">移除</a></td>';
         html += '</tr>';
       });
@@ -289,12 +276,6 @@ function showResPackageEditModal(pkg) {
   function bindEditEvents() {
     var body = document.getElementById('res-pkg-edit-body');
     if (!body) return;
-    body.querySelectorAll('.res-perm-select').forEach(function (sel) {
-      sel.onchange = function () {
-        var idx = parseInt(sel.getAttribute('data-res-idx'));
-        if (pkg.resources[idx]) pkg.resources[idx].perm = sel.value;
-      };
-    });
     body.querySelectorAll('.res-remove-btn').forEach(function (btn) {
       btn.onclick = function () {
         pkg.resources.splice(parseInt(btn.getAttribute('data-res-idx')), 1);
@@ -310,14 +291,12 @@ function showResPackageEditModal(pkg) {
         var sel = document.getElementById('res-search-select');
         if (!sel || !sel.value) { showMessage('请选择要添加的资源', 'error'); return; }
         var opt = sel.options[sel.selectedIndex];
-        var perm = document.getElementById('res-add-perm').value;
         if (!pkg.resources) pkg.resources = [];
         pkg.resources.push({
           resId: sel.value,
           name: opt.getAttribute('data-name'),
           type: opt.getAttribute('data-type'),
-          typeColor: opt.getAttribute('data-typecolor') || 'default',
-          perm: perm
+          typeColor: opt.getAttribute('data-typecolor') || 'default'
         });
         body.innerHTML = renderEditBody();
         bindEditEvents();
@@ -370,7 +349,7 @@ function showResPackageAuthDrawer(pkg) {
       html += '<div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:4px;">';
       pkg.resources.forEach(function (r) {
         html += '<span class="ant-tag ant-tag-' + esc(r.typeColor || 'default') + '" style="margin:0;">'
-          + esc(r.name) + ' <span class="ant-tag ant-tag-' + esc(PERM_COLORS[r.perm] || 'default') + '" style="font-size:10px;padding:0 4px;margin:0 0 0 2px;">' + esc(r.perm) + '</span></span>';
+          + esc(r.name) + '</span>';
       });
       html += '</div>';
     }
@@ -383,6 +362,9 @@ function showResPackageAuthDrawer(pkg) {
         + esc(m.name) + '（' + esc(m.orgName) + '）</option>';
     });
     html += '</select>';
+    html += '<select class="ant-select" id="user-add-perm" style="width:120px;">';
+    html += '<option value="reporter">reporter</option><option value="developer">developer</option><option value="master">master</option>';
+    html += '</select>';
     html += '<button class="ant-btn ant-btn-primary" id="user-add-confirm-btn" style="flex-shrink:0;">+ 添加授权</button>';
     html += '</div>';
 
@@ -390,12 +372,17 @@ function showResPackageAuthDrawer(pkg) {
     if (users.length === 0) {
       html += '<div style="text-align:center;color:var(--text-secondary);padding:32px;border:1px dashed #d9d9d9;border-radius:6px;">暂无授权用户，请添加</div>';
     } else {
-      html += '<table class="ant-table"><thead><tr><th>姓名</th><th>账号</th><th>部门</th><th>操作</th></tr></thead><tbody>';
+      html += '<table class="ant-table"><thead><tr><th>姓名</th><th>账号</th><th>部门</th><th>权限</th><th>操作</th></tr></thead><tbody>';
       users.forEach(function (u, idx) {
         html += '<tr>';
         html += '<td>' + esc(u.name) + '</td>';
         html += '<td style="font-size:12px;color:var(--text-secondary);font-family:monospace;">' + esc(u.username) + '@sohu-inc.com</td>';
         html += '<td>' + esc(u.dept || '') + '</td>';
+        html += '<td><select class="ant-select user-perm-select" data-user-idx="' + idx + '" style="width:120px;">';
+        ['reporter', 'developer', 'master'].forEach(function (p) {
+          html += '<option value="' + p + '"' + (u.perm === p ? ' selected' : '') + '>' + p + '</option>';
+        });
+        html += '</select></td>';
         html += '<td><a class="ant-btn-link user-remove-btn" data-user-idx="' + idx + '" style="color:#ff4d4f;">撤销授权</a></td>';
         html += '</tr>';
       });
@@ -407,6 +394,16 @@ function showResPackageAuthDrawer(pkg) {
   function bindAuthEvents() {
     var body = document.getElementById('res-pkg-auth-body');
     if (!body) return;
+    // 权限修改
+    body.querySelectorAll('.user-perm-select').forEach(function (sel) {
+      sel.onchange = function () {
+        var idx = parseInt(sel.getAttribute('data-user-idx'));
+        if (pkg.users[idx]) pkg.users[idx].perm = sel.value;
+        renderResPackages(getKeyword());
+        showMessage('权限已更新', 'success');
+      };
+    });
+    // 移除授权
     body.querySelectorAll('.user-remove-btn').forEach(function (btn) {
       btn.onclick = function () {
         pkg.users.splice(parseInt(btn.getAttribute('data-user-idx')), 1);
@@ -416,14 +413,21 @@ function showResPackageAuthDrawer(pkg) {
         showMessage('已撤销用户授权', 'success');
       };
     });
+    // 添加授权
     var addBtn = document.getElementById('user-add-confirm-btn');
     if (addBtn) {
       addBtn.onclick = function () {
         var sel = document.getElementById('user-add-select');
         if (!sel || !sel.value) { showMessage('请选择成员', 'error'); return; }
         var opt = sel.options[sel.selectedIndex];
+        var perm = document.getElementById('user-add-perm').value;
         if (!pkg.users) pkg.users = [];
-        pkg.users.push({ name: opt.getAttribute('data-name'), username: sel.value, dept: opt.getAttribute('data-dept') });
+        pkg.users.push({
+          name: opt.getAttribute('data-name'),
+          username: sel.value,
+          dept: opt.getAttribute('data-dept'),
+          perm: perm
+        });
         body.innerHTML = renderAuthBody();
         bindAuthEvents();
         renderResPackages(getKeyword());
