@@ -237,21 +237,21 @@ function showVerifDetailModal(record, canVerify) {
     // 用户填写字段（来自 userFormData）
     if (record.userFormData) {
       Object.keys(record.userFormData).forEach(function (k) {
-        html += '<tr><td style="width:140px;color:#1890ff;background:#f0f7ff;font-weight:500;">✏ ' + esc(k) + '<br><span style="font-size:10px;font-weight:400;color:#91caff;">申请人填写</span></td><td>' + esc(record.userFormData[k]) + '</td></tr>';
+        html += '<tr><td style="width:140px;color:#1890ff;background:#f0f7ff;font-weight:500;">✏ ' + esc(k) + '<br><span style="font-size:10px;font-weight:400;color:#91caff;">申请人填写</span></td><td><input type="text" class="ant-input user-filled-input" data-key="' + esc(k) + '" value="' + esc(record.userFormData[k]) + '" style="width:100%;" /></td></tr>';
       });
     }
     // 模板自动填充字段（模拟，示例为ECS常见参数）
     var autoFillFields = [
-      { key: '可用区', val: 'cn-hangzhou-h（模板默认）' },
-      { key: '实例规格', val: 'ecs.c6.xlarge 4C8G（模板默认）' },
-      { key: '镜像', val: 'Alibaba Cloud Linux 3.2104 LTS 64位（模板默认）' },
-      { key: '系统盘类型', val: 'ESSD PL1 40GB（模板默认）' },
-      { key: '网络类型', val: 'VPC（模板默认）' },
-      { key: '安全组', val: 'sg-dept-default（模板默认）' },
-      { key: '付费类型', val: '按量付费（模板默认）' }
+      { key: '可用区', val: 'cn-hangzhou-h' },
+      { key: '实例规格', val: 'ecs.c6.xlarge 4C8G' },
+      { key: '镜像', val: 'Alibaba Cloud Linux 3.2104 LTS 64位' },
+      { key: '系统盘类型', val: 'ESSD PL1 40GB' },
+      { key: '网络类型', val: 'VPC' },
+      { key: '安全组', val: 'sg-dept-default' },
+      { key: '付费类型', val: '按量付费' }
     ];
     autoFillFields.forEach(function (f) {
-      html += '<tr><td style="width:140px;color:var(--text-secondary);background:#f5f5f5;font-weight:500;">⚙ ' + esc(f.key) + '<br><span style="font-size:10px;font-weight:400;color:#bfbfbf;">模板填充</span></td><td style="color:var(--text-secondary);">' + esc(f.val) + '</td></tr>';
+      html += '<tr><td style="width:140px;color:var(--text-secondary);background:#f5f5f5;font-weight:500;">⚙ ' + esc(f.key) + '<br><span style="font-size:10px;font-weight:400;color:#bfbfbf;">模板填充</span></td><td style="color:var(--text-secondary);"><input type="text" class="ant-input tpl-filled-input" data-key="' + esc(f.key) + '" value="' + esc(f.val) + '" style="width:100%;" /></td></tr>';
     });
     html += '</tbody></table></div>';
 
@@ -297,11 +297,29 @@ function showVerifDetailModal(record, canVerify) {
         { role: '部门负责人', name: '待确认', status: 'waiting', time: '', remark: '' }
       ];
       // 生成完整表单数据
-      record.formData = Object.assign({}, record.userFormData, {
-        '可用区': 'cn-hangzhou-h', '实例规格': 'ecs.c6.xlarge 4C8G',
-        '镜像': 'Alibaba Cloud Linux 3.2104 LTS 64位', '系统盘类型': 'ESSD PL1 40GB',
-        '网络类型': 'VPC', '安全组': 'sg-dept-default', '付费类型': '按量付费'
-      });
+      var finalData = {};
+      var modalContainer = document.getElementById('modal-container');
+      if (modalContainer) {
+        modalContainer.querySelectorAll('.user-filled-input, .tpl-filled-input').forEach(function(input) {
+          var k = input.getAttribute('data-key');
+          if (k) finalData[k] = input.value;
+        });
+      }
+      
+      if (Object.keys(finalData).length > 0) {
+        record.formData = finalData;
+        Object.keys(record.userFormData || {}).forEach(function(k) {
+          if (finalData[k] !== undefined) {
+            record.userFormData[k] = finalData[k];
+          }
+        });
+      } else {
+        record.formData = Object.assign({}, record.userFormData, {
+          '可用区': 'cn-hangzhou-h', '实例规格': 'ecs.c6.xlarge 4C8G',
+          '镜像': 'Alibaba Cloud Linux 3.2104 LTS 64位', '系统盘类型': 'ESSD PL1 40GB',
+          '网络类型': 'VPC', '安全组': 'sg-dept-default', '付费类型': '按量付费'
+        });
+      }
       hideModal();
       showMessage('核验通过，申请已进入 ERP 审批流程', 'success');
       renderVerificationRecords();
