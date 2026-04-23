@@ -291,18 +291,46 @@ function initApplyResourcePage() {
     var firstInput = formContainer.querySelector('.ant-input[type="text"], .ant-input:not([type])');
     if (firstInput && firstInput.value.trim()) resName = firstInput.value.trim();
     var selectedGroup = resGroupSel.options[resGroupSel.selectedIndex].text;
+    var ctx = getRoleContext();
+    var now = new Date();
+    var timeStr = now.getFullYear() + '/' + String(now.getMonth() + 1).padStart(2, '0') + '/' + String(now.getDate()).padStart(2, '0') + ' ' + String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0') + ':' + String(now.getSeconds()).padStart(2, '0');
+
+    // 查找当前部门的核验人
+    var deptId = ctx.deptId || 'dept-infra';
+    var verifier = (MockData.verifiers && MockData.verifiers[deptId]) || { name: '待指定', username: '' };
+
+    // 添加到资源列表（核验中状态）
     MockData.resources.push({
       name: resName, resId: 'i-new-' + Date.now(), type: tpl.resType.split(' ')[0], typeColor: 'blue', shape: '实例型',
       group: '容器平台组', groupId: 'grp-container', project: selectedGroup,
       vendor: selectedVendor === 'aliyun' ? '阿里云' : '腾讯云',
-      perm: 'master', permColor: 'green', status: '审批中', statusClass: 'processing'
+      perm: 'master', permColor: 'green', status: '核验中', statusClass: 'processing'
     });
-    var now = new Date();
-    var timeStr = now.getFullYear() + '/' + String(now.getMonth() + 1).padStart(2, '0') + '/' + String(now.getDate()).padStart(2, '0') + ' ' + String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0') + ':' + String(now.getSeconds()).padStart(2, '0');
-    MockData.auditLogs.unshift({ time: timeStr, operator: '王浩然', dept: '基础架构部', opType: '资源操作', opTypeColor: 'blue', target: resName, desc: '创建 ' + tpl.resType, ip: '10.128.0.55' });
+
+    // 添加申请记录（含核验节点）
+    var newAppId = 'APP-' + now.getFullYear() + String(now.getMonth() + 1).padStart(2, '0') + String(now.getDate()).padStart(2, '0') + '-NEW';
+    MockData.applicationRecords.unshift({
+      id: newAppId, title: '创建 ' + tpl.resType + '（' + resName + '）',
+      type: 'resource', opType: '创建', resType: tpl.resType, subRes: '',
+      status: '核验中', statusClass: 'processing',
+      applicant: ctx.name || '王浩然', applicantDept: ctx.deptName || '基础架构部', applicantGroup: '容器平台组',
+      createTime: timeStr, updateTime: timeStr,
+      flowTemplate: 'leader+l5',
+      verificationNodes: [
+        { role: '申请人', name: ctx.name || '王浩然', status: 'done', time: timeStr, remark: '提交申请' },
+        { role: '核验人', name: verifier.name, status: 'pending', time: '', remark: '' }
+      ],
+      flowNodes: [],
+      userFormData: { '资源类型': tpl.resType, '实例名称': resName, '所属项目': selectedGroup },
+      formData: null
+    });
+
+    MockData.auditLogs.unshift({ time: timeStr, operator: ctx.name || '王浩然', dept: ctx.deptName || '基础架构部', opType: '资源操作', opTypeColor: 'blue', target: resName, desc: '申请创建 ' + tpl.resType + '（核验中）', ip: '10.128.0.55' });
     pageCache['resource'] = null;
-    showMessage('资源创建申请已提交（' + tpl.resType + '），等待审批', 'success');
-    loadPage('resource');
+    pageCache['apply-records'] = null;
+    pageCache['verification-records'] = null;
+    showMessage('资源创建申请已提交（' + tpl.resType + '），等待核验人 ' + verifier.name + ' 核验', 'success');
+    loadPage('apply-records');
   };
 }
 

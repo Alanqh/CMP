@@ -1,0 +1,25 @@
+<div class="page-header-wrapper">
+  <div class="page-header">
+    <h3 class="page-title">核验记录</h3>
+  </div>
+</div>
+<div class="page-content">
+  <div class="ant-card">
+    <div class="ant-card-body">
+      <div class="ant-alert ant-alert-info" style="margin-bottom:16px;">
+        核验记录展示需要您作为核验人处理的资源创建申请。核验通过后申请将进入 ERP 审批环节；核验不通过时申请人可修改后重新提交。
+      </div>
+      <div class="filter-bar">
+        <div class="ant-input-search"><input id="verification-record-search" placeholder="搜索申请单号/标题..." /><button class="ant-input-search-button">&#128269;</button></div>
+        <select class="ant-select" id="verification-record-status-filter" style="min-width:150px;">
+          <option value="">全部状态</option>
+          <option value="核验中">待核验</option>
+          <option value="核验不通过">核验不通过</option>
+          <option value="审批中">已通过核验（审批中）</option>
+          <option value="已通过">已完成</option>
+        </select>
+      </div>
+      <div id="verification-record-table-container"></div>
+    </div>
+  </div>
+</div>

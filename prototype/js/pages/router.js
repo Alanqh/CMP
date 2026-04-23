@@ -174,9 +174,13 @@ function bindPageEvents(id) {
   else if (id === 'ticket') initTicketPage();
   else if (id === 'create-ticket') initCreateTicketPage();
   else if (id === 'user') initUserPage();
-  else if (id === 'dept-config') initDeptConfigPage();
+  else if (id === 'dept-account') { state.deptConfig.activeTab = 'account'; initDeptConfigPage(); }
+  else if (id === 'dept-res-create') { state.deptConfig.activeTab = 'res-create-config'; initDeptConfigPage(); }
+  else if (id === 'dept-approval') { state.deptConfig.activeTab = 'approval'; initDeptConfigPage(); }
+  else if (id === 'dept-ticket') { state.deptConfig.activeTab = 'ticket-handler'; initDeptConfigPage(); }
   else if (id === 'apply-records') initApplyRecordsPage();
   else if (id === 'apply-resource') initApplyResourcePage();
+  else if (id === 'verification-records') initVerificationRecordsPage();
   else if (id === 'review-records') initReviewRecordsPage();
   else if (id === 'resource-detail') initResourceDetailPage();
   else if (id === 'res-packages') initResPackagesPage();

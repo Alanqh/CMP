@@ -14,9 +14,9 @@ var ROLE_CONFIG = {
     name: '管理员',
     dataScope: '全平台（所有部门）',
     // 可访问的页面 id（data-page 属性值）
-    pages: ['org', 'role', 'user', 'dept-config', 'cloud', 'project',
+    pages: ['org', 'role', 'user', 'dept-account', 'dept-res-create', 'dept-approval', 'dept-ticket', 'cloud', 'project',
             'res-catalog', 'resource', 'res-packages', 'orphan',
-            'apply-records', 'review-records', 'ticket', 'audit']
+            'apply-records', 'verification-records', 'review-records', 'ticket', 'audit']
   },
   dept_head: {
     label: '部门负责人',
@@ -25,9 +25,9 @@ var ROLE_CONFIG = {
     username: 'zhangmy',
     name: '张明远',
     dataScope: '本部门（基础架构部）',
-    pages: ['org', 'user', 'dept-config', 'cloud', 'project',
+    pages: ['org', 'user', 'dept-account', 'dept-res-create', 'dept-approval', 'dept-ticket', 'cloud', 'project',
             'res-catalog', 'resource', 'res-packages', 'orphan',
-            'apply-records', 'review-records', 'ticket']
+            'apply-records', 'verification-records', 'review-records', 'ticket']
   },
   group_leader1: {
     label: '一级组组长',
@@ -37,7 +37,7 @@ var ROLE_CONFIG = {
     name: '李思远',
     dataScope: '本组（容器平台组）',
     pages: ['org', 'cloud', 'project', 'res-catalog', 'resource', 'res-packages',
-            'apply-records', 'review-records', 'ticket']
+            'apply-records', 'verification-records', 'review-records', 'ticket']
   },
   group_leader2: {
     label: '二级组组长',
@@ -47,7 +47,7 @@ var ROLE_CONFIG = {
     name: '陈天宇',
     dataScope: '本组（K8s运维小组）',
     pages: ['org', 'cloud', 'project', 'res-catalog', 'resource', 'res-packages',
-            'apply-records', 'review-records', 'ticket']
+            'apply-records', 'verification-records', 'review-records', 'ticket']
   },
   member: {
     label: '普通成员',

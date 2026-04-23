@@ -131,6 +131,35 @@ MockData.tickets = [
 
 MockData.applicationRecords = [
   {
+    id: 'APP-20260422-011', title: '创建 ECS 云服务器（测试环境）', type: 'resource', opType: '创建',
+    resType: 'ECS 云服务器', subRes: '', status: '核验中', statusClass: 'processing',
+    applicant: '陈天宇', applicantDept: '基础架构部', applicantGroup: '容器平台组',
+    createTime: '2026/04/22 09:30:00', updateTime: '2026/04/22 09:30:00',
+    flowTemplate: 'leader+l5',
+    verificationNodes: [
+      { role: '申请人', name: '陈天宇', status: 'done', time: '2026/04/22 09:30:00', remark: '提交申请' },
+      { role: '核验人', name: '李思远', status: 'pending', time: '', remark: '' }
+    ],
+    flowNodes: [],
+    userFormData: { '实例名称': 'ecs-test-app-01', '实例个数': '1', '用途说明': '测试环境应用服务器' },
+    formData: null
+  },
+  {
+    id: 'APP-20260421-010', title: '创建 RDS MySQL 数据库（测试）', type: 'resource', opType: '创建',
+    resType: 'RDS 云数据库', subRes: '', status: '核验不通过', statusClass: 'error',
+    applicant: '黄晓燕', applicantDept: '业务研发部', applicantGroup: '前端组',
+    createTime: '2026/04/21 14:00:00', updateTime: '2026/04/21 16:30:00',
+    flowTemplate: 'leader+l5',
+    verificationNodes: [
+      { role: '申请人', name: '黄晓燕', status: 'done', time: '2026/04/21 14:00:00', remark: '提交申请' },
+      { role: '核验人', name: '刘佳琪', status: 'rejected', time: '2026/04/21 16:30:00', remark: '所选规格不符合部门规范，请改为 rds.mysql.s2.large 规格' }
+    ],
+    flowNodes: [],
+    userFormData: { '实例名称': 'rds-test-frontend-01', '实例个数': '1', '用途说明': '前端测试数据库' },
+    formData: null
+  },
+
+  {
     id: 'APP-20260316-001', title: '创建 ECS 云服务器（生产环境）', type: 'resource', opType: '创建',
     resType: 'ECS 云服务器', subRes: '', status: '审批中', statusClass: 'processing',
     applicant: '王浩然', applicantDept: '基础架构部', applicantGroup: '容器平台组',
@@ -299,3 +328,11 @@ MockData.auditLogs = [
   { time: '2026/03/02 15:20:00', operator: '张明远', dept: '基础架构部', opType: '账号管理', opTypeColor: 'volcano', target: '用户: 新入职-赵强', desc: '创建账号并分配至容器平台组', ip: '10.128.0.10', before: '--', after: '已创建' },
   { time: '2026/03/01 10:45:00', operator: '刘佳琪', dept: '业务研发部', opType: '账号管理', opTypeColor: 'volcano', target: '用户: 田雨', desc: '重置密码', ip: '10.128.1.20', before: '--', after: '已重置' }
 ];
+
+// 各部门核验人配置（对应"资源创建设置"中的"自动填充模板配置"里的表单核验人）
+MockData.verifiers = {
+  'dept-infra': { name: '李思远', username: 'lisy' },   // 基础架构部核验人
+  'dept-biz': { name: '刘佳琪', username: 'liujq' },    // 业务研发部核验人
+  'dept-data': { name: '周文博', username: 'zhouwb' }   // 数据平台部核验人
+};
+

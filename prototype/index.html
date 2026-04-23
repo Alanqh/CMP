@@ -86,8 +86,22 @@
         <div class="menu-item" data-page="user" title="仅超级管理员可管理">
           <span class="menu-icon">&#128100;</span> 用户管理
         </div>
-        <div class="menu-item" data-page="dept-config">
-          <span class="menu-icon">&#9881;</span> 部门配置
+      </div>
+      <div class="menu-group-title menu-group-toggle" data-menu-group="dept-config-group">
+        <span class="menu-group-icon">&#9881;</span>部门配置<span class="menu-group-arrow">&#8250;</span>
+      </div>
+      <div class="menu-submenu collapsed" data-menu-group-body="dept-config-group">
+        <div class="menu-item" data-page="dept-account">
+          <span class="menu-icon">&#128100;</span> 主账号设置
+        </div>
+        <div class="menu-item" data-page="dept-res-create">
+          <span class="menu-icon">&#9881;</span> 资源创建设置
+        </div>
+        <div class="menu-item" data-page="dept-approval">
+          <span class="menu-icon">&#128203;</span> 资源审批设置
+        </div>
+        <div class="menu-item" data-page="dept-ticket">
+          <span class="menu-icon">&#128196;</span> 工单处理设置
         </div>
       </div>
       <div class="menu-group-title menu-group-toggle" data-menu-group="account-project">
@@ -124,6 +138,9 @@
       <div class="menu-submenu collapsed" data-menu-group-body="apply-review">
         <div class="menu-item" data-page="apply-records">
           <span class="menu-icon">&#128203;</span> 申请记录
+        </div>
+        <div class="menu-item" data-page="verification-records" id="menu-verification-records">
+          <span class="menu-icon">&#128269;</span> 核验记录
         </div>
         <div class="menu-item" data-page="review-records">
           <span class="menu-icon">&#9745;</span> 审核记录
@@ -179,6 +196,7 @@
 <script src="js/pages/res-config.js"></script>
 <script src="js/pages/dept-config.js"></script>
 <script src="js/pages/apply.js"></script>
+<script src="js/pages/verification.js"></script>
 <script src="js/pages/res-packages.js"></script>
 <script src="js/pages/resource-detail.js"></script>
 <script src="js/pages/role-switch.js"></script>

@@ -126,6 +126,7 @@ function initCloudPage() {
         html += '<td><span class="ant-badge-status-dot ant-badge-status-success"></span>正常</td>';
         html += '<td>';
         if (canManageMain) {
+          html += '<a class="ant-btn-link cloud-sync-btn" data-dept="' + esc(a.dept) + '" style="margin-right:8px;">↻ 同步</a>';
           html += '<a class="ant-btn-link cloud-unbind-btn" data-dept="' + esc(a.dept) + '" style="color:#ff4d4f;">解绑</a>';
         }
         html += '</td></tr>';
@@ -159,6 +160,28 @@ function initCloudPage() {
           if (msgEl) msgEl.textContent = '确定要解绑「' + dept + '」的主账号吗？';
           if (extraEl) extraEl.textContent = '解绑后该部门将无法通过平台管理云上资源，已有资源不受影响。';
         });
+      };
+    });
+
+    // 绑定同步按钮（V1.0.2 新增）
+    mainContainer.querySelectorAll('.cloud-sync-btn').forEach(function (btn) {
+      btn.onclick = function () {
+        var dept = btn.getAttribute('data-dept');
+        var acctObj = null;
+        for (var i = 0; i < MockData.cloudAccounts.main.length; i++) {
+          if (MockData.cloudAccounts.main[i].dept === dept) { acctObj = MockData.cloudAccounts.main[i]; break; }
+        }
+        var alias = acctObj ? acctObj.account : dept;
+        // 模拟同步 loading
+        btn.textContent = '同步中...';
+        btn.style.pointerEvents = 'none';
+        btn.style.color = '#bfbfbf';
+        setTimeout(function () {
+          btn.textContent = '↻ 同步';
+          btn.style.pointerEvents = '';
+          btn.style.color = '';
+          showMessage('「' + alias + '」账号资源同步完成，共同步 ' + Math.floor(Math.random() * 30 + 10) + ' 条资源记录', 'success');
+        }, 1500);
       };
     });
   }

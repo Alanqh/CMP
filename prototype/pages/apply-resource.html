@@ -1,9 +1,12 @@
 <div class="page-header-wrapper">
   <div class="page-header">
     <h3 class="page-title">
-      <a id="btn-back-to-resource" title="返回资源列表" style="cursor:pointer;color:var(--text-secondary);margin-right:8px;font-weight:400;text-decoration:none;transition:color .2s;" onmouseover="this.style.color='#1890ff'" onmouseout="this.style.color='var(--text-secondary)'">&larr;</a>创建资源
+      <a id="btn-back-to-resource" title="返回资源列表" style="cursor:pointer;color:var(--text-secondary);margin-right:8px;font-weight:400;text-decoration:none;transition:color .2s;" onmouseover="this.style.color='#1890ff'" onmouseout="this.style.color='var(--text-secondary)'">&larr;</a>申请创建资源
     </h3>
   </div>
+</div>
+<div class="ant-alert ant-alert-info" style="margin:12px 24px 0;">
+  <strong>&#128203; 申请流程说明：</strong>您只需填写少量关键字段，其余参数由部门模板自动填充。提交后由部门核验人确认并完善完整表单，<strong>核验通过后进入 ERP 审批流程</strong>，审批通过后系统自动创建资源。
 </div>
 <div class="page-content">
   <div class="page-content-inner">
@@ -104,7 +107,7 @@
     <!-- 操作区 -->
     <div style="display:flex;justify-content:flex-end;gap:8px;padding-bottom:8px;">
       <button class="ant-btn" id="btn-cancel-apply-res">取消</button>
-      <button class="ant-btn ant-btn-primary" id="btn-submit-apply-res">提交申请</button>
+      <button class="ant-btn ant-btn-primary" id="btn-submit-apply-res">提交申请（提交后进入核验环节）</button>
     </div>
 
   </div>

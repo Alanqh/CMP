@@ -33,7 +33,8 @@ var state = {
   resConfig: { activeTab: 'template', editingTemplate: null, tplCollapsed: {}, flowCollapsed: {} },
   catalogCollapsed: {},
   applyRecords: { keyword: '', statusFilter: '', typeFilter: '', page: 1 },
-  reviewRecords: { keyword: '', statusFilter: '', page: 1 }
+  reviewRecords: { keyword: '', statusFilter: '', page: 1 },
+  verificationRecords: { keyword: '', statusFilter: '', page: 1 }
 };
 
 var PAGE_SIZE = 10;
