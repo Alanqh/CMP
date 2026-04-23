@@ -173,71 +173,103 @@ function showDiskSizeFieldModal() {
 }
 
 function renderDeptAutoTemplates(container, cfg, deptId) {
-  var html = '<div style="font-size: 13px; color: #595959; margin-bottom: 16px;">当用户申请创建 <strong style="color:var(--text-color);">ECS</strong> 资源时，除用户填写的字段外，其他必须参数将使用以下预设模板自动填充。</div>';
+  var verifier = '钟壮';
+  if (deptId === 'dept-data') verifier = '吕青华';
+  else if (MockData.verifiers && MockData.verifiers[deptId]) verifier = MockData.verifiers[deptId].name;
+  
+  var html = '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">';
+  html += '<div style="font-size: 13px; color: #595959;">当用户申请创建资源时，除用户填写的字段外，其他必须参数将使用以下预设模板自动填充。</div>';
+  html += '<div style="font-size: 13px;">自动填充后表单核验人: <strong style="color:var(--text-color);margin:0 4px;">' + esc(verifier) + '</strong> <a class="ant-btn-link edit-verifier-btn" style="padding:0;">&#9998;</a></div>';
+  html += '</div>';
+
   html += '<table class="ant-table"><thead><tr>';
-  html += '<th>模板名称</th><th>对应平台类型</th><th>包含字段</th><th>更新时间</th><th>操作</th>';
+  html += '<th>模板ID</th><th>资源类型</th><th>更新者</th><th>更新时间</th><th>操作</th>';
   html += '</tr></thead><tbody>';
   
-  html += '<tr>';
-  html += '<td>基础配置模板</td>';
-  html += '<td>ECS 云服务器 - 创建</td>';
-  html += '<td><span style="color:#595959;font-size:13px;">[实例名称] [地域] [付费类型] [公网带宽] ...</span></td>';
-  html += '<td>2025/11/20</td>';
-  html += '<td><a class="ant-btn-link edit-tpl-btn" style="padding:0;">编辑</a></td>';
-  html += '</tr>';
+  var templates = [
+    { id: 'TPL-ECS-001', type: 'ECS 云服务器', updater: '系统管理员', time: '2026/04/22' },
+    { id: 'TPL-RDS-001', type: 'RDS 云数据库', updater: '系统管理员', time: '2026/04/22' },
+    { id: 'TPL-KAFKA-001', type: 'Kafka 消息队列', updater: '系统管理员', time: '2026/04/21' }
+  ];
+  
+  templates.forEach(function(t) {
+    html += '<tr>';
+    html += '<td>' + esc(t.id) + '</td>';
+    html += '<td>' + esc(t.type) + '</td>';
+    html += '<td>' + esc(t.updater) + '</td>';
+    html += '<td>' + esc(t.time) + '</td>';
+    html += '<td><a class="ant-btn-link edit-tpl-btn" data-type="' + esc(t.type) + '" style="padding:0;">编辑</a></td>';
+    html += '</tr>';
+  });
   
   html += '</tbody></table>';
   container.innerHTML = html;
   
+  container.querySelectorAll('.edit-verifier-btn').forEach(function(btn) {
+    btn.onclick = function() {
+      showMessage('此处可以打开修改核验人弹窗', 'info');
+    };
+  });
+  
   container.querySelectorAll('.edit-tpl-btn').forEach(function(btn) {
     btn.onclick = function() {
-      // Simulate going to "编辑基础配置模板" page (Screenshot 5)
-      showEditTemplateModal();
+      var resType = btn.getAttribute('data-type');
+      showEditTemplateModal(resType, deptId);
     };
   });
 }
 
-function showEditTemplateModal() {
-  // 隐藏 Tab
+function showEditTemplateModal(resType, deptId) {
   var tabs = document.querySelector('.ant-tabs');
   if (tabs) tabs.style.display = 'none';
   
-  // 修改页面标题
+  var deptName = '大数据中心';
+  var ctx = getRoleContext();
+  if (ctx && ctx.deptName) deptName = ctx.deptName;
+
   var pageTitle = document.querySelector('.page-title');
   if (pageTitle) {
-    pageTitle.innerHTML = '<span style="color:var(--text-secondary);cursor:pointer;font-weight:normal;" onclick="renderDeptConfig()">&larr; 返回自动填充模板配置</span> / <span style="font-size:16px;">编辑基础配置模板</span>';
+    var shortType = resType ? resType.split(' ')[0] : 'ECS';
+    pageTitle.innerHTML = '<span style="color:var(--text-secondary);cursor:pointer;font-weight:normal;" onclick="renderDeptConfig()">&larr; 返回自动填充模板配置</span> / <span style="font-size:16px;">编辑 ' + esc(shortType) + ' 模板</span>';
   }
 
   var html = '<div style="background:#fff;padding:24px;border:1px solid #f0f0f0;border-radius:4px;">';
   
-  html += '<h4 style="margin-bottom:16px;">基础信息</h4>';
-  html += '<div style="display:flex;gap:40px;margin-bottom:24px;color:#595959;font-size:13px;">';
-  html += '<div>模板名称：<span style="color:var(--text-color);">基础配置模板</span></div>';
-  html += '<div>对应平台资源：<span style="color:var(--text-color);">ECS 云服务器 - 创建</span></div>';
-  html += '<div>更新时间：<span style="color:var(--text-color);">2025/11/20</span></div>';
+  html += '<div style="margin-bottom:16px; font-weight:500;">模板归属部门：' + esc(deptName) + '</div>';
+  html += '<div class="ant-alert ant-alert-info" style="margin-bottom:24px;">';
+  html += '由用户填写的字段在模板中不可编辑，本模板中填写后的字段值与用户填写后的字段值在核验环节组成完整的创建表单，核验通过后进入审批环节。若模板中字段为空，则最终需要核验者将表单中必须字段补充完整。';
   html += '</div>';
 
-  html += '<h4 style="margin-bottom:16px;">固定字段配置</h4>';
   html += '<table class="ant-table"><thead><tr>';
-  html += '<th>字段名称</th><th>对应平台参数</th><th>固定值</th><th>操作</th>';
+  html += '<th>字段名称</th><th>模板预设值</th><th style="width:100px;text-align:center;">用户填写</th>';
   html += '</tr></thead><tbody>';
   
-  var fields = [
-    { name: '地域', param: 'RegionId', val: '华北2（北京）' },
-    { name: '计费方式', param: 'InstanceChargeType', val: '按量付费' },
-    { name: '公网带宽', param: 'InternetMaxBandwidthOut', val: '0 Mbps' }
-  ];
+  var fields = [];
+  if (resType === 'ECS 云服务器' || !resType) {
+    fields = [
+      { name: '数量', value: '<div class="ant-input-number"><span class="ant-input-number-handler-down">-</span><input value="1" class="ant-input-number-input" style="width:60px;"><span class="ant-input-number-handler-up">+</span></div>', userFilled: true },
+      { name: '可用区', value: '<select class="ant-select"><option>北京 可用区 L</option></select>', userFilled: false },
+      { name: '规格', value: '<div style="border:1px solid var(--primary-color);color:var(--primary-color);background:#e6f7ff;padding:4px 8px;border-radius:4px;display:inline-block;font-size:12px;">ecs.n1.tiny (北京 可用区 L)</div>', userFilled: true },
+      { name: '镜像', value: '<select class="ant-select" style="color:#bfbfbf;"><option>请选择镜像</option></select>', userFilled: true },
+      { name: '密钥对', value: '<label><input type="checkbox" checked> 绑定密钥对</label>', userFilled: true },
+      { name: '系统盘 - 可用区', value: '<select class="ant-select" style="color:#bfbfbf;"><option>请选择可用区</option></select>', userFilled: false },
+      { name: '系统盘 - 云硬盘类型', value: '<select class="ant-select"><option>高效云盘</option></select>', userFilled: false },
+      { name: '系统盘 - 云硬盘大小 (GB)', value: '<div class="ant-input-number"><span class="ant-input-number-handler-down">-</span><input value="40" class="ant-input-number-input" style="width:60px;"><span class="ant-input-number-handler-up">+</span></div>', userFilled: true },
+      { name: '高级选项', value: '<label class="toggle-switch"><input type="checkbox" checked disabled /><span class="toggle-slider"></span></label>', userFilled: false },
+      { name: '加到云连接', value: '<label class="toggle-switch"><input type="checkbox" checked disabled /><span class="toggle-slider"></span></label>', userFilled: false }
+    ];
+  } else {
+    fields = [
+      { name: '实例名称', value: '<input type="text" class="ant-input" placeholder="请输入">', userFilled: true },
+      { name: '版本', value: '<select class="ant-select"><option>默认</option></select>', userFilled: false }
+    ];
+  }
   
   fields.forEach(function(f) {
     html += '<tr>';
-    html += '<td>' + esc(f.name) + '</td>';
-    html += '<td><code style="font-size:12px;color:#722ed1;background:#f9f0ff;padding:2px 6px;border-radius:4px;">' + esc(f.param) + '</code></td>';
-    html += '<td>' + esc(f.val) + '</td>';
-    if (f.name === '计费方式') {
-      html += '<td><a class="ant-btn-link" onclick="showChargeTypeModal()" style="padding:0;">编辑固定值</a></td>';
-    } else {
-      html += '<td><a class="ant-btn-link" onclick="showMessage(\'此处可以打开固定选项编辑弹窗\', \'info\')" style="padding:0;">编辑固定值</a></td>';
-    }
+    html += '<td style="font-weight:500;">' + esc(f.name) + '</td>';
+    html += '<td>' + (f.userFilled ? '<div style="opacity:0.6;pointer-events:none;">' + f.value + '</div>' : f.value) + '</td>';
+    html += '<td style="text-align:center;"><input type="checkbox" style="cursor:pointer;accent-color:var(--primary-color);width:16px;height:16px;" ' + (f.userFilled ? 'checked' : '') + '></td>';
     html += '</tr>';
   });
   
@@ -247,43 +279,6 @@ function showEditTemplateModal() {
   
   var container = document.getElementById('dept-config-content');
   if (container) container.innerHTML = html;
-}
-
-function showChargeTypeModal() {
-  var html = '<div class="ant-modal-overlay" style="display:flex;">';
-  html += '<div class="ant-modal" style="width:500px;max-height:88vh;overflow-y:auto;">';
-  html += '<div class="ant-modal-header">固定选项值 - 计费方式';
-  html += '<button class="ant-modal-close" onclick="hideModal()">&times;</button></div>';
-  html += '<div class="ant-modal-body">';
-  html += '<div style="background:#fffbe6;border:1px solid #ffe58f;border-radius:4px;padding:8px 12px;margin-bottom:12px;font-size:12px;color:#876800;">';
-  html += '只能从平台固定选项中删减，不可添加或修改选项名称和值。';
-  html += '</div>';
-  html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">';
-  html += '<span style="font-size:13px;font-weight:500;">选项列表</span>';
-  html += '</div>';
-  html += '<div style="border:1px solid #f0f0f0;border-radius:4px;overflow:hidden;">';
-  
-  var opts = [
-    { label: '包年包月', value: 'PrePaid', checked: true },
-    { label: '按量付费', value: 'PostPaid', checked: true }
-  ];
-  
-  opts.forEach(function(opt, i) {
-    html += '<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;' + (i < opts.length - 1 ? 'border-bottom:1px solid #f0f0f0;' : '') + '">';
-    html += '<input type="checkbox" ' + (opt.checked ? 'checked' : '') + ' style="width:14px;height:14px;cursor:pointer;accent-color:var(--primary-color);" />';
-    html += '<span style="flex:1;font-size:13px;">' + esc(opt.label) + '</span>';
-    html += '<code style="font-size:11px;color:#722ed1;background:#f9f0ff;border-radius:3px;padding:1px 5px;">' + esc(opt.value) + '</code>';
-    html += '</div>';
-  });
-  html += '</div>';
-  html += '</div>';
-  html += '<div class="ant-modal-footer">';
-  html += '<button class="ant-btn" onclick="hideModal()">取消</button>';
-  html += '<button class="ant-btn ant-btn-primary" onclick="hideModal()">保存</button>';
-  html += '</div></div></div>';
-
-  var mc = document.getElementById('modal-container');
-  mc.innerHTML = html;
 }
 
 function renderDeptAccount(container, cfg, deptId) {

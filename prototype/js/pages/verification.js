@@ -60,7 +60,7 @@ function getVerificationRecords() {
       }
     });
 
-    if (isVerifier) {
+    if (isVerifier && (r.status === '核验中' || r.status === '核验失败')) {
       results.push({ record: r, myVerifStatus: myVerifStatus });
     }
   });
@@ -87,9 +87,7 @@ function renderVerificationRecords() {
     }
     if (s.statusFilter) {
       if (s.statusFilter === '核验中' && item.record.status !== '核验中') return false;
-      if (s.statusFilter === '核验不通过' && item.record.status !== '核验不通过') return false;
-      if (s.statusFilter === '审批中' && item.record.status !== '审批中') return false;
-      if (s.statusFilter === '已通过' && item.record.status !== '已通过') return false;
+      if (s.statusFilter === '核验失败' && item.record.status !== '核验失败') return false;
     }
     return true;
   });
@@ -99,8 +97,7 @@ function renderVerificationRecords() {
   var pageData = filtered.slice(start, start + PAGE_SIZE);
 
   var statusColors = {
-    '核验中': 'processing', '核验不通过': 'error',
-    '审批中': 'processing', '已通过': 'success', '已驳回': 'error', '已撤回': 'default'
+    '核验中': 'processing', '核验失败': 'error'
   };
 
   var tableContainer = document.getElementById('verification-record-table-container');
@@ -167,7 +164,7 @@ function showVerifDetailModal(record, canVerify) {
     'done': { bg: '#f6ffed', border: '#b7eb8f', color: '#52c41a', icon: '&#10003;', label: '已完成' },
     'pending': { bg: '#e6f7ff', border: '#91d5ff', color: '#1890ff', icon: '&#9998;', label: '核验中' },
     'waiting': { bg: '#f5f5f5', border: '#d9d9d9', color: '#999', icon: '&#9203;', label: '等待中' },
-    'rejected': { bg: '#fff2f0', border: '#ffa39e', color: '#ff4d4f', icon: '&#10007;', label: '不通过' }
+    'rejected': { bg: '#fff2f0', border: '#ffa39e', color: '#ff4d4f', icon: '&#10007;', label: '核验失败' }
   };
 
   function renderVerifNodes(nodes) {
@@ -259,9 +256,9 @@ function showVerifDetailModal(record, canVerify) {
     html += '</tbody></table></div>';
 
     html += '<div class="ant-form-item"><div class="ant-form-label">核验意见</div>';
-    html += '<div class="ant-form-control"><textarea class="ant-textarea" id="verif-remark" placeholder="请输入核验意见（通过时选填，不通过时必填）..." rows="3"></textarea></div></div>';
+    html += '<div class="ant-form-control"><textarea class="ant-textarea" id="verif-remark" placeholder="请输入核验意见（通过时选填，失败时必填）..." rows="3"></textarea></div></div>';
     html += '<div style="display:flex;gap:8px;justify-content:flex-end;">';
-    html += '<button class="ant-btn" id="verif-reject-btn" style="color:#ff4d4f;border-color:#ff4d4f;">核验不通过</button>';
+    html += '<button class="ant-btn" id="verif-reject-btn" style="color:#ff4d4f;border-color:#ff4d4f;">核验失败</button>';
     html += '<button class="ant-btn ant-btn-primary" id="verif-approve-btn" style="background:#13c2c2;border-color:#13c2c2;">核验通过</button>';
     html += '</div></div>';
   }
@@ -311,12 +308,12 @@ function showVerifDetailModal(record, canVerify) {
     };
   }
 
-  // 核验不通过操作
+  // 核验失败操作
   var rejectBtn = document.getElementById('verif-reject-btn');
   if (rejectBtn) {
     rejectBtn.onclick = function () {
       var remark = (document.getElementById('verif-remark') || {}).value || '';
-      if (!remark.trim()) { showMessage('核验不通过时需填写核验意见', 'warning'); return; }
+      if (!remark.trim()) { showMessage('核验失败时需填写核验意见', 'warning'); return; }
       // 更新核验节点状态
       if (record.verificationNodes) {
         record.verificationNodes.forEach(function (node) {
@@ -327,10 +324,10 @@ function showVerifDetailModal(record, canVerify) {
           }
         });
       }
-      record.status = '核验不通过';
+      record.status = '核验失败';
       record.statusClass = 'error';
       hideModal();
-      showMessage('已标记为核验不通过，申请人将收到通知', 'warning');
+      showMessage('已标记为核验失败，申请人将收到通知', 'warning');
       renderVerificationRecords();
     };
   }

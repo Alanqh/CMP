@@ -146,7 +146,7 @@ MockData.applicationRecords = [
   },
   {
     id: 'APP-20260421-010', title: '创建 RDS MySQL 数据库（测试）', type: 'resource', opType: '创建',
-    resType: 'RDS 云数据库', subRes: '', status: '核验不通过', statusClass: 'error',
+    resType: 'RDS 云数据库', subRes: '', status: '核验失败', statusClass: 'error',
     applicant: '黄晓燕', applicantDept: '业务研发部', applicantGroup: '前端组',
     createTime: '2026/04/21 14:00:00', updateTime: '2026/04/21 16:30:00',
     flowTemplate: 'leader+l5',
